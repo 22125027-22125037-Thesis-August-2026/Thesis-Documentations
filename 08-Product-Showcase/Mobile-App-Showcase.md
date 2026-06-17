@@ -166,11 +166,44 @@ resources within instant reach — because the moments that matter most shouldn'
 
 ---
 
-## 🧠 11. Why these features work — and who helped us build them
+## 🧠 11. What makes uMatter different — and why it works
 
-*uMatter isn't a list of features we guessed at. Each pillar of the app was reviewed with practising
-mental-health professionals, and each one is grounded in **why** it actually helps a young person's
-wellbeing. Sections 1–10 are the product tour; this part is the "why" behind them.*
+*Sections 1–10 are the product tour. This part is the "why" — what's genuinely new about uMatter as a
+project, how its pieces reinforce one another, and the mental-health professionals who shaped it.*
+
+**✨ What's new about this project.**
+Most mental-wellness apps a Vietnamese teen can find today are **international, English-first products**
+built for another context. uMatter is designed from the ground up for young Vietnamese users — in their
+own language and reality. Three ideas set it apart:
+
+1. **A Vietnamese-first mental-health app.** Not a translated foreign app — built in **Tiếng Việt**,
+   around how teens here actually live, feel, and talk about their emotions.
+2. **Physical wellbeing woven into mental wellbeing.** Steps & running, breathing, sleep and nutrition
+   live *inside* a mental-health app — next to heartfelt features like the **Treasure Box** of good
+   memories — because caring for the body is part of caring for the mind.
+3. **One connected system, not ten separate tools.** Your daily reflection & tracking feeds your AI
+   companion, your therapist, and your friends — so every other feature works with real context about
+   *you*, instead of in isolation.
+
+**🌱 The heart of the app — daily reflection & tracking.**
+Everything in uMatter grows from one habit: **checking in with yourself every day** — your mood (every
+~90 minutes to a few hours in Focus Mode), your journal, and your sleep, food, steps and breathing.
+This isn't one feature among ten; it's the **core**, and it's exactly what makes the rest genuinely
+useful:
+
+- **Your AI companion** (§5) replies *personally* because it can draw on how you've really been sleeping
+  and feeling — not generic advice.
+- **Your therapist** (§6), once you grant access, can see your **mood flow across the week**, that
+  you've kept up your breathing exercises and runs, and that you journal each day — and use that to help
+  you far more precisely than a single session could ever reveal.
+- **A trusted friend** (§7), if you allow it, can gently look out for you — for instance, noticing from
+  your shared food diary that you've been skipping meals, and checking in.
+
+The richer your daily reflection, the smarter and more caring every other part of the app becomes.
+
+**🤝 Built with mental-health professionals.**
+uMatter isn't a set of features we guessed at — each pillar was reviewed with practising professionals,
+and grounded in *why* it helps a young person's wellbeing.
 
 **🏃 Movement & breathing — guided by Cô Phạm Thị Thanh Quí** *(counsellor, Psychological Counselling
 Office, University of Science, VNU-HCM).*

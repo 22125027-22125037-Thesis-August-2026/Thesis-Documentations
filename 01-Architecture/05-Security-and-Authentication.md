@@ -122,6 +122,17 @@ The system-wide intent is a **hybrid** model:
   revocation (implemented in Auth; not yet wired into every downstream service — see the Therapist
   API "known gaps").
 
+> ⚠️ **Access-token revocation (logout blacklist) is NOT effective today.** Auth's
+> `TokenBlacklistService` *writes* a `blacklist:<token>` key to Redis on `POST /logout`, but the
+> *enforcement* check in the shared `JwtAuthenticationFilter` is guarded by a `tokenBlacklistService`
+> field that is **never set** (`setTokenBlacklistService(...)` is called nowhere; every service builds
+> the filter with the 2-arg constructor that leaves it `null`). So no request path ever consults the
+> blacklist — a logged-out **access token keeps working until it naturally expires (~1 hour)**. The
+> blacklist is currently *write-only / inert* scaffolding. To activate it, wire the bean into the
+> filter (e.g. `filter.setTokenBlacklistService(tokenBlacklistService)`) in each service's
+> `SecurityConfig`. Logout *does* additionally call `refreshTokenService.revoke(...)` for the refresh
+> token (enforcement of that path is separate and unverified here).
+
 ---
 
 ## 8. Secrets handling

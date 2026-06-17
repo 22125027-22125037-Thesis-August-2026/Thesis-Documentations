@@ -42,8 +42,10 @@ It is the only service that turns "something happened in another domain" into a 
 | `streak.milestone` | `STREAK` | FCM push |
 | `message.missed` | `CHAT` | FCM push |
 
-Listener semantics: `auto` ack, **no requeue on failure** (→ DLQ), retry 3× backoff 2s→10s,
-concurrency 3–10, prefetch 20. Full detail: [01-Architecture/04-Event-Driven-Messaging](../01-Architecture/04-Event-Driven-Messaging.md).
+Listener semantics: `auto` ack, **no requeue on failure** (error handler → DLQ on first failure),
+concurrency 3–10, prefetch 20. Retry/backoff is configured in `application.yml` but **not wired**
+into the project's custom container factory, so it's currently dormant. Full detail:
+[01-Architecture/04-Event-Driven-Messaging](../01-Architecture/04-Event-Driven-Messaging.md).
 
 > The Notification stack **reuses the core stack's RabbitMQ** over the host gateway rather than
 > running its own broker.

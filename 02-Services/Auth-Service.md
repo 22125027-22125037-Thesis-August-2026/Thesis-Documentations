@@ -111,7 +111,11 @@ com.mhsa.backend.auth
 ## 6. Security
 
 - Issues tokens with `iss = mhsa.backend`, `aud = mhsa-api`, `profileId`, `role`; 1-hour access TTL.
-- Implements the **Redis-backed refresh-token** half of the hybrid model.
+- Implements the **Redis-backed refresh-token** half of the hybrid model (revoked on logout).
+- ⚠️ **Access-token logout blacklist is inert:** `TokenBlacklistService` writes a `blacklist:<token>`
+  key to Redis on logout, but nothing enforces it (the `JwtAuthenticationFilter` check is never wired
+  up), so a logged-out access token still works until it expires. See
+  [05-Security-and-Authentication §7](../01-Architecture/05-Security-and-Authentication.md).
 - Admin endpoints require `ROLE_ADMIN`; profile/grant endpoints are self-scoped.
 
 ---
