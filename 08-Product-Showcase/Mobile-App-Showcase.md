@@ -119,7 +119,8 @@ When you want more than self-help, uMatter connects you with a **verified psycho
    steps, and **leave a rating & review** to help others.
 
 You're always in control of your appointments — confirm, view details, or cancel with a reason — and
-you get notified the moment your therapist confirms.
+you're kept in the loop by both a **push notification and an email** the moment your therapist confirms
+(or if a session is cancelled), so a change to your plans never slips past you.
 
 ---
 
@@ -162,6 +163,44 @@ resources within instant reach — because the moments that matter most shouldn'
 
 > uMatter is a *support* companion, not an emergency service — and it says so plainly. In a real
 > emergency it points you straight to professional help.
+
+---
+
+## 🧠 11. Why these features work — and who helped us build them
+
+*uMatter isn't a list of features we guessed at. Each pillar of the app was reviewed with practising
+mental-health professionals, and each one is grounded in **why** it actually helps a young person's
+wellbeing. Sections 1–10 are the product tour; this part is the "why" behind them.*
+
+**🏃 Movement & breathing — guided by Cô Phạm Thị Thanh Quí** *(counsellor, Psychological Counselling
+Office, University of Science, VNU-HCM).*
+Her core point: physical and mental health are inseparable. So the **automatic step counter** and the
+**breathing exercises** (§4) do double duty — they give a therapist real signal to track your activity
+and assign suitable exercises, *and* they let you lift your own mental wellbeing by caring for your
+body. Breath regulation in particular is one of the most evidence-backed ways to calm anxiety in the
+moment.
+
+**🎁 The Treasure Box — suggested by Anh Vương Nguyễn Toàn Thiện** *(CEO, LUMOS).*
+When we feel low, the mind tends to surface only what's negative — good memories become hard to reach.
+His insight, well-supported by psychological research on positive memory and mood, is that you should
+**store your core positive memories somewhere safe ahead of time** and reopen them exactly when you
+need a lift. That is the entire reason the **Treasure Box** (§3) exists: a reliable anchor back to the
+good.
+
+**🆘 Crisis safety — shaped by BS. Phạm Trần Thành Nghiệp** *(physician, Hoàn Mỹ Sài Gòn Hospital),
+with input from Anh Thiện on the SOS area.*
+From a clinical-safety standpoint, an app for vulnerable teens must never leave someone alone in a
+crisis. That is why **Bạn Tâm Giao detects crisis signals and surfaces a real hotline (1800 599 920)
+immediately** (§5), and why the **emergency-support / SOS area is always one tap away** (§9) — routing
+you to professional help the moment it matters.
+
+**Our consultations:**
+- **29 May 2026** — in person, with **Cô Phạm Thị Thanh Quí** (Psychological Counselling Office,
+  University of Science, VNU-HCM).
+- **2 Jun 2026** — online, with **Anh Vương Nguyễn Toàn Thiện** (CEO, LUMOS — the psychology partner
+  accompanying the Faculty of IT in 2026).
+- **3 Jun 2026** — online, with **BS. Phạm Trần Thành Nghiệp** (Hoàn Mỹ Sài Gòn Hospital; partner of
+  the Faculty of IT, 2022–2025).
 
 ---
 
