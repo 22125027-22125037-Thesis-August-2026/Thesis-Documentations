@@ -14,6 +14,7 @@ uMatter is deployed on a **single Oracle Cloud Infrastructure (OCI) VM**:
 |---|---|
 | VM name | `uMatter-dev` |
 | Current public IP | `140.245.124.163` *(changes on every rebuild)* |
+| Public HTTPS endpoint | **`https://umatter-apcs.duckdns.org`** *(stable domain via DuckDNS + Caddy — see [04-DNS-HTTPS-and-Play-Release](04-DNS-HTTPS-and-Play-Release.md))* |
 | OS | Canonical Ubuntu 24.04 LTS, user `ubuntu` |
 | Shape | `VM.Standard.E5.Flex` — 4 OCPU / 24 GB RAM (AMD x86_64) |
 | Boot volume | 200 GB |
@@ -59,9 +60,11 @@ Two firewall layers gate inbound traffic:
 2. **Ubuntu iptables** (`iptables-persistent`) — host firewall; mainly covers host-bound access since
    Docker-published ports traverse the FORWARD chain.
 
-**Actually open to the internet:** `22` (SSH), `8080` (gateway), `8086` (Social direct/STOMP-WS),
-`5173` (web UI). Everything the mobile app needs flows through `8080`. (Optionally `5051` for
-pgAdmin, otherwise SSH-tunnel it.) See [01-Architecture/02-Service-Catalog-and-Ports](../01-Architecture/02-Service-Catalog-and-Ports.md).
+**Actually open to the internet:** `22` (SSH), **`443`/`80` (Caddy HTTPS edge — the public entry
+point)**, `8080` (gateway, now behind Caddy), `8086` (Social direct/STOMP-WS), `5173` (web UI).
+The mobile app's **release** builds reach everything over **HTTPS via `https://umatter-apcs.duckdns.org`**
+(Caddy → gateway); see [04-DNS-HTTPS-and-Play-Release](04-DNS-HTTPS-and-Play-Release.md). (Optionally
+`5051` for pgAdmin, otherwise SSH-tunnel it.) See [01-Architecture/02-Service-Catalog-and-Ports](../01-Architecture/02-Service-Catalog-and-Ports.md).
 
 ---
 
@@ -83,7 +86,8 @@ tmux new-session -d -s web "cd ~/therapist-web-ui && npm run dev -- --host 0.0.0
 
 > **`D:\Y4-Sem 2 Thesis` on the laptop is the SINGLE SOURCE OF TRUTH for every file that is NOT
 > pushed to GitHub** — `.env` files, GitHub deploy keys + `~/.ssh/config`, the Oracle VM SSH key,
-> notification's `secrets/firebase-credentials.json`, and anything added later (TLS certs/keys,
+> notification's `secrets/firebase-credentials.json`, the **Caddy `Caddyfile` + DuckDNS units**
+> (now under `Oracle deployment\https\`), and anything added later (TLS certs/keys,
 > Kubernetes manifests, custom nginx config, …).
 >
 > **Whenever such a file is created/modified/deleted on the VM, immediately copy that change back to

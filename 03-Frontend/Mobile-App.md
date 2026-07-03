@@ -5,7 +5,7 @@
 | **Repo** | `thesis-mobile` (local only: `D:\Y4-Sem 2 Thesis\thesis-mobile`) |
 | **Platform** | React Native **0.83.1**, React **19**, TypeScript |
 | **Audience** | Teens / patients |
-| **Backend** | everything via the gateway: `BASE_URL = http://<PUBLIC_IP>:8080` |
+| **Backend** | release: `BASE_URL = https://umatter-apcs.duckdns.org` (Caddy → gateway); dev: `http://<PUBLIC_IP>:8080` |
 
 ---
 
@@ -82,8 +82,9 @@ thesis-mobile/
 
 ## 5. How the app talks to the backend
 
-- **Base URL:** a single constant (`BASE_URL = http://<PUBLIC_IP>:8080`) points at the **gateway**.
-  When the VM IP changes, this one line must be updated (see the runbook STEP 9).
+- **Base URL:** switches on `__DEV__` — **release** builds use `https://umatter-apcs.duckdns.org`
+  (HTTPS via Caddy → gateway, cleartext forbidden), **dev** builds use `http://<PUBLIC_IP>:8080`.
+  See [05-Deployment/04-DNS-HTTPS-and-Play-Release](../05-Deployment/04-DNS-HTTPS-and-Play-Release.md).
 - **Auth:** stores the JWT in AsyncStorage; an axios interceptor attaches
   `Authorization: Bearer <token>` and handles 401 (re-login / refresh).
 - **Push:** on login it registers its FCM token via `POST /api/v1/notification/api/v1/devices`
@@ -92,7 +93,7 @@ thesis-mobile/
 - **Video:** on `GET /api/v1/therapist/.../bookings/{id}/join` it receives the Zoom meeting number,
   password, and SDK JWT, then joins the call.
 - **Media:** uploads (avatar/diary/treasure) go through the gateway; downloads use presigned
-  `/mhsa-media/` URLs.
+  `/mhsa-media/` URLs — now served over **HTTPS** (`S3_PUBLIC_ENDPOINT = https://umatter-apcs.duckdns.org`).
 
 ---
 

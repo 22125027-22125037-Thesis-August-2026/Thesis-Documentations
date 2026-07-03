@@ -65,7 +65,8 @@ Thesis Documentations/
 ├── 05-Deployment/ ...................... "How do I run / ship it?"
 │   ├── 01-Deployment-Overview.md ....... Topology, Docker stacks, networks
 │   ├── 02-Oracle-Cloud-Runbook.md ...... Full OCI rebuild runbook + the 🔴 secrets rule
-│   └── 03-Local-Development-Setup.md .... Run the whole stack on a laptop
+│   ├── 03-Local-Development-Setup.md .... Run the whole stack on a laptop
+│   └── 04-DNS-HTTPS-and-Play-Release.md . DuckDNS + Caddy HTTPS edge + Google Play release
 │
 ├── 06-Development/ ..................... "How do I contribute?"
 │   ├── 01-Developer-Onboarding.md ...... Day-1 guide for a new team member
