@@ -64,7 +64,8 @@ matters — notification first (cross-stack consumers attach after it), auth las
 | **thesis_social** | social-api, social-postgres, social-rabbitmq | 3rd |
 | **uMatter-Backend_Auth_Tracking_AI** | nginx, auth/ai/tracking/dashboard services, postgres ×3, pgadmin, redis, rabbitmq, minio, minio-init | 4th (4 Spring services) |
 
-Expected after a healthy bring-up: **~24 running containers** + `minio-init` (exits 0 by design).
+Expected after a healthy bring-up: **20 running containers** + `minio-init` (exits 0 by design —
+it is a one-shot bucket initialiser and the only service with no restart policy).
 
 > Every stack declares the **`umatter-shared`** network as `external: true`. Create it **once**
 > before any `compose up`: `docker network create umatter-shared`.

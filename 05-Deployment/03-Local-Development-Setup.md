@@ -1,7 +1,7 @@
 # Local Development Setup
 
 > How to run the whole uMatter stack (or just the part you're working on) on a laptop. For the cloud
-> deployment, see [02-Oracle-Cloud-Runbook](02-Oracle-Cloud-Runbook.md).
+> deployment, see [02-Azure-Cloud-Runbook](02-Azure-Cloud-Runbook.md).
 
 ---
 

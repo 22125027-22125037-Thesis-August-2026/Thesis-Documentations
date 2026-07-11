@@ -113,7 +113,7 @@ Indexed by `(profile_id, created_at DESC)` for the inbox query.
 - **Email:** SMTP host/port/credentials + `MAIL_FROM`/`MAIL_FROM_NAME`; HTML via Thymeleaf templates.
 
 > 🔴 The Firebase credentials file is a **source-of-truth secret** — keep a copy on the laptop per the
-> rule in [05-Deployment/02-Oracle-Cloud-Runbook](../05-Deployment/02-Oracle-Cloud-Runbook.md).
+> rule in [05-Deployment/02-Azure-Cloud-Runbook](../05-Deployment/02-Azure-Cloud-Runbook.md).
 
 ---
 

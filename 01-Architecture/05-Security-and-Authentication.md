@@ -110,7 +110,7 @@ queryable (`GET /api/v1/auth/grants/status/{otherProfileId}`).
 - **Roadmap:** put a domain + TLS in front of the gateway (HTTPS), so clients stop hard-coding a raw
   IP over HTTP. When TLS is added, the **certificate + private key become new source-of-truth
   secrets** that must be copied back to the laptop per the 🔴 rule
-  ([05-Deployment/02-Oracle-Cloud-Runbook](../05-Deployment/02-Oracle-Cloud-Runbook.md)).
+  ([05-Deployment/02-Azure-Cloud-Runbook](../05-Deployment/02-Azure-Cloud-Runbook.md)).
 
 ---
 
@@ -137,10 +137,10 @@ The system-wide intent is a **hybrid** model:
 
 ## 8. Secrets handling
 
-- Secrets (`.env`, RSA keys, Firebase service-account JSON, Zoom credentials, Oracle SSH key,
+- Secrets (`.env`, RSA keys, Firebase service-account JSON, Zoom credentials, Azure SSH key,
   GitHub deploy keys) are **never committed to GitHub**.
 - The **laptop** `D:\Y4-Sem 2 Thesis` is the source of truth for all of them; the VM holds working
   copies. The full rule and rebuild procedure are in
-  [05-Deployment/02-Oracle-Cloud-Runbook](../05-Deployment/02-Oracle-Cloud-Runbook.md).
+  [05-Deployment/02-Azure-Cloud-Runbook](../05-Deployment/02-Azure-Cloud-Runbook.md).
 - The JWT private key, Gemini API key, SMTP app password, and S3/MinIO keys all live in service
   `.env` files injected via Docker Compose `env_file`.

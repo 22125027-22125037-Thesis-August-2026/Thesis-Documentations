@@ -64,9 +64,10 @@ Thesis Documentations/
 │
 ├── 05-Deployment/ ...................... "How do I run / ship it?"
 │   ├── 01-Deployment-Overview.md ....... Topology, Docker stacks, networks
-│   ├── 02-Oracle-Cloud-Runbook.md ...... Full OCI rebuild runbook + the 🔴 secrets rule
+│   ├── 02-Azure-Cloud-Runbook.md ....... Full Azure rebuild runbook + the 🔴 secrets rule
 │   ├── 03-Local-Development-Setup.md .... Run the whole stack on a laptop
-│   └── 04-DNS-HTTPS-and-Play-Release.md . DuckDNS + Caddy HTTPS edge + Google Play release
+│   ├── 04-DNS-HTTPS-and-Play-Release.md . DuckDNS + Caddy HTTPS edge + Google Play release
+│   └── 05-Oracle-Cloud-Runbook-(Retired).md  Superseded by Azure; kept for history
 │
 ├── 06-Development/ ..................... "How do I contribute?"
 │   ├── 01-Developer-Onboarding.md ...... Day-1 guide for a new team member
@@ -92,8 +93,9 @@ Thesis Documentations/
   Event-Driven (RabbitMQ) · Stateless JWT auth with a JWKS-published RSA key.
 - **Infrastructure:** PostgreSQL (one DB per service), Redis (cache + idempotency), RabbitMQ
   (events), MinIO (S3-compatible media storage), all orchestrated with **Docker Compose**.
-- **Deployment:** A single **Oracle Cloud (OCI)** Ubuntu VM running **4 Docker stacks / ~24
-  containers**, fronted by Nginx; the therapist web UI runs as a Vite dev server alongside.
+- **Deployment:** A single **Microsoft Azure** Ubuntu VM running **4 Docker stacks / 20 containers**,
+  fronted by Nginx behind a **Caddy HTTPS edge** (`https://umatter-apcs.duckdns.org`); the therapist
+  web UI runs alongside as a systemd-managed Vite server.
 - **AI:** Google **Gemini 2.5 Flash** powers the in-app mental-health companion, grounded in the
   user's own tracking context.
 
@@ -114,14 +116,14 @@ For the canonical numbers, see [01-Architecture/02-Service-Catalog-and-Ports](01
 
 > **Source-of-truth note:** the laptop directory `D:\Y4-Sem 2 Thesis` is the authoritative copy
 > of every secret/config file that is **not** committed to GitHub (`.env` files, deploy keys, the
-> Oracle SSH key, Firebase credentials). See the 🔴 rule in
-> [05-Deployment/02-Oracle-Cloud-Runbook](05-Deployment/02-Oracle-Cloud-Runbook.md).
+> Azure SSH key, Firebase credentials, the Caddy/DuckDNS units, the web-UI systemd unit). See the 🔴 rule in
+> [05-Deployment/02-Azure-Cloud-Runbook](05-Deployment/02-Azure-Cloud-Runbook.md).
 
 ---
 
 ## 🧭 How to keep this documentation alive
 
-This documentation describes the **implemented** system as of **June 2026**. When you change the
+This documentation describes the **implemented** system as of **July 2026**. When you change the
 system, update the matching doc here. The most important invariants to keep accurate:
 
 1. **The port map** — [01-Architecture/02-Service-Catalog-and-Ports](01-Architecture/02-Service-Catalog-and-Ports.md)
@@ -129,5 +131,7 @@ system, update the matching doc here. The most important invariants to keep accu
 2. **The event topology** — [01-Architecture/04-Event-Driven-Messaging](01-Architecture/04-Event-Driven-Messaging.md)
    must list every exchange/routing-key/queue actually declared in code.
 3. **The API surface** — [04-API-Reference](04-API-Reference/README.md) must match the controllers.
+4. **The deployment facts** — [05-Deployment/01-Deployment-Overview](05-Deployment/01-Deployment-Overview.md)
+   must name the VM the system actually runs on. It has moved twice.
 
-*Last assembled: 2026-06-16.*
+*Last assembled: 2026-06-16. Deployment docs rewritten 2026-07-11 for the Oracle → Azure migration.*

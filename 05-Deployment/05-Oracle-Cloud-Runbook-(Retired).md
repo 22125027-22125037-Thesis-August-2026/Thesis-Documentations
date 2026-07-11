@@ -1,10 +1,26 @@
-# Oracle Cloud (OCI) Rebuild Runbook
+# Oracle Cloud (OCI) Rebuild Runbook — ⚠️ RETIRED
+
+> **This runbook is no longer current.** uMatter was migrated off Oracle Cloud to **Microsoft Azure**
+> on **2026-07-11**. The live runbook is [02-Azure-Cloud-Runbook](02-Azure-Cloud-Runbook.md).
+>
+> It is kept because it documents the platform the system ran on for most of its life, and because
+> the parts that are *not* Oracle-specific — the 🔴 source-of-truth rule, the deploy-key/clone dance,
+> the stack bring-up order — carried over unchanged and are explained more fully here.
+>
+> **What changed on Azure** (and why the steps below will mislead you): the VM is 8 GiB rather than
+> 24 GiB, so the compose files now cap memory and JVM heap; Azure auto-shuts-down nightly, so every
+> service declares a restart policy and the web UI is a systemd unit rather than tmux; and Azure has
+> no host firewall, so the STEP 5 `iptables` work below is unnecessary.
+
+---
+
+<details>
+<summary><b>Historical runbook (Oracle Cloud) — click to expand</b></summary>
 
 > Step-by-step procedure to stand up the **entire uMatter backend** (4 Docker stacks / ~24
 > containers + the web UI) on a fresh OCI VM, using secrets copied **from the laptop**.
 >
-> **Canonical source:** `D:\Y4-Sem 2 Thesis\Oracle deployment\OCl deployment from local.md`. This
-> page mirrors it; keep both in sync. Read [01-Deployment-Overview](01-Deployment-Overview.md) first.
+> **Canonical source:** `D:\Y4-Sem 2 Thesis\Oracle deployment\OCl deployment from local.md`.
 
 ---
 
@@ -216,3 +232,5 @@ Only after STEP 8 passes, delete the old account's paid resources (or let the tr
    then start the web UI in tmux.
 9. Verify (STEP 8); repoint mobile + web UI (STEP 9).
 10. 🔴 Keep the laptop updated with any new gitignored/secret files created on the VM thereafter.
+
+</details>

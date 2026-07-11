@@ -111,4 +111,4 @@ npm ci
 npm run start            # Metro bundler
 npm run android          # build & launch on device/emulator
 ```
-Point `BASE_URL` at a reachable backend (the OCI VM, or a local stack on your LAN).
+Point `BASE_URL` at a reachable backend (the Azure VM, or a local stack on your LAN).

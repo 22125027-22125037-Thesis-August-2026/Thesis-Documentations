@@ -133,7 +133,7 @@ section of [02-Service-Catalog-and-Ports](02-Service-Catalog-and-Ports.md).
 | **Mobile** | React Native 0.83.1, React 19, TypeScript, React Navigation, Axios, STOMP.js, Notifee + Firebase Messaging |
 | **Web** | React 18, Vite 5, TypeScript, Tailwind, Radix UI, React Router, Recharts |
 | **Containerisation** | Docker + Docker Compose |
-| **Cloud** | Oracle Cloud Infrastructure (OCI) |
+| **Cloud** | Microsoft Azure — `Standard_B2as_v2` (2 vCPU / 8 GiB); migrated from Oracle Cloud on 2026-07-11 |
 
 Justification for these choices is in [07-Academic](../07-Academic/01-Thesis-Context-and-Future-Work.md).
 
@@ -157,7 +157,7 @@ These rules are *non-negotiable* and any new code or AI-generated change must re
    `ddl-auto: validate`.
 6. **Secrets never reach GitHub.** `.env`, keys, and credentials live only on the laptop
    source-of-truth and on the VM. See the 🔴 rule in
-   [05-Deployment/02-Oracle-Cloud-Runbook](../05-Deployment/02-Oracle-Cloud-Runbook.md).
+   [05-Deployment/02-Azure-Cloud-Runbook](../05-Deployment/02-Azure-Cloud-Runbook.md).
 
 ---
 

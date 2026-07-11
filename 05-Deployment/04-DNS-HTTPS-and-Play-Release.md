@@ -1,8 +1,13 @@
 # DNS, HTTPS & Google Play Release
 
 > How uMatter went from a raw‑IP HTTP backend to a **domain + HTTPS** edge, and the state of the
-> **Google Play** release of the mobile app. Added 2026‑07‑02. Companion to
-> [01-Deployment-Overview](01-Deployment-Overview.md) and [02-Oracle-Cloud-Runbook](02-Oracle-Cloud-Runbook.md).
+> **Google Play** release of the mobile app. Added 2026‑07‑02; updated for the Azure migration
+> 2026‑07‑11. Companion to [01-Deployment-Overview](01-Deployment-Overview.md) and
+> [02-Azure-Cloud-Runbook](02-Azure-Cloud-Runbook.md).
+>
+> **The payoff of this work:** when the backend moved from Oracle to Azure, the **shipped mobile app
+> needed no change and no resubmission** — it addresses the backend by domain, and the domain simply
+> followed the VM. See §7.
 
 ---
 
@@ -21,11 +26,22 @@ A free dynamic‑DNS subdomain points at the VM:
 |---|---|
 | Domain | **`umatter-apcs.duckdns.org`** |
 | Provider | [DuckDNS](https://www.duckdns.org) (account `apcsthesisteam@gmail.com`) |
-| Points to | the current OCI public IP (`140.245.124.163` today) |
-| Auto‑update | a `systemd` timer on the VM (`duckdns.timer` → `duckdns.service`) re‑publishes the VM's public IP every 5 min, so the domain **self‑heals** when the IP changes on a rebuild |
+| Points to | the Azure public IP (**`85.211.241.204`** today) |
+| Auto‑update | a `systemd` timer on the VM (`duckdns.timer` → `duckdns.service`) re‑publishes the VM's public IP every 5 min, so the domain **self‑heals** when the IP changes |
 
 The updater's token lives in `/etc/systemd/system/duckdns.service`; a backup of the units is under
-`D:\Y4-Sem 2 Thesis\Oracle deployment\https\`.
+`D:\Y4-Sem 2 Thesis\Oracle deployment\https\` (folder name is historical — the units are current).
+
+**How it actually works — and the migration trap.** The updater calls
+`…/update?domains=umatter-apcs&token=…&ip=` with **`ip=` deliberately empty**, which makes DuckDNS
+adopt the **caller's source IP**. Two consequences:
+
+- There is **nothing to type into the DuckDNS dashboard** when you migrate, and no token to change.
+  Whichever VM runs the timer *owns* the domain.
+- ⚠️ **If two VMs run the timer, the domain flaps between them every 5 minutes.** When migrating you
+  must **disable `duckdns.timer` on the old VM first**, then enable it on the new one. This is easy
+  to miss because the old VM keeps working perfectly right up until it silently steals the domain
+  back.
 
 ## 3. HTTPS — Caddy reverse proxy
 
@@ -41,8 +57,12 @@ Routes (`/etc/caddy/Caddyfile`, backed up at `Oracle deployment\https\Caddyfile`
 | `/legal/*` | static files in `/var/www/umatter-legal` | Privacy policy page |
 | everything else | `127.0.0.1:8080` (nginx gateway) | All REST API + `/mhsa-media/` |
 
-**Firewall:** OCI Security List and host `iptables` already allow **80/443** (both were open on the
-current VM). No firewall change was needed to activate Caddy.
+**Firewall:** on Azure the **NSG is the only gate** — there is no host firewall (`iptables` is
+`ACCEPT`, `ufw` inactive), unlike Oracle which needed both. The NSG must allow **80/443**: `80` for
+the Let's Encrypt HTTP‑01 challenge, `443` for the app itself.
+
+> **Do not start Caddy before DNS points at the new VM.** The HTTP‑01 challenge resolves the domain,
+> so starting Caddy early fails against the old host and burns Let's Encrypt rate limit.
 
 ## 4. Media over HTTPS
 
@@ -50,11 +70,14 @@ Treasure Box / diary images are **presigned S3 (MinIO) URLs**. The tracking‑se
 `S3_PUBLIC_ENDPOINT`, and the URL host is bound into the SigV4 signature (`X-Amz-SignedHeaders=host`) —
 so the presign host must equal the host the client actually connects to.
 
-`S3_PUBLIC_ENDPOINT` was changed from `http://140.245.124.163:8080` to **`https://umatter-apcs.duckdns.org`**
-(`uMatter-Backend_Auth_Tracking_AI/docker-compose.yml`, committed to `main` — commit "presign media over
-the HTTPS domain"). The gateway's `location /mhsa-media/` proxies to MinIO forwarding `Host $http_host`, so
-the signature validates end‑to‑end: **Caddy → nginx → MinIO**. Verified: a presigned URL returns
-`200 image/jpeg`.
+`S3_PUBLIC_ENDPOINT` is **`https://umatter-apcs.duckdns.org`** — the **domain, not an IP**
+(`uMatter-Backend_Auth_Tracking_AI/docker-compose.yml`, committed to `main`). The gateway's
+`location /mhsa-media/` proxies to MinIO forwarding `Host $http_host`, so the signature validates
+end‑to‑end: **Caddy → nginx → MinIO**.
+
+Because the presign host is the domain, **media survived the Azure migration with no edit at all.**
+Verified on Azure: `/mhsa-media/` returns MinIO's own `403 AccessDenied` XML to an unsigned request,
+which proves the full proxy chain reaches MinIO with the host intact.
 
 ## 5. Mobile app: release vs dev
 
@@ -62,12 +85,22 @@ The app switches endpoints on `__DEV__`:
 
 | | Dev / debug build | Release build |
 |---|---|---|
-| REST `BASE_URL` | `http://140.245.124.163:8080` | `https://umatter-apcs.duckdns.org` |
-| Chat WebSocket | `ws://140.245.124.163:8086/ws` | `wss://umatter-apcs.duckdns.org/ws` |
+| REST `BASE_URL` | `http://85.211.241.204:8080` | `https://umatter-apcs.duckdns.org` |
+| Chat WebSocket | `ws://85.211.241.204:8086/ws` | `wss://umatter-apcs.duckdns.org/ws` |
 | Cleartext (HTTP) | allowed (Metro) via `src/debug` network‑security override | **forbidden** — `usesCleartextTraffic=false` + no‑cleartext config |
 
 So Metro/local development is unchanged, while the shipped `.aab` is HTTPS‑only. (Verified: the release
 JS bundle contains the HTTPS URL and the dev raw‑IP branch is stripped.)
+
+Only the **dev** column names an IP, so a migration touches only the debug build — **the shipped
+`.aab` is unaffected.**
+
+### ⚠️ The therapist web UI is the exception
+
+The web UI does **not** use the domain. It addresses the VM by **raw IP** on `8080/8082/8083/8084/8085`
+and `ws://…:8086`, and Caddy only fronts `8080` and `/ws` — so the domain cannot carry it across.
+**Every VM migration requires repointing the web UI** (`.env`, `.env.development`, and the fallbacks
+in `src/lib/api/config.ts`). This is the one client DuckDNS does not rescue.
 
 ## 6. Public endpoints (single source of truth)
 
@@ -79,17 +112,26 @@ JS bundle contains the HTTPS URL and the dev raw‑IP branch is stripped.)
 | Media (presigned) | `https://umatter-apcs.duckdns.org/mhsa-media/…` |
 | Privacy policy | `https://umatter-apcs.duckdns.org/legal/privacy.html` |
 
-## 7. Rebuild notes (add to the runbook flow)
+## 7. Migrating the HTTPS edge to a new VM
 
-When rebuilding on a fresh OCI account (see [02-Oracle-Cloud-Runbook](02-Oracle-Cloud-Runbook.md)):
+The order below is what was actually executed for the **Oracle → Azure cutover on 2026‑07‑11**. See
+[02-Azure-Cloud-Runbook § STEP 7](02-Azure-Cloud-Runbook.md).
 
-1. The DuckDNS **auto‑updater** re‑points `umatter-apcs.duckdns.org` at the new IP automatically once the
-   `duckdns.timer` is installed — restore the two units from `Oracle deployment\https\`.
-2. `sudo apt-get install -y caddy`, restore `Oracle deployment\https\Caddyfile` to `/etc/caddy/Caddyfile`,
-   restore the privacy page to `/var/www/umatter-legal/`, then `systemctl enable --now caddy` (it re‑issues
-   the cert automatically). Ensure OCI + iptables allow **80/443**.
-3. `S3_PUBLIC_ENDPOINT` is already the **domain** (committed), so presigned media stays valid across IP
-   changes — no per‑rebuild edit needed. **The app no longer hard‑codes the IP in release builds.**
+1. **Bring the new VM fully up first, and verify it internally** (all containers healthy, gateway
+   answering on `localhost:8080`). DNS still points at the old VM, so production stays up throughout
+   and the old VM remains a rollback.
+2. **Open the NSG on 80/443** *before* touching DNS, or the cert will not issue.
+3. **Surrender the domain on the OLD VM:** `sudo systemctl disable --now duckdns.timer`. Do this
+   **first** — otherwise both VMs republish their IP every 5 min and the domain flaps (§2).
+4. **Claim it on the NEW VM:** install the two units, `systemctl enable --now duckdns.timer`, then
+   `systemctl start duckdns.service` → `OK`. Confirm with a real client:
+   `curl -w '%{remote_ip}' https://umatter-apcs.duckdns.org/health`.
+5. **Only now start Caddy** → it passes the HTTP‑01 challenge and issues the cert automatically.
+6. **Repoint the therapist web UI** (§5) — the one client the domain does not cover.
+7. `S3_PUBLIC_ENDPOINT` is already the **domain** (committed), so presigned media needs **no edit**.
+
+**What did *not* need doing:** no DuckDNS dashboard change, no token change, no `.aab` rebuild, no
+Play Store resubmission, and no `S3_PUBLIC_ENDPOINT` edit.
 
 ## 8. Google Play release (mobile app)
 
