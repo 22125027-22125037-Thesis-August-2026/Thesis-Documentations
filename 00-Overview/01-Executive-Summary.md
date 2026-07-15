@@ -41,7 +41,7 @@ A **production-grade, cloud-deployed** distributed system, not a prototype:
 | **Clients** | A **React Native** mobile app for teens/patients and a **React/Vite** web dashboard for therapists. |
 | **AI** | A context-grounded mental-health chatbot built on **Google Gemini 2.5 Flash**, fed the user's own tracking summary. |
 | **Real-time** | **STOMP-over-WebSocket** chat; **Firebase Cloud Messaging** push notifications; **Zoom SDK** video consultations. |
-| **Deployment** | Fully containerised with **Docker Compose**, deployed to an **Oracle Cloud** VM as **4 stacks / ~24 containers**, with a documented, repeatable rebuild runbook. |
+| **Deployment** | Fully containerised with **Docker Compose**, deployed to a **Microsoft Azure** VM as **4 stacks / 20 containers** behind an HTTPS edge, with a documented, repeatable rebuild runbook — exercised in a live Oracle→Azure migration on 2026-07-11. |
 
 ## 4. Why it is academically significant
 
@@ -90,7 +90,7 @@ The project is a working demonstration of **modern distributed-systems engineeri
 ## 6. Key numbers
 
 - **7** microservices · **2** client apps · **6** code repositories
-- **~24** Docker containers across **4** Compose stacks on **1** cloud VM
+- **20** Docker containers across **4** Compose stacks on **1** cloud VM (Azure, 2 vCPU / 8 GiB)
 - **7** independent PostgreSQL databases · **3** RabbitMQ domain exchanges
 - **~80+** REST endpoints (see [04-API-Reference](../04-API-Reference/README.md))
 

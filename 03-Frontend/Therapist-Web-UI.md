@@ -102,15 +102,21 @@ therapist's license is verified by an admin.
 
 ## 6. Deployment note (why it's not Dockerised)
 
-On the OCI VM, the web UI runs as a **Vite dev server inside a tmux session** on `:5173`:
+On the Azure VM, the web UI runs as a **Vite server managed by systemd** on `:5173`
+(`umatter-web.service`, backed up at `D:\Y4-Sem 2 Thesis\Azure Deployment\umatter-web.service`):
 ```bash
-cd ~/therapist-web-ui && npm ci
-tmux new-session -d -s web "cd ~/therapist-web-ui && npm run dev -- --host 0.0.0.0"
+sudo systemctl enable --now umatter-web
+systemctl is-active umatter-web
 ```
-- It survives logout but **does not auto-start on reboot** — re-run after a VM reboot.
-- Needs the host firewall (iptables) **and** the OCI security list to allow `5173`.
+- **Auto-starts on boot**, which matters because the Azure VM **auto-shuts-down nightly**. It was
+  previously a `tmux` session, which did *not* survive a reboot — the UI simply never came back.
+- Needs only the **Azure NSG** to allow `5173`; there is no host firewall on this VM.
 - It is the **only** non-Docker production component. `dist/` exists from `vite build` if you prefer
   to serve a static build instead.
+
+> ⚠️ **This is the one client the DuckDNS domain does not cover.** The mobile app addresses the
+> backend as `https://umatter-apcs.duckdns.org` and so survives any VM migration untouched; the web
+> UI talks to the **raw IP**, so every migration requires the `sed` above.
 
 In-repo docs: `therapist-web-ui/README.md`, `therapist-web-ui/docs/Therapist_Features.md`,
 `Therapist_UI_Web.md`, `Manual_Test.md`, and the per-service controller references.

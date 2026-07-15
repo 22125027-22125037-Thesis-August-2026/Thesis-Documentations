@@ -45,7 +45,8 @@ to end (this folder).
 | **Google Gemini 2.5 Flash** | strong, low-latency LLM; the AI is *grounded* in the user's own tracking data for personalisation | external dependency + cost |
 | **React Native + React/Vite** | one stack family for two clients; large talent pool; fast iteration | RN native build complexity |
 | **Zoom SDK (pluggable provider)** | reliable managed video; backend stays a thin authz gatekeeper; provider abstracted behind an interface (Jitsi alt implemented) | per-therapist Zoom accounts to dodge concurrency limits |
-| **Oracle Cloud free tier** | a real cloud VM at zero cost for the thesis window; forces a disciplined, documented rebuild story | trial expiry → the 🔴 source-of-truth rule + runbook |
+| **Single cloud VM, IaaS not PaaS** (Oracle free tier → **Azure**, 2026-07-11) | a real cloud VM at low cost; owning the orchestration is the point (a managed PaaS would have hidden it) | credit expiry → the 🔴 source-of-truth rule + runbook, which the Azure migration then **proved** by rebuilding the whole system from the laptop in one afternoon |
+| **Domain + TLS edge (DuckDNS + Caddy)** rather than raw IPs | decouples clients from the host: the Oracle→Azure move needed **no mobile rebuild and no Play resubmission** | one more host service; the web UI still uses raw IPs and *did* need repointing |
 
 ---
 
