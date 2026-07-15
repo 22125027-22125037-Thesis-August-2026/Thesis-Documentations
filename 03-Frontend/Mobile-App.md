@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Repo** | `thesis-mobile` (local only: `D:\Y4-Sem 2 Thesis\thesis-mobile`) |
+| **Repo** | [`thesis-mobile`](https://github.com/22125027-22125037-Thesis-August-2026/thesis-mobile) (GitHub; local working copy: `D:\Y4-Sem 2 Thesis\thesis-mobile`) |
 | **Platform** | React Native **0.83.1**, React **19**, TypeScript |
 | **Audience** | Teens / patients |
 | **Backend** | release: `BASE_URL = https://umatter-apcs.duckdns.org` (Caddy → gateway); dev: `http://<PUBLIC_IP>:8080` |

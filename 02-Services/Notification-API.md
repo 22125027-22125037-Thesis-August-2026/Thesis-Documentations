@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Port** | 8082 (host == container) |
-| **Repo** | `notification-api` (standalone Gradle repo) |
+| **Repo** | [`notification-api`](https://github.com/22125027-22125037-Thesis-August-2026/notification_api) (standalone Gradle repo) |
 | **Java package** | `com.umatter.notification` |
 | **Database** | `notification` (PostgreSQL 16, host 5432) |
 | **Tech** | Spring Boot 3.3.5, Java 17, Spring AMQP, Data Redis, Data JPA, Mail, Thymeleaf, Actuator |

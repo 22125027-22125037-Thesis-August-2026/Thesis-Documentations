@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Port** | 8084 (host == container) |
-| **Repo / module** | `uMatter-Backend_Auth_Tracking_AI/tracking-service` (Maven monorepo) |
+| **Repo / module** | [`uMatter-Backend_Auth_Tracking_AI/tracking-service`](https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI) (Maven monorepo) |
 | **Java package** | `com.mhsa.backend.tracking` |
 | **Database** | `tracking_db` (PostgreSQL 16, host 5434) |
 | **Tech** | Spring Boot 4.0.2, Java 17, Spring Data JPA, Flyway, Redis, RabbitMQ, MinIO/S3 |

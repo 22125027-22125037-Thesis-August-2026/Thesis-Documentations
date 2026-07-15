@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Repo** | `therapist-web-ui` (public GitHub repo) |
+| **Repo** | [`therapist-web-ui`](https://github.com/22125027-22125037-Thesis-August-2026/therapist-web-ui) (public GitHub repo) |
 | **Platform** | React **18**, Vite **5**, TypeScript, Tailwind CSS, Radix UI |
 | **Audience** | Therapists |
 | **Runs as** | a **Vite dev server on `:5173`** (the only non-Docker production piece) |

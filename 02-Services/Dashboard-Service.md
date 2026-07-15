@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Port** | 8083 (host == container) |
-| **Repo / module** | `uMatter-Backend_Auth_Tracking_AI/dashboard-service` (Maven monorepo) |
+| **Repo / module** | [`uMatter-Backend_Auth_Tracking_AI/dashboard-service`](https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI) (Maven monorepo) |
 | **Java package** | `com.mhsa.backend.dashboard` |
 | **Database** | **none** — stateless |
 | **Tech** | Spring Boot 4.0.2, Java 17, Spring Security (JWKS verification) |

@@ -59,10 +59,10 @@ matters — notification first (cross-stack consumers attach after it), auth las
 
 | Stack (repo) | Containers it runs | Build order |
 |---|---|---|
-| **notification_api** | notification-service, notification-postgres, umatter-redis | 1st |
-| **therapist-api** | therapist-api, therapist-postgres | 2nd |
-| **thesis_social** | social-api, social-postgres, social-rabbitmq | 3rd |
-| **uMatter-Backend_Auth_Tracking_AI** | nginx, auth/ai/tracking/dashboard services, postgres ×3, pgadmin, redis, rabbitmq, minio, minio-init | 4th (4 Spring services) |
+| [**notification_api**](https://github.com/22125027-22125037-Thesis-August-2026/notification_api) | notification-service, notification-postgres, umatter-redis | 1st |
+| [**therapist-api**](https://github.com/22125027-22125037-Thesis-August-2026/therapist-api) | therapist-api, therapist-postgres | 2nd |
+| [**thesis_social**](https://github.com/22125027-22125037-Thesis-August-2026/thesis_social) | social-api, social-postgres, social-rabbitmq | 3rd |
+| [**uMatter-Backend_Auth_Tracking_AI**](https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI) | nginx, auth/ai/tracking/dashboard services, postgres ×3, pgadmin, redis, rabbitmq, minio, minio-init | 4th (4 Spring services) |
 
 Expected after a healthy bring-up: **20 running containers** + `minio-init` (exits 0 by design —
 it is a one-shot bucket initialiser and the only service with no restart policy).

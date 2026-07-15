@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Port** | 8085 (host == container) |
-| **Repo** | `therapist-api` (standalone Gradle repo) |
+| **Repo** | [`therapist-api`](https://github.com/22125027-22125037-Thesis-August-2026/therapist-api) (standalone Gradle repo) |
 | **Java package** | `com.booking.therapist_api` |
 | **Database** | booking DB (PostgreSQL 15, host 5435) |
 | **Tech** | Spring Boot 4.0.5, Java 17, Spring Web MVC, Data JPA, Security, AMQP, Flyway, jjwt |

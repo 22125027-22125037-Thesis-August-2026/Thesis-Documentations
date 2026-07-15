@@ -107,12 +107,12 @@ For the canonical numbers, see [01-Architecture/02-Service-Catalog-and-Ports](01
 
 | # | Repository (GitHub / VM dir) | Local path | Tech | Role |
 |---|---|---|---|---|
-| 1 | `uMatter-Backend_Auth_Tracking_AI` | `D:\Y4-Sem 2 Thesis\uMatter-Backend_Auth_Tracking_AI` | Java 17, Spring Boot 4.0, Maven (multi-module) | Auth, AI, Tracking, Dashboard services + Nginx gateway |
-| 2 | `therapist-api` | `D:\Y4-Sem 2 Thesis\therapist-api` | Java 17, Spring Boot 4.0, Gradle | Therapist booking, matching, video, clinical notes |
-| 3 | `thesis_social` | `D:\Y4-Sem 2 Thesis\thesis_social` | Java 17, Spring Boot 3.3, Gradle | Friends + real-time chat (STOMP/WebSocket) |
-| 4 | `notification_api` | `D:\Y4-Sem 2 Thesis\notification-api` | Java 17, Spring Boot 3.3, Gradle | Event-driven notifications (FCM push + email + inbox) |
-| 5 | `therapist-web-ui` | `D:\Y4-Sem 2 Thesis\therapist-web-ui` | React 18, TypeScript, Vite, Tailwind | Therapist web dashboard |
-| 6 | `thesis-mobile` | `D:\Y4-Sem 2 Thesis\thesis-mobile` | React Native 0.83, React 19, TypeScript | Teen/patient mobile app |
+| 1 | [`uMatter-Backend_Auth_Tracking_AI`](https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI) | `D:\Y4-Sem 2 Thesis\uMatter-Backend_Auth_Tracking_AI` | Java 17, Spring Boot 4.0, Maven (multi-module) | Auth, AI, Tracking, Dashboard services + Nginx gateway |
+| 2 | [`therapist-api`](https://github.com/22125027-22125037-Thesis-August-2026/therapist-api) | `D:\Y4-Sem 2 Thesis\therapist-api` | Java 17, Spring Boot 4.0, Gradle | Therapist booking, matching, video, clinical notes |
+| 3 | [`thesis_social`](https://github.com/22125027-22125037-Thesis-August-2026/thesis_social) | `D:\Y4-Sem 2 Thesis\thesis_social` | Java 17, Spring Boot 3.3, Gradle | Friends + real-time chat (STOMP/WebSocket) |
+| 4 | [`notification_api`](https://github.com/22125027-22125037-Thesis-August-2026/notification_api) | `D:\Y4-Sem 2 Thesis\notification-api` | Java 17, Spring Boot 3.3, Gradle | Event-driven notifications (FCM push + email + inbox) |
+| 5 | [`therapist-web-ui`](https://github.com/22125027-22125037-Thesis-August-2026/therapist-web-ui) | `D:\Y4-Sem 2 Thesis\therapist-web-ui` | React 18, TypeScript, Vite, Tailwind | Therapist web dashboard |
+| 6 | [`thesis-mobile`](https://github.com/22125027-22125037-Thesis-August-2026/thesis-mobile) | `D:\Y4-Sem 2 Thesis\thesis-mobile` | React Native 0.83, React 19, TypeScript | Teen/patient mobile app |
 
 > **Source-of-truth note:** the laptop directory `D:\Y4-Sem 2 Thesis` is the authoritative copy
 > of every secret/config file that is **not** committed to GitHub (`.env` files, deploy keys, the

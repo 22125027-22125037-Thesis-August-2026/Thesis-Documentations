@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Port** | 8086 (host == container) — also a **public ingress** port |
-| **Repo** | `thesis_social` (standalone Gradle repo) |
+| **Repo** | [`thesis_social`](https://github.com/22125027-22125037-Thesis-August-2026/thesis_social) (standalone Gradle repo) |
 | **Java package** | `com.thesis.social` |
 | **Database** | social DB (PostgreSQL 16, host 5436) |
 | **Tech** | Spring Boot 3.3.4, Java 17, Spring Web, Security, Data JPA, **WebSocket**, AMQP, Flyway |

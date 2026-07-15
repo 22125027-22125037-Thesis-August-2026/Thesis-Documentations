@@ -23,8 +23,19 @@ The backend services build **inside Docker** (multi-stage Dockerfiles run Maven/
 ## 2. Get the repos
 
 All six live under `D:\Y4-Sem 2 Thesis\`. If starting fresh, clone each from the
-`22125027-22125037-Thesis-August-2026` GitHub org (private repos need the deploy keys — see the
-runbook). The laptop copies already include the gitignored `.env` files.
+[`22125027-22125037-Thesis-August-2026`](https://github.com/22125027-22125037-Thesis-August-2026)
+GitHub org (private repos need the deploy keys — see the runbook). The laptop copies already include
+the gitignored `.env` files.
+
+```bash
+# Note: the notification repo is notification_api on GitHub but the compose/docs use notification-api locally
+git clone https://github.com/22125027-22125037-Thesis-August-2026/notification_api.git notification-api
+git clone https://github.com/22125027-22125037-Thesis-August-2026/therapist-api.git
+git clone https://github.com/22125027-22125037-Thesis-August-2026/thesis_social.git
+git clone https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI.git
+git clone https://github.com/22125027-22125037-Thesis-August-2026/therapist-web-ui.git
+git clone https://github.com/22125027-22125037-Thesis-August-2026/thesis-mobile.git
+```
 
 ---
 
