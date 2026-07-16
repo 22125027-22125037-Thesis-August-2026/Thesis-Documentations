@@ -74,6 +74,10 @@ generated slots), **appointment booking** with **Zoom video** consultations, **c
   overlap of requested reasons vs therapist `treated_challenges`; falls back to style-agnostic
   filtering if no exact style match.
 - `assignTherapist` deactivates the current `ACTIVE` assignment and creates a new one.
+- Every (de)activation publishes `therapist.assignment.changed` → `booking.exchange` after commit
+  (`AssignmentEventPublisher`). Consumed by **auth-service** (assignment replica) and by
+  **social-api**, which creates the therapist↔patient friendship + direct chat channel on `ACTIVE`
+  (old chats are kept on re-match).
 
 ### Scheduled jobs
 - **Generate slots:** `@Scheduled(cron "0 0 2 * * SUN", Asia/Ho_Chi_Minh)` — materialises active

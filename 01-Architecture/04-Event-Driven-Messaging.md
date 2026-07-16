@@ -110,7 +110,7 @@ Two more topic exchanges exist for this (beyond the notification ones in §2):
 | Exchange | Owned by | Carries |
 |---|---|---|
 | `auth.events` | auth-service | `therapist.profile.updated`, `auth.grant.created`, `auth.grant.revoked` |
-| `therapist.events` | therapist-api | `therapist.assignment.changed` |
+| `booking.exchange` | therapist-api | `therapist.assignment.changed` (the same exchange as §2's `appointment.booked`; consumers' `THERAPIST_API_EXCHANGE` env points here) |
 
 ### 4.1 The three replication streams
 
@@ -118,7 +118,8 @@ Two more topic exchanges exist for this (beyond the notification ones in §2):
 |---|---|---|---|---|---|---|
 | **Therapist profile** | auth-service | `therapist.profile.updated` → `auth.events` | therapist-api | `therapist-api.auth.therapist.profile.updated` | `…profile.dlx` / `…profile.dlq` | `TherapistProfileReplicaService` |
 | **Data-access grants** | auth-service | `auth.grant.created`, `auth.grant.revoked` → `auth.events` | tracking-service | `tracking.auth.grant.created`, `tracking.auth.grant.revoked` | `tracking.auth.grant.dlx` / `…dlq` (shared) | `GrantReplicaService` |
-| **Therapist↔patient assignment** | therapist-api | `therapist.assignment.changed` → `therapist.events` | auth-service | `auth.therapist.assignment.changed` | `…changed.dlx` / `…changed.dlq` | `AssignmentReplicaService` |
+| **Therapist↔patient assignment** | therapist-api | `therapist.assignment.changed` → `booking.exchange` | auth-service | `auth.therapist.assignment.changed` | `…changed.dlx` / `…changed.dlq` | `AssignmentReplicaService` |
+| **Therapist↔patient chat link** | therapist-api | `therapist.assignment.changed` → `booking.exchange` | social-api | `social.therapist.assignment.changed` | `…changed.dlx` / `…changed.dlq` | `TherapistRelationshipService` |
 
 What each replica is *for*:
 - **Therapist profile** → therapist-api mirrors **only the auth-owned columns** (`full_name`,
@@ -130,6 +131,12 @@ What each replica is *for*:
   [05-Security §5](05-Security-and-Authentication.md), made efficient.)
 - **Assignment** → auth mirrors the active patient↔therapist pairing (owned by therapist-api's
   matching flow) so auth can answer "who is this patient's therapist?" locally.
+- **Chat link** → social-api reacts to every newly **ACTIVE** assignment by creating the
+  therapist↔patient **friendship + direct chat channel** (idempotent: an existing pair is left
+  untouched). `INACTIVE` events are acked without action — a re-matched patient deliberately
+  **keeps** the chat and relationship with the previous therapist. Note: social-api runs its own
+  broker for chat, so this consumer opens a **second AMQP connection** to the core-stack broker
+  (see §5).
 
 ### 4.2 Why these consumers differ from the Notification ones
 
@@ -185,9 +192,11 @@ part of event-driven systems — "what if a message is lost?" — without needin
 ```
 auth-service  ─ therapist.profile.updated ─► auth.events      ─► therapist-api → TherapistProfileReplicaService → therapists (auth-owned cols)
 auth-service  ─ auth.grant.created/revoked ► auth.events      ─► tracking-svc  → GrantReplicaService            → data_access_grants (replica)
-therapist-api ─ therapist.assignment.changed► therapist.events ─► auth-service  → AssignmentReplicaService       → assignment replica
+therapist-api ─ therapist.assignment.changed► booking.exchange ─► auth-service  → AssignmentReplicaService       → assignment replica
+therapist-api ─ therapist.assignment.changed► booking.exchange ─► social-api    → TherapistRelationshipService   → friendship + direct chat channel (ACTIVE only)
 
 Each consumer: manual-ack · single-consumer · DLX/DLQ on failure · DB-watermark idempotency
+(the social-api consumer uses exists-check idempotency instead of a watermark — it only ever adds)
 Nightly reconcile (23:00 / 23:30 / 23:45 ICT) re-syncs each replica from the owner's /internal/* snapshot
 ```
 

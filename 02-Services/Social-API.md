@@ -92,6 +92,12 @@ Mobile / Web (STOMP.js) ──WebSocket──► Social :8086 (STOMP broker rela
 
 ## 6. Events
 - **Produces:** `message.missed` → `social.exchange` → Notification → FCM push (inbox type `CHAT`).
+- **Consumes:** `therapist.assignment.changed` ← `booking.exchange` (the **core-stack** broker, via a
+  second AMQP connection — see [04-Event-Driven-Messaging §4](../01-Architecture/04-Event-Driven-Messaging.md)).
+  On every newly **ACTIVE** therapist↔patient match, `TherapistRelationshipService` creates their
+  **friendship + direct chat channel** (idempotent). `INACTIVE` events are ignored, so a re-matched
+  patient keeps the chat with their previous therapist. Queue
+  `social.therapist.assignment.changed` (+ DLX/DLQ), manual ack, single consumer.
 
 ## 7. Security
 - Stateless JWT (RS256), principal `profileId`. Friend/chat actions are scoped to the authenticated
