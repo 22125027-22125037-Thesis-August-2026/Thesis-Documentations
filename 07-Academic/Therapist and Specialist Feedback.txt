@@ -1,0 +1,29 @@
+Note của Cô Phạm Thị Thanh Quí (counsellor, Psychological Counselling Office, University of Science, VNU-HCM):
+Ở chức năng ghi nhật kí: thiên về chọn 1 hoặc nhiều options trong các categories về nhật kí, ghi chú và cảm xúc có sẵn, các cảm xúc và các mục có background sinh động (dễ thu hút người dùng ghi nhật kí hơn) --> DONE, nhưng mà background sinh động thì chưa co, sẽ làm liền
+Chức năng khảo sát hàng tuần: nên bỏ, vì đã có data tốt hơn và có ý nghĩa hơn rất nhiều từ nhật kí hàng ngày rồi! (khảo sát từ người dùng thử cũng có ý kiến tương tự). Hạn chế khảo sát hàng tuần hàng tháng tối đa vì đã có chức năng viết nhật kí và cập nhật cảm xúc 3 tiếng 1 lần --> DONE
+Làm thêm bài tập hít thở 4-7-8 hàng ngày, cảm xúc tức giận thì dẫn đến hít thở và đây là 1 trong 4 chức năng trao cúp thường --> DONE
+Khi mà người dùng tự ti, tiêu cực (thiên về buồn bã và trầm cảm) thì dẫn đến 1 chức năng giúp người dùng nhớ về mục tiêu sống và động lực. Ở đây, chỉ là gợi ý 1 chức năng gì đó giúp thôi chứ chưa thực sự cụ thể hóa là chức năng đó là gì và giúp người dùng như thế nào. Và sau này, chức năng này đã được cụ thể hóa bằng ý tưởng của anh Vương Nguyễn Toàn Thiện (CEO, LUMOS): Chức năng hộp trân quý --> DONE
+Kết nối người mình tin tưởng để chia sẻ --> Đã có sẵn, không những là nhắn tin chia sẻ mà có thể cho phép người mình tin tưởng theo dõi tình trạng giấc ngủ, ăn uống và biểu đồ cảm xúc gần đây nếu mình thật sự tin tưởng người đó và muốn họ đồng hành cùng mình trên con đường xây dựng sức khỏe tâm lý lành mạnh. (Có thể thu hồi quyền chia sẻ này bất cứ lúc nào)
+Nhắc hẹn cập nhật trạng thái cảm xúc (3 tiếng 1 lần) 1 cách nhẹ nhàng, việc này không những giúp người dùng cảm thấy được quan tâm, giúp therapist/app hoặc người dùng khi muốn xem tổng kết sức khỏe tâm lí của user có 1 data trọn vẹn và có ý nghĩa, mà còn giúp người dùng để ý hơn về tình trạng bản thân, nhận ra rằng sức khỏe thể chất và tinh thần của minh quan trọng và cần được quan tâm hơn là để mặc--> DONE
+Liên kết với app theo dõi sức khỏe như app tập thể dục để theo dõi sức khỏe thể chất, ví dụ như số bước chân, điều này cũng như là các điều khác của các chuyên gia tâm lý đều dựa trên các nghiên cứu và có cơ sở chứng minh rằng nó có ích cho việc giúp đỡ sức khỏe tâm lý của người dùng.
+Khi người dùng hoàn thành 1 chuỗi các nhiệm vụ ví dụ như: Viết 1 nhật kí, đi đủ 2000 bước chân, uống đủ nước và ăn đủ bữa, làm đủ bài tập hít thở thì sẽ có khen thưởng và cúp thành tựu --> DONE
+Có 1 chức năng nhắc nhở nếu người dùng thường xuyên bỏ bữa hoặc không uống đủ số lít nước hàng ngày (người dùng tự trung thực nhập số lit nước, số bữa đã ăn 1 cách tiện lợi vào trong app) --> Đã có sẵn
+Cô khá against việc sử dụng AI trong sức khỏe tâm lý.
+
+Note của Anh Vương Nguyễn Toàn Thiện (CEO, LUMOS):
+Anh cũng suggest 1 điều tương tự cô Quý: nên có 1 cách để có emotion timeline (3 tiếng 1 lần) để có data trọn vẹn và có ý nghĩa về sức khỏe tinh thần của user --> DONE
+Hộp trân quý: chứa đựng những positive core memory (các thành tựu mình đã đạt được, các kỉ niệm đẹp, những điều làm mình vui, mục tiêu đằng sau sự cố gẳng của bản thân, các cột mốc sắp tới mình đang cố gắng để đạt được, các triết lí sâu xa rằng thất bại là mẹ thành công hay tiền bạc không phải là tất cả hay là các triết lí giúp mình thấy được rằng cuộc sống còn có nhiều hơn là các áp lực mình đang tự đặt ra....) --> DONE
+Nên có 1 bộ psychology first-aid để dẫn người dùng đến khi người nhập các mood tiêu cực : Bài tập hít thở, SOS contact, hộp trân quý --> DONE
+Kết nối người mình tin tưởng để chia sẻ --> Đã có sẵn, không những là nhắn tin chia sẻ mà có thể cho phép người mình tin tưởng theo dõi tình trạng giấc ngủ, ăn uống và biểu đồ cảm xúc gần đây nếu mình thật sự tin tưởng người đó và muốn họ đồng hành cùng mình trên con đường xây dựng sức khỏe tâm lý lành mạnh. (Có thể thu hồi quyền chia sẻ này bất cứ lúc nào)
+Khi người dùng hoàn thành 1 chuỗi các nhiệm vụ ví dụ như: Viết 1 nhật kí, đi đủ 2000 bước chân, uống đủ nước và ăn đủ bữa, làm đủ bài tập hít thở thì sẽ có khen thưởng và cúp thành tựu --> DONE
+SOS contact page: có các hotline cần thiết --> DONE
+anh support idea sử dụng AI 1 cách cẩn thận vì AI có thể giúp đỡ và đồng hành sức khỏe tâm lý của người dùng.
+
+Note của BS. Phạm Trần Thành Nghiệp (physician, Hoàn Mỹ Sài Gòn Hospital):
+Các chức năng Daily reflective tracking hiện tại của app đã rất tốt rồi
+các chức năng daily reflective tracking hiện có đã giúp ích sức khỏe tâm lý của người dùng rồi, nhưng nên có thêm tổng hợp các bộ tracking (các set này sẽ có customize các loại tracking để phù hợp với bệnh lý) --> Skipped vì app mình thiên về cải thiện sức khỏe tâm lý và tinh thần chung cho thanh thiếu niên thay vì là chữa trị cho các bệnh nhân với các nhóm bệnh tâm lý cụ thể
+ngoài chức năng hít thở thì homepage nên có thêm các video thiền trên youtube để người dùng khám phá --> DONE
+
+
+anh cũng khá against việc sử dụng AI trong sức khỏe tâm lý và AI chỉ nên trả lời 10% câu hỏi siêu dễ còn 90% câu hỏi khó hơn thì AI cần refer đến chuyên gia và AI không nên được biết những data daily reflective tracking cá nhân của user
+anh cũng khá là không tin tưởng việc kết nối với bạn bè trong các app theo dõi sức khỏe tâm lý vì bạn bè có thể đưa ra lời khuyên sai (Ví dụ nếu bạn mình thấy mình tiêu cực thì bạn mình sẽ khuyên mình những lời khuyên đi ngược lại với khuyến cáo của chuyên gia) và user nên được disclaimeed/warned kĩ càng và suggest là chỉ nên kết nối với cha mẹ.
