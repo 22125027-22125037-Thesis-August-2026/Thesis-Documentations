@@ -25,9 +25,9 @@ The non-GitHub files, in full:
 | GitHub deploy keys + `config` | `Oracle deployment\github-deploy-keys\` *(name is historical; still current)* |
 | `.env` × 5 | each repo root |
 | Firebase credentials | `notification-api\secrets\firebase-credentials.json` |
-| Caddyfile + DuckDNS units | `Oracle deployment\https\` *(name is historical; still current)* |
+| **Caddyfile** (serves the web UI + proxies the API) | `Azure Deployment\Caddyfile` — **current**; the older copy under `Oracle deployment\https\` predates the same-origin move |
+| DuckDNS units | `Oracle deployment\https\` *(name is historical; still current)* |
 | Privacy / legal pages | `Oracle deployment\legal\` |
-| **Web UI systemd unit** | `Azure Deployment\umatter-web.service` |
 
 ### Reference facts
 
@@ -70,13 +70,14 @@ Four things bite differently here. Each one is a step below.
    `MaxRAMPercentage` for every service — **this is committed to GitHub, so a fresh clone is already
    correct.** Do not remove them.
 2. **Auto-shutdown is ON** (nightly, to conserve credit). Every service therefore declares
-   `restart: unless-stopped`, and the web UI is a **systemd unit**, not a tmux session. Without this
-   the VM comes back with the stack stopped. Also committed.
+   `restart: unless-stopped`. Without this the VM comes back with the stack stopped. Also committed.
+   (The web UI needs nothing here — it is static files served by Caddy, not a process.)
 3. **There is no host firewall.** `iptables` is `ACCEPT` and `ufw` is inactive, unlike Oracle which
    needed both. The **NSG is the only gate** — nothing to configure inside the VM.
-4. **The public IP must be Static.** A Dynamic IP is released on deallocation, so the nightly
-   auto-shutdown would hand you a new IP each morning — which breaks the therapist web UI, since it
-   talks to the raw IP rather than the DuckDNS domain.
+4. **The public IP should be Static.** A Dynamic IP is released on deallocation, so the nightly
+   auto-shutdown hands you a new IP each morning. This used to *break the therapist web UI*, which
+   talked to the raw IP; the UI is now served same-origin behind the DuckDNS domain, so a changing IP
+   is merely churn (DuckDNS republishes within 5 min) rather than an outage. Keep it Static anyway.
 
 ---
 
@@ -89,13 +90,14 @@ Four things bite differently here. Each one is a step below.
    ```bash
    az network public-ip update -g umatter-rg -n <IP_NAME> --allocation-method Static
    ```
-4. **NSG inbound rule** — TCP `80, 443, 8080, 8086, 5173` from `*` (plus `22`, which Azure adds by
-   default):
+4. **NSG inbound rule** — TCP `80, 443, 8080, 8086` from `*` (plus `22`, which Azure adds by
+   default). `5173` is no longer needed: the web UI is static files behind Caddy on `443`, not a Vite
+   dev server:
    ```bash
    NSG=$(az network nsg list -g umatter-rg --query "[0].name" -o tsv)
    az network nsg rule create -g umatter-rg --nsg-name "$NSG" \
      -n umatter-web --priority 1010 --protocol Tcp --access Allow --direction Inbound \
-     --source-address-prefixes '*' --destination-port-ranges 80 443 8080 8086 5173
+     --source-address-prefixes '*' --destination-port-ranges 80 443 8080 8086
    ```
    `80` and `443` are **not optional**: Let's Encrypt needs `80` for the HTTP-01 challenge, and the
    Play Store app talks to `443`.
@@ -214,15 +216,24 @@ cd ~/uMatter-Backend_Auth_Tracking_AI && docker compose up -d --build   # 4th (h
 
 ---
 
-## STEP 6 — The web UI as a systemd service (NOT tmux)
+## STEP 6 — Build the web UI (static, served by Caddy)
 
-A tmux session does not survive the nightly auto-shutdown. Restore
-`Azure Deployment\umatter-web.service` to `/etc/systemd/system/`, then:
+The UI is a **static build** served by Caddy at the domain root — no long-running process, so nothing
+to keep alive across the nightly auto-shutdown:
 
 ```bash
-sudo systemctl daemon-reload && sudo systemctl enable --now umatter-web
-systemctl is-active umatter-web && curl -s -o /dev/null -w "%{http_code}\n" localhost:5173
+cd ~/therapist-web-ui && npm ci && npm run build
+sudo mkdir -p /var/www/umatter-web
+sudo rsync -a --delete dist/ /var/www/umatter-web/
 ```
+
+Caddy's site block (STEP 7) serves `/var/www/umatter-web` at the root and proxies `/api/*` to the
+gateway, so the UI and API share one origin — **no CORS**. Do not set `VITE_API_BASE_URL` in `.env`
+for this build: leaving it unset makes the app derive its URLs from `window.location`, so no host is
+baked in.
+
+> **Superseded:** the UI used to run as a Vite dev server (`umatter-web.service` → `:5173`). That unit
+> is disabled; `Azure Deployment\umatter-web.service` is kept only for historical reference.
 
 ---
 
@@ -298,7 +309,7 @@ auto-shutdown:
 sudo systemctl reboot
 # wait ~2 min, touch nothing, then:
 docker ps -q | wc -l                                   # 20, unattended
-for s in docker caddy duckdns.timer umatter-web; do systemctl is-active $s; done   # all active
+for s in docker caddy duckdns.timer; do systemctl is-active $s; done   # all active
 curl -s https://umatter-apcs.duckdns.org/health        # healthy
 ```
 
@@ -317,11 +328,11 @@ curl -s https://umatter-apcs.duckdns.org/health        # healthy
 ## Appendix — Quick rebuild checklist
 
 1. Ubuntu 24.04, **`Standard_B2as_v2`** (2 vCPU / **8 GiB** — not the 4 GiB `B2als_v2`).
-2. Public IP → **Static**. NSG inbound → `80,443,8080,8086,5173`.
+2. Public IP → **Static**. NSG inbound → `80,443,8080,8086`.
 3. Swap 8 GB, Docker, Node 20, `docker network create umatter-shared`.
 4. Deploy keys → clone 5 repos → `.env` + Firebase secret → IP-swap social + web-ui.
 5. `COMPOSE_PARALLEL_LIMIT=1`, then `up -d --build` in order (notif → therapist → social → auth).
-6. Web UI via **systemd** (`umatter-web.service`), not tmux.
+6. Web UI: `npm run build` → rsync `dist/` to `/var/www/umatter-web` (Caddy serves it).
 7. HTTPS: **disable the old VM's `duckdns.timer` first**, then DuckDNS + Caddy on the new one.
 8. Verify (STEP 8) — **including the reboot test**.
 9. Repoint the web UI. The mobile release build needs nothing.

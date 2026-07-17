@@ -49,13 +49,18 @@ adopt the **caller's source IP**. Two consequences:
 existing Docker services. It obtains and auto‑renews a **Let's Encrypt** certificate (HTTP‑01 challenge
 on :80). HTTP is `308`‑redirected to HTTPS.
 
-Routes (`/etc/caddy/Caddyfile`, backed up at `Oracle deployment\https\Caddyfile`):
+Routes (`/etc/caddy/Caddyfile`, backed up at `Azure Deployment\Caddyfile`):
 
 | Path | Upstream | Purpose |
 |---|---|---|
 | `/ws*` | `127.0.0.1:8086` (social‑api) | STOMP‑over‑WebSocket chat (`wss://…/ws`) |
 | `/legal/*` | static files in `/var/www/umatter-legal` | Privacy policy page |
-| everything else | `127.0.0.1:8080` (nginx gateway) | All REST API + `/mhsa-media/` |
+| `/api/*`, `/internal/*`, `/mhsa-media/*`, `/health` | `127.0.0.1:8080` (nginx gateway) | All REST API + media |
+| everything else | static files in `/var/www/umatter-web` | **Therapist web UI** (SPA; unknown paths fall back to `index.html`) |
+
+The API paths are matched **explicitly** so the SPA fallback can never swallow one. The web UI is
+served at the **domain root — the same origin as the API**, which is what makes its requests
+same‑origin (see §5).
 
 **Firewall:** on Azure the **NSG is the only gate** — there is no host firewall (`iptables` is
 `ACCEPT`, `ufw` inactive), unlike Oracle which needed both. The NSG must allow **80/443**: `80` for
@@ -95,22 +100,52 @@ JS bundle contains the HTTPS URL and the dev raw‑IP branch is stripped.)
 Only the **dev** column names an IP, so a migration touches only the debug build — **the shipped
 `.aab` is unaffected.**
 
-### ⚠️ The therapist web UI is the exception
+### The therapist web UI — served same‑origin (no longer an exception)
 
-The web UI does **not** use the domain. It addresses the VM by **raw IP** on `8080/8082/8083/8084/8085`
-and `ws://…:8086`, and Caddy only fronts `8080` and `/ws` — so the domain cannot carry it across.
-**Every VM migration requires repointing the web UI** (`.env`, `.env.development`, and the fallbacks
-in `src/lib/api/config.ts`). This is the one client DuckDNS does not rescue.
+The web UI used to be the one client the domain could not rescue: a Vite **dev server** on
+`:5173` addressing the VM by raw IP, so every migration meant repointing it. It is now a **static
+build served by Caddy at the domain root**, i.e. the same origin as the API:
+
+| | Before | Now |
+|---|---|---|
+| Served by | `npm run dev` (Vite dev server) on `:5173`, plain HTTP | Caddy `file_server` from `/var/www/umatter-web`, **HTTPS** |
+| URL | `http://85.211.241.204:5173` | `https://umatter-apcs.duckdns.org` |
+| API calls | `http://<raw‑IP>:8080` → **cross‑origin** (needed CORS) | `/api/v1/…` on its own origin → **no CORS at all** |
+| On IP/domain change | repoint `.env` + `config.ts`, rebuild | **nothing** — URLs derive from `window.location` |
+
+`src/lib/api/config.ts` defaults `API_BASE_URL`/`CHAT_WS_URL` to the page's own origin, so **no host is
+baked into the bundle**. `VITE_API_BASE_URL`/`VITE_CHAT_WS_URL` override it only for genuinely
+cross‑origin setups — notably `.env.development`, where `npm run dev` on a laptop hits the VM and *does*
+rely on the gateway's CORS allow‑list (which permits `localhost`).
+
+**Rebuilding/redeploying the web UI** (after a `git pull` on the VM):
+
+```bash
+cd ~/therapist-web-ui && npm ci && npm run build
+sudo rsync -a --delete dist/ /var/www/umatter-web/
+```
+
+No Caddy reload is needed — it serves the directory directly.
+
+> **⚠️ The nginx gateway's CORS allow‑list still names the retired Oracle IP** (`140.245.124.163`) in the
+> `map $http_origin $cors_origin` block of `nginx/nginx.conf`. That map is now only consulted by
+> genuinely cross‑origin callers (laptop `npm run dev`, which matches its `localhost` entry). It is a
+> **fourth place an IP is hard‑coded** and was missed in the Azure migration — which is exactly why the
+> VM‑hosted UI could not log in before it was moved same‑origin.
 
 ## 6. Public endpoints (single source of truth)
 
 | What | URL |
 |---|---|
+| **Therapist web UI** | **`https://umatter-apcs.duckdns.org`** |
 | API base (gateway) | `https://umatter-apcs.duckdns.org` |
 | Health check | `https://umatter-apcs.duckdns.org/health` → `200 healthy` |
 | Chat WebSocket | `wss://umatter-apcs.duckdns.org/ws` |
 | Media (presigned) | `https://umatter-apcs.duckdns.org/mhsa-media/…` |
 | Privacy policy | `https://umatter-apcs.duckdns.org/legal/privacy.html` |
+
+The web UI and the API share one origin — the UI is the domain root, the API is `/api/v1/*` under it.
+The old `http://85.211.241.204:5173` dev-server URL is **retired** (`umatter-web.service` disabled).
 
 ## 7. Migrating the HTTPS edge to a new VM
 

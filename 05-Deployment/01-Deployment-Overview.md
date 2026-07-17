@@ -53,15 +53,18 @@ stretch it. That auto-shutdown is the single most important fact about this depl
    │                                                                    │
    │   All stacks join the `umatter-shared` external Docker network     │
    │                                                                    │
-   │  systemd: umatter-web  → therapist-web-ui (Vite) :5173             │
+   │  Caddy (:80/:443) → TLS edge; serves the therapist web UI (static)  │
+   │                     and proxies /api,/ws,/legal to the stacks       │
    │  systemd: duckdns.timer → republishes the public IP every 5 min    │
    └────────────────────────────────────────────────────────────────────┘
 ```
 
 - **20 running containers** across the 4 stacks, plus `minio-init` (exits 0 by design).
 - **7 Spring Boot JVMs**, 6 Postgres, 2 RabbitMQ, 2 Redis, MinIO, pgAdmin, nginx.
-- The **therapist web UI** is the only non-Docker piece — a Vite server run by **systemd**
-  (`umatter-web.service`), *not* tmux.
+- The **therapist web UI** is the only non-Docker piece — a **static build** in
+  `/var/www/umatter-web`, served by **Caddy** at the domain root (same origin as the API).
+  It was previously a Vite dev server on `:5173` under `umatter-web.service`; that unit is
+  **disabled** and the port is no longer used.
 
 ---
 
@@ -71,7 +74,10 @@ Unlike Oracle, **Azure has no host firewall to configure**: `iptables` is `ACCEP
 inactive. The **NSG (Network Security Group) is the only gate.**
 
 Open to the internet: `22` (SSH), **`443`/`80` (Caddy HTTPS edge — the public entry point)**,
-`8080` (gateway, behind Caddy), `8086` (social direct / STOMP-WS), `5173` (web UI).
+`8080` (gateway, behind Caddy), `8086` (social direct / STOMP-WS).
+
+> `5173` (the old Vite web-UI port) is **no longer used** — the UI is now static files behind Caddy
+> on `443`. Its NSG rule can be removed; leaving it open exposes nothing, since nothing listens.
 
 > **Testing whether a port is open:** a probe against a port with **nothing listening** fails exactly
 > like a firewall block. Put a real listener on it first (`sudo python3 -m http.server 80`) before
@@ -111,11 +117,12 @@ Azure **deallocates the VM every night** to conserve credit. Two things make tha
    one-shot bucket initialiser that is *meant* to exit 0.) Before this was fixed, only 4 of 21
    containers had a restart policy — a reboot brought the host back with the gateway, all four Spring
    services and every database **stopped**.
-2. **The web UI is a systemd unit**, so it comes back too. A tmux session would not.
+2. **The web UI needs no process at all** — it is static files served by Caddy (a systemd service),
+   so it returns with the edge. It used to be a Vite dev server under `umatter-web.service`.
 
-The public IP is **Static**, so it survives deallocation. This matters because the therapist web UI
-addresses the VM by **raw IP** — a changing IP would break it every morning even though the mobile
-app (which uses the domain) would be fine.
+The public IP is **Static**, so it survives deallocation — though this now matters much less: every
+client (mobile *and* the web UI) reaches the VM through the **domain**, and DuckDNS republishes the
+IP every 5 min regardless. Nothing hard-codes the IP anymore.
 
 **Verified:** after an unattended reboot, all 20 containers, Caddy, DuckDNS and the web UI came back
 on their own, with `https://umatter-apcs.duckdns.org/health` returning `200 healthy`.
