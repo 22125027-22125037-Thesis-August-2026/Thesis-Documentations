@@ -127,11 +127,14 @@ sudo rsync -a --delete dist/ /var/www/umatter-web/
 
 No Caddy reload is needed — it serves the directory directly.
 
-> **⚠️ The nginx gateway's CORS allow‑list still names the retired Oracle IP** (`140.245.124.163`) in the
-> `map $http_origin $cors_origin` block of `nginx/nginx.conf`. That map is now only consulted by
-> genuinely cross‑origin callers (laptop `npm run dev`, which matches its `localhost` entry). It is a
-> **fourth place an IP is hard‑coded** and was missed in the Azure migration — which is exactly why the
-> VM‑hosted UI could not log in before it was moved same‑origin.
+> **The CORS allow‑list no longer names any public host** (`map $http_origin $cors_origin` in
+> `nginx/nginx.conf`). It used to list the **Oracle** IP `140.245.124.163`, which the Azure migration
+> missed — a *fourth* hard‑coded‑IP site beyond the three this runbook tracked. The map then fell
+> through to `""`, `Access-Control-Allow-Origin` was omitted, and the VM‑hosted UI could not log in;
+> only the `localhost` entry kept laptop dev working, which hid it. Now that the deployed UI is
+> same‑origin, the map serves **only cross‑origin dev servers** (`localhost` / `127.0.0.1`). Do not add
+> a public host back — that is the trap that created this. See the `--force-recreate` note in
+> [02-Azure-Cloud-Runbook](02-Azure-Cloud-Runbook.md#step-5) before editing this file.
 
 ## 6. Public endpoints (single source of truth)
 

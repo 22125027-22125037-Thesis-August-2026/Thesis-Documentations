@@ -214,6 +214,24 @@ cd ~/uMatter-Backend_Auth_Tracking_AI && docker compose up -d --build   # 4th (h
 ≈12 minutes for all seven Spring Boot images on 2 vCPU. Expect **20 running** + `minio-init`
 (Exited 0 — it is a one-shot bucket initialiser and is the **only** service without a restart policy).
 
+> ### ⚠️ Changing `nginx/nginx.conf` needs `--force-recreate`, not a reload
+>
+> `nginx.conf` is bind-mounted **as a single file** (`./nginx/nginx.conf:/etc/nginx/nginx.conf:ro`),
+> which pins the host file's **inode**. `git pull` writes a *new* file with a *new* inode, so the
+> running container keeps serving the **old** config forever — `docker compose up -d` won't recreate
+> nginx either (nothing about its service definition changed), and `nginx -s reload` merely re-reads
+> the stale inode. Symptom: your edit is on disk, `git log` says it shipped, and the gateway ignores it.
+>
+> ```bash
+> docker compose up -d --force-recreate nginx      # re-resolves the bind mount
+> # then PROVE it, don't assume:
+> md5sum nginx/nginx.conf; docker exec nginx md5sum /etc/nginx/nginx.conf   # must match
+> ```
+>
+> **Verifying with grep? Mind the escaping.** The config stores regexes like `140\.245\.124\.163`, so
+> `grep 140.245.124.163` returns **no match even when the IP is present** (`.` is a wildcard, the text
+> has a literal `\`). Use `grep -F '140\.245\.124\.163'`, or compare md5s as above.
+
 ---
 
 ## STEP 6 — Build the web UI (static, served by Caddy)
