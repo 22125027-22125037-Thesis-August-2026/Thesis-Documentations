@@ -48,7 +48,9 @@ Gateway routing map: [01-Architecture/01-System-Architecture §4](../01-Architec
 
 ## 2. Tracking Service — `:8084` — gateway `/api/v1/tracking/`
 
-Log resources share a CRUD shape. `{profileId}` scopes reads to a user (grant-checked for therapists).
+Log resources share a CRUD shape. `{profileId}` scopes reads to a user — allowed for the owner or
+any viewer holding an ACTIVE unexpired grant (therapist, parent, or friend); scope is not yet
+differentiated. The internal context endpoint is **not** grant-checked.
 
 | Resource | Endpoints |
 |---|---|
@@ -61,7 +63,7 @@ Log resources share a CRUD shape. `{profileId}` scopes reads to a user (grant-ch
 | **Streaks** `/api/v1/tracking/streaks` | `POST /` · `GET /` · `GET /{id}` · `PUT /{id}` · `DELETE /{id}` |
 | **Treasures** `/api/v1/tracking/treasures` | `POST /` (multipart) · `GET /` · `DELETE /{id}` |
 | **Media** `/api/v1/tracking/media` | `POST /` · `GET /` · `GET /{id}` · `PUT /{id}` · `DELETE /{id}` |
-| **Grants** `/api/v1/tracking/grants` | `DELETE /{granteeProfileId}` · `GET /received` |
+| **Grants** `/api/v1/tracking/grants` | `POST /` · `DELETE /{granteeProfileId}` · `GET /` (my grants) · `GET /received` |
 | *(internal)* | `GET /internal/v1/tracking/context/{profileId}` (AI grounding) · `GET /internal/v1/dashboard/{profileId}/summary` (BFF) |
 
 ---

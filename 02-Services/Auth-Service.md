@@ -31,7 +31,7 @@ com.mhsa.backend.auth
 ├── controller/    # REST controllers (see API surface)
 ├── dto/
 ├── messaging/     # RabbitMQ producers/consumers
-├── model/         # JPA entities (users, profiles, grants)
+├── model/         # JPA entities (profiles, grants, refresh tokens)
 ├── repository/
 ├── security/      # JWT signing, JWKS, filters
 └── service/
@@ -43,12 +43,12 @@ com.mhsa.backend.auth
 
 | Table | Purpose |
 |---|---|
-| `users` | account credentials |
-| `profiles` | app identity: role (`TEEN`/`THERAPIST`), full name, school, avatar URL |
-| `data_access_grants` | consent records: grantor profile → grantee profile |
-| therapist-profile / license tables | therapist directory info + license verification state |
+| `profiles` | the **single identity row**: credentials (email, password hash) **plus** app identity — role (`TEEN`/`THERAPIST`), full name, school, avatar URL. The former `users` table (1:1 with profiles) was merged in by `V6__merge_users_into_profiles.sql`, deployed 2026-07-17; `profile_id` is the id everywhere, including JWT `sub` |
+| `data_access_grants` | consent records: granter profile → grantee profile, with `access_scope` and optional `expires_at` |
+| `refresh_tokens` | Redis-complementing store for refresh-token rotation (V5) |
+| therapist-profile / license / assignment tables | therapist directory info, license verification state, mirrored assignments |
 
-10 Flyway migrations manage this schema.
+6 Flyway migrations (V1–V6) manage this schema.
 
 ---
 

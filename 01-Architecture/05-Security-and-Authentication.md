@@ -14,7 +14,9 @@ uMatter uses **stateless** authentication. There is no server-side session; ever
 - **Algorithm:** **RS256** (asymmetric). Auth signs with a **private** RSA key; every other service
   verifies with the **public** key. No service needs the private key to validate a token.
 - **Claims:** `iss = mhsa.backend`, `aud = mhsa-api`, a `kid` header for key identification,
-  `profileId` (primary principal), `sub` (fallback principal), and `role`.
+  `sub` = the **profile id** (since the V6 users→profiles merge, deployed 2026-07-17, the profile id
+  *is* the single identity — the old `users` table is gone), a redundant `profileId` claim kept for
+  rollout compatibility, and `role`.
 - **Access-token lifetime:** 1 hour (`MHSA_APP_JWTEXPIRATIONMS = 3600000`).
 
 ### Key distribution via JWKS
@@ -89,28 +91,48 @@ while still being callable between services.
 
 ## 5. Consent-gated data access (the privacy core)
 
-Because this is a mental-health product, a therapist can **only** see a patient's tracking data the
-patient has explicitly shared. This is the **data-access-grant** model:
+Because this is a mental-health product, another person (therapist, parent, or friend — grants are
+profile-to-profile, so all three use the same mechanism) can **only** see a user's tracking data the
+user has explicitly shared. This is the **data-access-grant** model:
 
 ```
-Patient → POST /api/v1/auth/grants { granteeProfileId: <therapist profileId> }   (consent)
-        → recorded in auth_db.data_access_grants and mirrored to tracking_db
-Therapist → GET /api/v1/tracking/context/{patientId}   (Tracking checks the grant first)
-        → no grant ⇒ 403 / empty; grant present ⇒ summarised context returned
+Owner   → POST /api/v1/auth/grants { granteeProfileId, accessScope, expiresAt }   (consent)
+        → recorded in auth_db.data_access_grants and replicated to tracking_db
+          (auth.grant.created/revoked events + nightly reconcile — see 04-Event-Driven-Messaging §4)
+Grantee → GET /api/v1/tracking/{moods|sleeps|foods|diaries|steps|breathing}/{ownerProfileId}
+        → Tracking's AccessGuard allows: self, or an ACTIVE unexpired grant. Otherwise 403.
 ```
-The patient can revoke a grant (`DELETE /api/v1/auth/grants/{granteeProfileId}`). Grant status is
-queryable (`GET /api/v1/auth/grants/status/{otherProfileId}`).
+
+A grant carries an **`accessScope`** (`READ_JOURNAL` | `READ_ALL`) and an optional **`expiresAt`**
+(the mobile app's friend-profile screen issues `READ_ALL` with a 30-day expiry). The owner can revoke
+at any time (`DELETE /api/v1/auth/grants/{granteeProfileId}`); grant status is queryable
+(`GET /api/v1/auth/grants/status/{otherProfileId}`).
+
+Two caveats, verified in code:
+
+- ⚠️ **`accessScope` is stored and replicated but not yet enforced.** Tracking's
+  `AccessGuard.canReadTrackingData` → `findActiveGrant(...)` checks only `status = ACTIVE` and
+  non-expiry — it never reads the scope column. In practice a `READ_JOURNAL` grant currently opens
+  the same doors as `READ_ALL` (all-or-nothing access).
+- ⚠️ **The AI service bypasses the grant model entirely.** Its grounding fetch
+  (`GET /internal/v1/tracking/context/{profileId}`) is an internal endpoint protected only by
+  network topology — no grant check. So the AI companion reads a user's tracking context whether or
+  not the user consented, which contradicts the design intent that the AI needs a grant like any
+  other audience (FR4 in the thesis). Making the AI a grantee is planned work.
 
 ---
 
-## 6. Transport security (current state & roadmap)
+## 6. Transport security (HTTPS — implemented July 2026)
 
-- **Current:** clients reach the gateway over **HTTP** at `http://<PUBLIC_IP>:8080`. The mobile app
-  and web UI hard-code this IP. This is acceptable for the thesis demo but is the top hardening item.
-- **Roadmap:** put a domain + TLS in front of the gateway (HTTPS), so clients stop hard-coding a raw
-  IP over HTTP. When TLS is added, the **certificate + private key become new source-of-truth
-  secrets** that must be copied back to the laptop per the 🔴 rule
-  ([05-Deployment/02-Azure-Cloud-Runbook](../05-Deployment/02-Azure-Cloud-Runbook.md)).
+- **Current:** production traffic is **HTTPS end-to-end at the edge**. A **Caddy** reverse proxy on
+  the VM terminates TLS on `:443` for **`https://umatter-apcs.duckdns.org`** (Let's Encrypt,
+  auto-renewed) and proxies `/api/*` etc. to the Nginx gateway on `:8080`. Release builds of the
+  mobile app are HTTPS/WSS-only with cleartext forbidden, and the therapist web UI is served by
+  Caddy at the domain root — the **same origin as the API**, so its requests need no CORS at all.
+- Raw-IP HTTP (`http://85.211.241.204:8080`) remains only for **dev/debug builds** and on-VM
+  diagnostics; it is not what shipping clients use.
+- Full detail (DuckDNS, Caddyfile routes, certificate handling, the migration order):
+  [05-Deployment/04-DNS-HTTPS-and-Play-Release](../05-Deployment/04-DNS-HTTPS-and-Play-Release.md).
 
 ---
 

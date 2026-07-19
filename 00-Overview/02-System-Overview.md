@@ -113,9 +113,10 @@ See [01-Architecture/04-Event-Driven-Messaging](../01-Architecture/04-Event-Driv
 ## 6. Where everything runs
 
 - **Production:** one **Microsoft Azure** Ubuntu 24.04 VM. The 5 backend repos run as
-  **4 Docker Compose stacks** (20 containers); the therapist web UI runs as a **systemd-managed Vite
-  server** on `:5173`. Clients reach the backend at **`https://umatter-apcs.duckdns.org`** (Caddy →
-  Nginx gateway), so the underlying IP can change without touching the mobile app.
+  **4 Docker Compose stacks** (20 containers); the therapist web UI is a **static Vite build served
+  by Caddy at the domain root** (same origin as the API — the old `:5173` systemd Vite server is
+  retired). Clients reach everything at **`https://umatter-apcs.duckdns.org`** (Caddy →
+  Nginx gateway), so the underlying IP can change without touching any client.
 - **Local development:** the same Compose stacks on a laptop; see
   [05-Deployment/03-Local-Development-Setup](../05-Deployment/03-Local-Development-Setup.md).
 

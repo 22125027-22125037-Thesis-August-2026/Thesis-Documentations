@@ -95,7 +95,7 @@ Thesis Documentations/
   (events), MinIO (S3-compatible media storage), all orchestrated with **Docker Compose**.
 - **Deployment:** A single **Microsoft Azure** Ubuntu VM running **4 Docker stacks / 20 containers**,
   fronted by Nginx behind a **Caddy HTTPS edge** (`https://umatter-apcs.duckdns.org`); the therapist
-  web UI runs alongside as a systemd-managed Vite server.
+  web UI is a static Vite build served by Caddy at the domain root (same origin as the API).
 - **AI:** Google **Gemini 2.5 Flash** powers the in-app mental-health companion, grounded in the
   user's own tracking context.
 
@@ -134,4 +134,7 @@ system, update the matching doc here. The most important invariants to keep accu
 4. **The deployment facts** — [05-Deployment/01-Deployment-Overview](05-Deployment/01-Deployment-Overview.md)
    must name the VM the system actually runs on. It has moved twice.
 
-*Last assembled: 2026-06-16. Deployment docs rewritten 2026-07-11 for the Oracle → Azure migration.*
+*Last assembled: 2026-06-16. Deployment docs rewritten 2026-07-11 for the Oracle → Azure migration.
+Verified against source code 2026-07-20: V6 users→profiles merge, HTTPS/same-origin web UI, grant
+model details (scope/expiry, enforcement caveats, the AI-service grant bypass), and the real event
+topology (two dormant notification flows) folded in.*

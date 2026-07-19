@@ -30,10 +30,11 @@ com.mhsa.backend.ai
 ├── dto/
 ├── entity/        # chat_sessions, chat_messages
 ├── exception/
-├── messaging/     # event publishing
+├── messaging/     # AuthEventListener (inert — see §7)
 ├── repository/
 ├── service/       # chat orchestration + Gemini call + context fetch
-└── util/
+│                  #   + CrisisDetectionService + PiiScrubberService
+└── util/          # AesEncryptor (JPA converter — chat content encrypted at rest)
 ```
 
 ## 3. Data model (`ai_db`)
@@ -65,12 +66,19 @@ com.mhsa.backend.ai
 
 ```
 POST /api/v1/ai/chat/send  { message }
-   1. resolve profileId from JWT
-   2. AI service → Tracking (internal): GET /internal/v1/tracking/context/{profileId}
-   3. build a prompt = system persona + user's tracking context + conversation history + message
-   4. AI service → Gemini 2.5 Flash: generateContent
-   5. persist user message + AI reply to chat_messages
-   6. return the reply
+   1. resolve profileId from JWT; persist the user message
+   2. crisis gate (CrisisDetectionService): if the message matches a Vietnamese self-harm/violence
+      keyword list (accent-insensitive), SKIP Gemini entirely and return a canned emergency reply
+      with hotlines 115 / 19001567, flagged crisisDetected = true
+   3. AI service → Tracking (internal): GET /internal/v1/tracking/context/{profileId}?days=7
+      ⚠️ no grant check — see §7
+   4. PII scrub (PiiScrubberService): emails, VN phone numbers, and VN personal names in the
+      message, history, and context are replaced with placeholders before leaving the system
+   5. build a prompt = system persona + scrubbed tracking context + last-10-message history + message
+   6. AI service → Gemini 2.5 Flash: generateContent — Gemini must answer as JSON
+      {reply, sentiment, is_crisis}, so the model also self-reports crisis
+   7. persist the AI reply (chat content is AES-encrypted at rest via a JPA converter)
+   8. return { reply, sentimentDetected, crisisDetected }
 ```
 
 Configuration (`docker-compose.yml` env):
@@ -91,7 +99,31 @@ Configuration (`docker-compose.yml` env):
 
 ---
 
-## 7. Run it
+## 7. Safety, privacy & known gaps
+
+**Implemented safeguards** (all in the send-message path, §5):
+- **Crisis keyword guardrail** — `CrisisDetectionService` matches ~10 Vietnamese self-harm/violence
+  phrases (diacritic-insensitive). On a hit, Gemini is never called; the user gets a fixed
+  emergency-support reply pointing at hotlines **115** and **19001567**. There is **no** human
+  escalation/alerting — deliberately (see the thesis's no-automatic-alerting rationale).
+- **PII scrubbing** — `PiiScrubberService` masks emails, Vietnamese phone formats, and
+  self-introduced/common Vietnamese full names before any text is sent to Google.
+- **Encryption at rest** — `chat_messages.content` passes through `AesEncryptor`
+  (a JPA `@Convert`er), so raw chat text is not readable in the DB.
+
+**Known gaps** (verified in code):
+- ⚠️ **No consent check on grounding.** The Tracking context fetch is an `/internal/` call with the
+  bare profileId — the AI reads the user's tracking data **without a data-access grant**, unlike a
+  therapist/parent/friend. This contradicts the design intent (FR4: grounded *iff* granted) and is
+  planned to be fixed by making the AI a grantee under the same grant model.
+- **`AuthEventListener` is inert scaffolding.** It declares plain queues (`auth.grant.created`,
+  `auth.user.updated`, `auth.token.revoked`) that are **not bound to any exchange** (auth publishes
+  grants on the `auth.events` topic exchange), and its handlers only log. The AI service therefore
+  consumes **no** events today; the grant-replica consumer in Tracking is the real one.
+
+---
+
+## 8. Run it
 
 ```bash
 cd uMatter-Backend_Auth_Tracking_AI && docker compose up -d --build ai-service
@@ -101,7 +133,7 @@ Requires a valid `GEMINI_API_KEY` in `.env`. Depends on Auth + Tracking being he
 
 ---
 
-## 8. Notes & roadmap
+## 9. Notes & roadmap
 - The persona/prompt template lives in the service layer; tune it there.
-- Safety/crisis handling (e.g. acting on `ai.crisis.alerted`, escalation flows) is an area for
-  future hardening — see [07-Academic](../07-Academic/01-Thesis-Context-and-Future-Work.md).
+- Deeper safety/crisis handling (e.g. acting on `ai.crisis.alerted`, escalation flows) is an area
+  for future hardening — see [07-Academic](../07-Academic/01-Thesis-Context-and-Future-Work.md).

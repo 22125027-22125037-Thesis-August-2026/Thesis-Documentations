@@ -34,8 +34,22 @@ All exchanges are **topic** exchanges; each domain owns its own exchange.
 | Producer domain | Exchange | Routing key | Consumer queue (owned by Notification) | DLX | DLQ |
 |---|---|---|---|---|---|
 | **Booking** (Therapist API) | `booking.exchange` | `appointment.booked` | `notification.booking.booked.q` | `booking.dlx` | `notification.booking.booked.dlq` |
-| **Tracking** | `tracking.exchange` | `streak.milestone` | `notification.tracking.streak.q` | `tracking.dlx` | `notification.tracking.streak.dlq` |
-| **Social** | `social.exchange` | `message.missed` | `notification.social.message-missed.q` | `social.dlx` | `notification.social.message-missed.dlq` |
+| **Tracking** ⚠️ *no producer* | `tracking.exchange` | `streak.milestone` | `notification.tracking.streak.q` | `tracking.dlx` | `notification.tracking.streak.dlq` |
+| **Social** ⚠️ *no producer* | `social.exchange` | `message.missed` | `notification.social.message-missed.q` | `social.dlx` | `notification.social.message-missed.dlq` |
+
+> ⚠️ **Two of these three flows are consumer-ready but dormant — nothing publishes them** (verified
+> July 2026):
+> - **`streak.milestone`:** the Tracking service never emits it. Its `TrackingEventPublisher`
+>   publishes different, unrelated messages (`tracking.streak.updated`, `tracking.mood.logged`, …)
+>   straight to same-named default-exchange queues that **no service consumes** — dead scaffolding.
+> - **`message.missed`:** the Social service never emits it. Social's `RabbitDomainEventPublisher`
+>   publishes `social.message.read` / `social.friend.request.*` envelopes to its **own**
+>   `social.domain.events` exchange (on the social-stack broker), which **no service consumes**
+>   either; its message-*sent* event is commented out.
+>
+> Only **`appointment.booked` → email/inbox** is a live end-to-end notification pipeline today.
+> Wiring the two dormant flows means adding a producer that publishes the documented routing key on
+> the documented exchange (core-stack broker) with a `NotificationEnvelope`-shaped payload.
 
 Each consumed event maps to an inbox type and an outbound channel:
 
@@ -128,7 +142,9 @@ What each replica is *for*:
   `is_lgbtq_allied`, `gender`, slots, Zoom) — those stay locally owned.
 - **Grants** → tracking mirrors the consent grants so it can **enforce a therapist's access to patient
   data from its own DB**, with no per-request call to auth. (This is the privacy gate from
-  [05-Security §5](05-Security-and-Authentication.md), made efficient.)
+  [05-Security §5](05-Security-and-Authentication.md), made efficient.) *Tracking is the only real
+  grant consumer: the AI service also declares grant queues, but they are unbound to any exchange
+  and their listener only logs — inert scaffolding (see [AI-Service §7](../02-Services/AI-Service.md)).*
 - **Assignment** → auth mirrors the active patient↔therapist pairing (owned by therapist-api's
   matching flow) so auth can answer "who is this patient's therapist?" locally.
 - **Chat link** → social-api reacts to every newly **ACTIVE** assignment by creating the
@@ -206,7 +222,8 @@ Nightly reconcile (23:00 / 23:30 / 23:45 ICT) re-syncs each replica from the own
 
 - **Core stack RabbitMQ** (`rabbitmq:3.12-management-alpine`) on host `5671`/mgmt `15671` carries
   both layers' traffic: the notification exchanges (`booking.exchange`, `tracking.exchange`) **and**
-  the replication exchanges (`auth.events`, `therapist.events` — §4). Auth, Tracking, and Therapist
+  the replication exchanges (`auth.events`, and `booking.exchange` again for
+  `therapist.assignment.changed` — §4). Auth, Tracking, and Therapist
   all connect to this broker over the `umatter-shared` network, and the Notification stack **reuses
   it via the host gateway** rather than running its own broker.
 - **Social stack RabbitMQ** (`rabbitmq:3.13-management`) on host `5676`/mgmt `15676` additionally
@@ -219,8 +236,8 @@ Nightly reconcile (23:00 / 23:30 / 23:45 ICT) re-syncs each replica from the own
 
 ```
 Therapist API ──appointment.booked──► booking.exchange ──► notification.booking.booked.q ──► Email
-Tracking      ──streak.milestone────► tracking.exchange ─► notification.tracking.streak.q ─► FCM push
-Social        ──message.missed──────► social.exchange ───► notification.social.…q ─────────► FCM push
+(nobody)      ──streak.milestone────► tracking.exchange ─► notification.tracking.streak.q ─► FCM push   ⚠️ dormant (§2)
+(nobody)      ──message.missed──────► social.exchange ───► notification.social.…q ─────────► FCM push   ⚠️ dormant (§2)
 
 Therapist API (matching) also emits onto booking.exchange:
    profile.demographics.updated · tracking.mood.logged · ai.crisis.alerted

@@ -90,33 +90,38 @@ therapist's license is verified by an admin.
 
 ## 5. Configuration
 
+`src/lib/api/config.ts` defaults `API_BASE_URL` and `CHAT_WS_URL` to the **page's own origin**
+(`window.location`), so **no host is baked into the production bundle** — the deployed UI is served
+same-origin with the API and needs no CORS and no rebuild on an IP/domain change.
+
 | File | Holds |
 |---|---|
-| `.env`, `.env.development` | `VITE_API_URL` = the gateway (`http://<PUBLIC_IP>:8080`) — **hard-codes the VM IP** |
+| `.env.development` | `VITE_API_BASE_URL=http://85.211.241.204:8080` — used only by `npm run dev` on a laptop, which *is* genuinely cross-origin and relies on the gateway's CORS `localhost` allow-list |
 | `.env.example` | template |
 
-> ⚠️ Because the IP is hard-coded in all three env files, a VM IP change requires updating them (the
-> runbook does this with `sed`) and **restarting the Vite session**.
+> The old hard-coded-IP setup (every env file naming the VM, `sed` on migration) is gone — only the
+> dev override still names an IP, and it affects nobody but a developer's laptop.
 
 ---
 
-## 6. Deployment note (why it's not Dockerised)
+## 6. Deployment (static build behind Caddy)
 
-On the Azure VM, the web UI runs as a **Vite server managed by systemd** on `:5173`
-(`umatter-web.service`, backed up at `D:\Y4-Sem 2 Thesis\Azure Deployment\umatter-web.service`):
+On the Azure VM, the web UI is a **static Vite build served by Caddy** from `/var/www/umatter-web`
+at the **domain root** — `https://umatter-apcs.duckdns.org`, the same origin as the API. Unknown
+paths fall back to `index.html` (SPA routing); `/api/*`, `/ws*`, `/mhsa-media/*` are matched
+explicitly by the Caddyfile so the SPA fallback can never swallow them.
+
+Redeploying after a `git pull` on the VM:
 ```bash
-sudo systemctl enable --now umatter-web
-systemctl is-active umatter-web
+cd ~/therapist-web-ui && npm ci && npm run build
+sudo rsync -a --delete dist/ /var/www/umatter-web/
 ```
-- **Auto-starts on boot**, which matters because the Azure VM **auto-shuts-down nightly**. It was
-  previously a `tmux` session, which did *not* survive a reboot — the UI simply never came back.
-- Needs only the **Azure NSG** to allow `5173`; there is no host firewall on this VM.
-- It is the **only** non-Docker production component. `dist/` exists from `vite build` if you prefer
-  to serve a static build instead.
+No Caddy reload needed — it serves the directory directly.
 
-> ⚠️ **This is the one client the DuckDNS domain does not cover.** The mobile app addresses the
-> backend as `https://umatter-apcs.duckdns.org` and so survives any VM migration untouched; the web
-> UI talks to the **raw IP**, so every migration requires the `sed` above.
+History: the UI previously ran as a systemd-managed Vite **dev server** on `:5173`
+(`umatter-web.service`, before that a `tmux` session), addressing the VM by raw IP — the one client
+the DuckDNS domain didn't cover. That service is **disabled/retired**; the NSG no longer needs
+`5173`. See [05-Deployment/04-DNS-HTTPS-and-Play-Release §5](../05-Deployment/04-DNS-HTTPS-and-Play-Release.md).
 
 In-repo docs: `therapist-web-ui/README.md`, `therapist-web-ui/docs/Therapist_Features.md`,
 `Therapist_UI_Web.md`, `Manual_Test.md`, and the per-service controller references.

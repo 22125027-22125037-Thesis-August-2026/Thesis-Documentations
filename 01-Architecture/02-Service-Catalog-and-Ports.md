@@ -7,8 +7,9 @@
 
 ## 1. The unified port map (`host : container`)
 
-The frontend talks **only** to Nginx on **8080** (`BASE_URL = http://<PUBLIC_IP>:8080`). Everything
-else is direct/admin. As of the 2026-05-25 alignment, every Spring service binds the **same port
+Clients talk **only** to the gateway: in production via the Caddy HTTPS edge
+(`https://umatter-apcs.duckdns.org` → Nginx `:8080`), in dev builds directly as
+`http://<PUBLIC_IP>:8080`. Everything else is direct/admin. As of the 2026-05-25 alignment, every Spring service binds the **same port
 inside and outside** its container (host == container), so `curl :8084/…` behaves identically on the
 VM host and inside the container.
 

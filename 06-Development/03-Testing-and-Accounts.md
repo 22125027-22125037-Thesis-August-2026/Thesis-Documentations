@@ -11,18 +11,25 @@ The Auth domain ships a deterministic seed migration
 (`V2__seed_development_testing_accounts.sql`) that creates **90 accounts** so QA and demos have
 predictable data:
 
-| Role | Count | Email pattern | Password |
-|---|---|---|---|
-| `TEEN` | 30 | `teen001.dev@mhsa.local` … `teen030.dev@mhsa.local` | `developer` |
-| `PARENT` | 30 | `parent001.dev@mhsa.local` … `parent030.dev@mhsa.local` | `developer` |
-| `THERAPIST` | 30 | `therapist0NN.dev@mhsa.local` | `developer` |
+| Role | Count | Email pattern |
+|---|---|---|
+| `TEEN` | 30 | `teen001.dev@mhsa.local` … `teen030.dev@mhsa.local` |
+| `PARENT` | 30 | `parent001.dev@mhsa.local` … `parent030.dev@mhsa.local` |
+| `THERAPIST` | 30 | `therapist0NN.dev@mhsa.local` |
 
-- **Shared password for every account: `developer`.**
-- IDs (`user_id`, `profile_id`) are **deterministic** — the same across rebuilds — so flows that need
-  a known `profile_id` (grants, assignments, bookings) are reproducible.
-- Parents are linked to teens via `linked_teen_user_id`; teens carry `school` + `emergency_contact`.
+- ⚠️ **The seeded accounts cannot currently log in.** The seed's comment documents the plaintext as
+  `password`, but the BCrypt hash it inserts does **not** verify against that (or any known)
+  plaintext — confirmed during the 2026-07-17 V6 deploy verification, on prod too. Until the seed
+  hash is regenerated, **register fresh accounts for manual testing** (or reset a seeded account's
+  password hash by hand in the DB).
+- `profile_id`s are **deterministic** (md5-derived) — the same across rebuilds — so flows that need
+  a known `profile_id` (grants, assignments, bookings) are reproducible. (Since the V6
+  users→profiles merge, `profile_id` is the only id; seeded `user_id`s are gone.)
+- There is **no schema-level parent→teen link** (no `linked_teen_user_id` column exists); a parent
+  account is just `role = PARENT`, and any parent↔teen relationship is made in the app the same way
+  as a friendship, plus an optional data-access grant.
 
-> **Full table** (every email, `user_id`, `profile_id`, school, links) is in the in-repo doc:
+> **Full table** (every email, `profile_id`, school) is in the in-repo doc:
 > `therapist-api/docs/development_and_testing_accounts.md` (mirrored in `thesis_social/docs/`).
 > Example teen: `teen001.dev@mhsa.local` → profile_id `e1d0add5-b9c8-57b5-36e6-059991832f17`.
 
@@ -33,11 +40,14 @@ predictable data:
 
 ## 2. Quick smoke test (through the gateway)
 
+> ⚠️ Step 1 fails against the broken seed hash (§1) — register a fresh account first and log in
+> with that instead.
+
 ```bash
-# 1. login as a seeded teen → grab the access token
+# 1. login → grab the access token (see warning above re: seeded credentials)
 curl -s -X POST http://localhost:8080/api/v1/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"teen001.dev@mhsa.local","password":"developer"}'
+  -d '{"email":"teen001.dev@mhsa.local","password":"password"}'
 
 TOKEN=<accessToken from above>
 

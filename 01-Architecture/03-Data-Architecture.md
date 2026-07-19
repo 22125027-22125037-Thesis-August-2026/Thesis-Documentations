@@ -42,10 +42,11 @@ private UUID profileId;        // points at a Profile owned by Auth, but no FK /
 private Profile profile;       // ❌ never do this across a service boundary
 ```
 
-The two most common cross-domain UUIDs system-wide:
-- **`profile_id`** — a user's profile (owned by Auth). Carried by Tracking, AI, Therapist, Social,
-  Notification, and inside JWTs.
-- **`account_id`** — a raw account (owned by Auth). E.g. `therapists.account_id`.
+The single cross-domain UUID system-wide is **`profile_id`** — a user's profile (owned by Auth),
+carried by Tracking, AI, Therapist, Social, Notification, and inside JWTs (`sub`). Since the **V6
+users→profiles merge** (auth, 2026-07-17) there is no separate account id anymore: the old `users`
+table was strictly 1:1 with `profiles` and was folded into it, and therapist-api dropped its
+`therapists.account_id` column (its V7 migration) for the same reason.
 
 Within a single service, normal FKs and `@ManyToOne` are fine.
 
@@ -56,10 +57,10 @@ Within a single service, normal FKs and `@ManyToOne` are fine.
 ### 3.1 Auth Service — `auth_db`
 | Table | Purpose |
 |---|---|
-| `users` | account credentials |
-| `profiles` | app identity, role (TEEN/THERAPIST), school, avatar |
-| `data_access_grants` | consent: which profile granted which other profile access |
-| *(therapist profile / license tables)* | therapist directory data + license verification state |
+| `profiles` | the **single identity row** — credentials (email, password hash) **and** app identity (role TEEN/THERAPIST, school, avatar). The former `users` table was merged in by `V6__merge_users_into_profiles.sql` (2026-07-17); `profile_id` is the id everywhere, including JWT `sub` |
+| `data_access_grants` | consent: which profile granted which other profile access (`accessScope`, `expiresAt`) |
+| `refresh_tokens` | long-lived refresh tokens for silent rotation/revocation |
+| *(therapist profile / license / assignment-replica tables)* | therapist directory data, license verification state, mirrored patient↔therapist assignments |
 
 ### 3.2 Tracking Service — `tracking_db`
 | Table | Purpose |
@@ -128,12 +129,13 @@ startup, versioning enabled).
 
 - Services use the AWS S3 SDK with **path-style access** against `http://minio:9000`.
 - Clients never hit MinIO directly. The service issues a **presigned GET URL** whose host is the
-  **public gateway** (`S3_PUBLIC_ENDPOINT = http://<PUBLIC_IP>:8080`), and Nginx proxies
-  `/mhsa-media/<key>` to MinIO, **preserving the Host header** so the SigV4 signature still validates.
+  **public HTTPS edge** (`S3_PUBLIC_ENDPOINT = https://umatter-apcs.duckdns.org`); Caddy forwards
+  `/mhsa-media/<key>` to Nginx, which proxies it to MinIO **preserving the Host header** so the
+  SigV4 signature still validates.
 - Upload limit: Nginx `client_max_body_size 30m` (treasure media up to 25 MB file / 30 MB request).
 
 ```
-Mobile app ──GET http://<IP>:8080/mhsa-media/<key>?X-Amz-Signature=…──► Nginx ──► MinIO:9000
+Mobile app ──GET https://umatter-apcs.duckdns.org/mhsa-media/<key>?X-Amz-Signature=…──► Caddy ──► Nginx ──► MinIO:9000
             (presigned URL minted by Tracking; Host preserved for signature validity)
 ```
 

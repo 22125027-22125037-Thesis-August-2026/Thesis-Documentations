@@ -18,7 +18,9 @@ exercises, habit streaks, and media-rich "treasures". It also produces the **agg
 that powers the AI companion and the therapist's view of a consenting patient, and it publishes
 **streak-milestone** events that become notifications.
 
-This is the richest data domain in the system (14 Flyway migrations).
+This is the richest data domain in the system (8 Flyway migrations — the demo-data seed was
+renumbered V4→V8 in July 2026 to resolve a duplicate-version clash with the grant-watermark
+migration).
 
 ---
 
@@ -54,7 +56,7 @@ All under `/api/v1/tracking/`. The log resources share a consistent CRUD shape.
 | Streaks | `/streaks` | `StreakController` | POST `/`, GET `/`, GET `/{id}`, PUT `/{id}`, DELETE `/{id}` |
 | Treasures | `/treasures` | `TreasureController` | POST `/` (multipart, up to 25 MB), GET `/`, DELETE `/{id}` |
 | Media | `/media` | `MediaAttachmentController` | POST `/`, GET `/`, GET `/{id}`, PUT `/{id}`, DELETE `/{id}` |
-| Grants | `/grants` | `DataAccessGrantController` | DELETE `/{granteeProfileId}`, GET `/received` |
+| Grants | `/grants` | `DataAccessGrantController` | POST `/`, DELETE `/{granteeProfileId}`, GET `/` (my grants), GET `/received` |
 
 ### Internal (gateway-blocked)
 - `/internal/v1/tracking/context/{profileId}` (`ContextController`) — **the aggregated context** the
@@ -70,16 +72,25 @@ All under `/api/v1/tracking/`. The log resources share a consistent CRUD shape.
 - **Dashboard service** calls `/internal/v1/dashboard/{profileId}/summary`.
 - **Notification:** publishes `streak.milestone` to `tracking.exchange` → FCM push.
 - **MinIO:** diary/treasure/media binaries; clients receive **presigned URLs** served through the
-  gateway's `/mhsa-media/` route (`S3_PUBLIC_ENDPOINT = http://<PUBLIC_IP>:8080`).
-- **Consent:** enforces `data_access_grants` before returning a patient's data to a therapist.
+  HTTPS edge (`S3_PUBLIC_ENDPOINT = https://umatter-apcs.duckdns.org`, Caddy → Nginx `/mhsa-media/`
+  → MinIO with the Host header preserved for the SigV4 signature).
+- **Consent:** enforces `data_access_grants` before returning a user's data to anyone else (§5).
 
 ---
 
 ## 5. Security & access control
 
-- All endpoints require a valid JWT; the principal is the `profileId` claim.
-- A therapist reading a patient's data must hold an active **data-access grant** (mirrored from Auth).
-  No grant ⇒ access denied.
+- All `/api/**` endpoints require a valid JWT; the principal is the profile id (`sub`).
+- Per-profile reads (`GET /{moods|sleeps|foods|diaries|steps|breathing}/{profileId}`) are guarded by
+  **`AccessGuard.canReadTrackingData`**: allowed for the owner themself, or for a viewer holding an
+  **ACTIVE, unexpired data-access grant** (the local mirror replicated from Auth). No grant ⇒ 403.
+  This is one mechanism for every audience — therapist, parent, and friend alike.
+- ⚠️ **The grant's `accessScope` (`READ_JOURNAL`/`READ_ALL`) is not consulted** by the guard —
+  enforcement today is all-or-nothing per grantee.
+- ⚠️ **`/internal/v1/tracking/context/{profileId}` performs no grant check** — it trusts the caller
+  (network-topology protection only). Its one caller is the AI service, which therefore reads
+  tracking context without user consent; fixing this is planned work
+  (see [AI-Service §7](AI-Service.md)).
 
 ---
 
@@ -90,8 +101,8 @@ cd uMatter-Backend_Auth_Tracking_AI && docker compose up -d --build tracking-ser
 curl http://localhost:8084/actuator/health
 ```
 Notable env: `SERVICE_AUTH_URL=http://auth-service:8081`, S3/MinIO keys,
-`S3_PUBLIC_ENDPOINT=http://<PUBLIC_IP>:8080` (must be the public gateway, since `minio:9000` is
-unreachable from mobile devices).
+`S3_PUBLIC_ENDPOINT=https://umatter-apcs.duckdns.org` (must be the public edge, since `minio:9000`
+is unreachable from mobile devices).
 
 ---
 
