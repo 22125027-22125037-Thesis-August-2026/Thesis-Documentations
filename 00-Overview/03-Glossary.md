@@ -22,7 +22,7 @@
 | **Grant** | See *Data-Access Grant*. |
 | **Idempotency** **[domain]** | Guaranteeing an event processed twice has the same effect as once. The Notification service uses Redis (`SET … NX EX`) to dedupe events. |
 | **Internal endpoint** **[domain]** | An endpoint under `/internal/...` for service-to-service calls only; **blocked at the gateway** so it is unreachable from the internet. |
-| **JWKS** | JSON Web Key Set — the standard way to publish an RSA **public** key over HTTP so other services can verify JWTs. Auth serves it at `/internal/v1/.well-known/jwks.json` (`JwksController`); **Dashboard** consumes it (`JwksKeyProvider`, cached by `kid`). The other five services still take the key statically via `JWT_PUBLIC_KEY`. |
+| **JWKS** | JSON Web Key Set — the standard way to publish an RSA **public** key over HTTP so other services can verify JWTs. Auth serves it at `/internal/v1/.well-known/jwks.json` (`JwksController`); **all six other services consume it** (since 2026-07-20), each caching by `kid`. No service holds the signing key, and rotating it needs no redeploy. |
 | **JWT** | JSON Web Token — the signed access token carried in `Authorization: Bearer …`. Signed with **RS256** (asymmetric). |
 | **MHSA** | "Mental Health Support Application" — the original/internal name for the project; appears in Java package names (`com.mhsa.backend.*`) and the MinIO bucket (`mhsa-media`). Synonymous with **uMatter**. |
 | **MinIO** | An S3-compatible object-storage server used for media (avatars, diary/treasure images & audio). |

@@ -89,7 +89,10 @@ All under `/api/v1/tracking/`. The log resources share a consistent CRUD shape.
 
 ## 5. Security & access control
 
-- All `/api/**` endpoints require a valid JWT; the principal is the profile id (`sub`).
+- All `/api/**` endpoints require a valid JWT; the principal is the profile id (`sub`). Verification
+  keys come from Auth's JWKS (`MHSA_APP_JWKSENDPOINT`, via `shared-jwt`'s `JwksKeyProvider`), resolved
+  by `kid`. Tracking holds **no signing material** — as of 2026-07-20 it is no longer handed the RSA
+  private key it never used.
 - Per-profile reads (`GET /{moods|sleeps|foods|diaries|steps|breathing}/{profileId}`) are guarded
   **per category** by **`AccessGuard.canReadCategory(auth, profileId, 'READ_X')`**: allowed for the
   owner themself, or for a viewer holding an **ACTIVE, unexpired grant whose scope set covers that

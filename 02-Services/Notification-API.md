@@ -45,6 +45,10 @@ It is the only service that turns "something happened in another domain" into a 
 |---|---|---|
 | `appointment.booked` | `BOOKING` | inbox row + **email (HTML)** + **FCM push** |
 
+**Auth:** verification keys come from Auth's JWKS (`JWT_JWKS_URI`) via
+`NimbusJwtDecoder.withJwkSetUri`, which handles caching, `kid` selection and refresh. The decoder
+logs a warning that it is ignoring the `JWT_PUBLIC_KEY` still present in `.env`.
+
 Listener semantics: `auto` ack, **no requeue on failure** (error handler → DLQ on first failure),
 concurrency 3–10, prefetch 20. Retry/backoff is configured in `application.yml` but **not wired**
 into the project's custom container factory, so it's currently dormant. Full detail:

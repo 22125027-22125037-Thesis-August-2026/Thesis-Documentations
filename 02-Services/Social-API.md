@@ -146,7 +146,11 @@ registry.enableStompBrokerRelay("/queue", "/topic")
   `social.therapist.assignment.changed` (+ DLX/DLQ), manual ack, single consumer.
 
 ## 7. Security
-- Stateless JWT (RS256), principal `profileId`. Friend/chat actions are scoped to the authenticated
+- Stateless JWT (RS256). Verification keys come from Auth's JWKS (`SOCIAL_JWT_JWKS_URI`) via
+  `NimbusJwtDecoder.withJwkSetUri`, which handles caching, `kid` selection and refresh. The optional
+  `SOCIAL_JWT_SIGNING_KID` pin is ignored in that mode — it would reject the first token signed with
+  a rotated key.
+- Principal `profileId`. Friend/chat actions are scoped to the authenticated
   user; you can only act on your own requests/channels.
 
 ## 8. Run it

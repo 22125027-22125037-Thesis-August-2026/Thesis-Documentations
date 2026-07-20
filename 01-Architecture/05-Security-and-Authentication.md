@@ -19,31 +19,37 @@ uMatter uses **stateless** authentication. There is no server-side session; ever
   rollout compatibility, and `role`.
 - **Access-token lifetime:** 1 hour (`MHSA_APP_JWTEXPIRATIONMS = 3600000`).
 
-### Key distribution — JWKS (Dashboard) and static public key (everyone else)
+### Key distribution — JWKS, for every verifier
 
-Auth publishes the public half of its signing key as a JWKS document, and Dashboard consumes it.
-The remaining services are still configured with the key directly via `JWT_PUBLIC_KEY` →
-`mhsa.app.jwtPublicKey`. Both paths verify locally; neither calls back to Auth per request.
+Auth publishes the public half of its signing key as a JWKS document, and **all six other services
+consume it** (migrated 2026-07-20). No service is configured with the signing key or the static
+public key any more. Verification is local per request; the key set is fetched once and cached.
 
 ```
 Auth (holds RSA private key) ──signs──► JWT  (kid in header)
    │
-   ├─ GET /internal/v1/.well-known/jwks.json ──► Dashboard
-   │     fetched lazily, cached by kid, refreshed when an unknown kid appears
-   │     Dashboard is handed no signing material at all
-   │
-   └─ JWT_PUBLIC_KEY env (out of band, from the .env files)
-         ──► Therapist, Tracking, AI, Social, Notification
-             each parses it once at startup and verifies RS256 locally
+   └─ GET /internal/v1/.well-known/jwks.json
+        ──► Dashboard · Tracking · AI · Therapist · Social · Notification
+            fetched lazily on the first token, cached by kid, refreshed when an
+            unknown kid appears; none is handed any signing material at all
 ```
+
+Three different client implementations sit behind that one arrow, because the services do not share
+a JWT stack:
+
+| Verifier | Consumer implementation | Why this one |
+|---|---|---|
+| Dashboard, Tracking, AI | `JwksKeyProvider` (`shared-jwt`), enabled by `mhsa.app.jwksEndpoint` | all three are modules of the Maven monorepo and already depend on `shared-jwt` |
+| Notification, Social | Spring Security's `NimbusJwtDecoder.withJwkSetUri(...)` | both already used Nimbus; the library does caching, kid selection and refresh, so no hand-rolled fetcher was warranted |
+| Therapist | `JwksVerificationKeyLocator` on jjwt's `Locator` SPI | standalone repo, no `shared-jwt` dependency, and it parses with **jjwt** rather than Nimbus — so neither of the above was available |
 
 **The endpoint** is `JwksController` in `auth-service`, returning `jwtUtils.getJwksResponse()`. It
 sits under `/internal/**`, which `SecurityConfig` permits and the gateway does not route: a key set
 is public information, but only services on the compose network need it.
 
-**The consumer** is `JwksKeyProvider` in `shared-jwt`, active in any service that sets
-`mhsa.app.jwksEndpoint`. Two properties worth stating because they are the parts that usually go
-wrong:
+**The consumers** all implement the same two properties, because these are the parts that usually go
+wrong (Nimbus provides them; `JwksKeyProvider` and `JwksVerificationKeyLocator` implement them
+deliberately):
 
 - **The fetch is lazy, not at startup.** Fetching in `@PostConstruct` would make Auth a hard boot
   dependency for every consumer. Instead the first RS256 token triggers the fetch, so a consumer
@@ -67,10 +73,15 @@ clients pick up new ones. Drop the previous-key config once that window passes. 
 entire reason JWKS is a key *set* rather than a single key, and it is why rotation is a background
 operation rather than a forced re-login for every user.
 
-The five services still on `JWT_PUBLIC_KEY` do not get this — for them, rotation is still a
-redeploy. Moving them over is a one-line compose change each (swap `MHSA_APP_JWTPUBLICKEY` for
-`MHSA_APP_JWKSENDPOINT`); it is deliberately not done yet so that a JWKS or Auth-availability
-problem can only affect one service.
+Since 2026-07-20 **every** verifier gets this, so a key rotation is now a change at Auth alone — no
+redeploy of any other service, and no forced re-login.
+
+> ⚠️ **A pinned `kid` is incompatible with rotation, and two services had one.** Therapist and Social
+> both supported an expected-`kid` check (`JWT_SIGNING_KID` / `SOCIAL_JWT_SIGNING_KID`) that rejected
+> any token whose `kid` did not match. Under JWKS that check is not just redundant — the key set
+> *is* the kid allow-list — it actively breaks rotation, because the first token signed with the new
+> kid would be rejected. Both now skip the pin whenever a JWKS URI is configured. The setting is
+> still honoured in the static-key fallback.
 
 ---
 

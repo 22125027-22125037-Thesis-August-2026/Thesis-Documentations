@@ -92,6 +92,9 @@ Configuration (`docker-compose.yml` env):
 
 ## 6. Integrations
 
+- **Auth service** — verification keys via JWKS (`MHSA_APP_JWKSENDPOINT`, `shared-jwt`'s
+  `JwksKeyProvider`), resolved by `kid`. AI holds **no signing material**; as of 2026-07-20 it is no
+  longer handed the RSA private key it never used.
 - **Tracking service** (internal REST) — context grounding.
 - **Google Gemini** (external REST) — the LLM.
 - **Dashboard** consumes `/internal/v1/dashboard/{profileId}/chat-stats`.

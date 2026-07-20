@@ -102,11 +102,12 @@ com.mhsa.backend.auth
 ## 5. Integrations
 
 - **JWT:** signs RS256 tokens with the RSA private key (`MHSA_APP_JWTPRIVATEKEY`), stamping the
-  `kid` header. The whole system depends on this. Auth publishes the matching public key at
-  `/internal/v1/.well-known/jwks.json`; **Dashboard** verifies from that key set, while the other
-  five services still take the key as the `JWT_PUBLIC_KEY` env var. During a rotation overlap,
-  setting `mhsa.app.jwtPreviousPublicKey` + `…PreviousSigningKid` publishes both keys so tokens
-  already issued keep validating. See
+  `kid` header. **Auth is the only service that holds signing material.** It publishes the matching
+  public key at `/internal/v1/.well-known/jwks.json`, and since 2026-07-20 **all six other services
+  verify from that key set** — so rotating the pair is a change here alone, with no redeploy
+  elsewhere. During a rotation overlap, setting `mhsa.app.jwtPreviousPublicKey` +
+  `…PreviousSigningKid` publishes both keys so tokens already issued keep validating and nobody is
+  logged out. See
   [01-Architecture/05-Security-and-Authentication](../01-Architecture/05-Security-and-Authentication.md).
 - **MinIO:** avatar uploads to bucket `mhsa-media`.
 - **Therapist API:** `THERAPIST_API_BASE_URL = http://therapist-api:8085` and the shared

@@ -28,8 +28,8 @@ how to run → known gaps**.
 
 - **Java 17**, **Spring Boot** (4.0.x or 3.3.x), **Spring Security** (stateless), **Spring Data JPA**.
 - **Flyway** migrations with `ddl-auto: validate`.
-- **RS256 JWT** verification — Dashboard resolves keys from Auth's JWKS; the rest take the public
-  key statically from `JWT_PUBLIC_KEY`.
+- **RS256 JWT** verification — every service resolves keys from Auth's JWKS endpoint, cached by
+  `kid`. Only Auth holds signing material.
 - **Docker Compose** packaging; every stack joins the **`umatter-shared`** external network.
 - **`/internal/...`** endpoints for service-to-service calls (blocked at the gateway).
 - Configuration via **`.env`** (no port keys — ports are literals in compose).

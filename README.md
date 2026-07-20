@@ -179,8 +179,32 @@ down as gaps:
     had ever caught it.
   - **Rotation no longer implies re-login.** Setting `mhsa.app.jwtPreviousPublicKey` +
     `…PreviousSigningKid` publishes both keys during an overlap, so tokens already issued keep
-    validating until they expire. Five services still take the key statically and remain a redeploy
-    to rotate — deliberately, to limit blast radius while one consumer proves the path.
+    validating until they expire.
+
+*Third pass, 2026-07-20 — the remaining five verifiers were migrated, so JWKS is now system-wide:*
+- **All six non-Auth services resolve keys from the key set.** Only Auth holds signing material, and
+  rotating the pair is now a change at Auth alone. Three client implementations were required,
+  because the services do not share a JWT stack: `JwksKeyProvider` (`shared-jwt`) for Tracking and
+  AI; `NimbusJwtDecoder.withJwkSetUri` for Notification and Social, both of which already used
+  Nimbus; and a new `JwksVerificationKeyLocator` on jjwt's `Locator` SPI for Therapist, which is a
+  standalone repo with no `shared-jwt` dependency and parses with jjwt.
+- **Tracking and AI were also handed the RSA *private* key and never used it.** Same defect as
+  Dashboard, and — as there — removing it from compose was not enough: each `entrypoint.sh`
+  re-derives it from `JWT_PRIVATE_KEY`, which arrives via `env_file: .env`. Fixed in the entrypoints
+  and **verified by reading `/proc/1/cmdline` in the running containers**, not by trusting the diff.
+- **A pinned `kid` would have broken rotation in two services.** Therapist and Social both enforced
+  an expected-`kid`; under JWKS that rejects the first token signed with a new key. Both now skip the
+  pin when a JWKS URI is set.
+- **Proven end-to-end on prod with a real signed token** (a throwaway account, since the seeded
+  accounts cannot log in): Dashboard, Tracking, AI, Social and Notification all returned **200**;
+  Therapist returned **403** on a therapist-only endpoint called by a teen — authenticated, then
+  authorization-denied — while a garbage signature returned **401** everywhere. The therapist log
+  shows the lazy JWKS fetch firing on that first token, eight minutes after startup.
+- **Also found while testing** (documented in [06-Development/03](06-Development/03-Testing-and-Accounts.md),
+  not caused by this work): therapist-api's **test suite does not compile** on `main`, so none of its
+  advertised coverage runs; social has 2 deterministic failures tied to the commented-out
+  `message_sent` event plus a ~50% Mockito flake; and the monorepo's `./mvnw` is broken (missing
+  `.mvn/wrapper/maven-wrapper.properties`).
 - **The dormant notification consumers were deleted.** `streak.milestone` and `message.missed` had
   queues, DLQs, DTOs and consumers in `notification-api`, and no producer anywhere. Live queues with
   no publisher are what caused a service doc and a manual test script to describe features that did

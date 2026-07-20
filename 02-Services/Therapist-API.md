@@ -119,7 +119,10 @@ generated slots), **appointment booking** with **Zoom video** consultations, **c
 
 ## 6. Security & error contracts
 
-- Stateless JWT (RS256 via `JWT_PUBLIC_KEY`), validates `iss`/`aud`/optional `kid`.
+- Stateless JWT (RS256). Verification keys come from Auth's JWKS (`JWT_JWKS_URI`), resolved by `kid`
+  through `JwksVerificationKeyLocator` on jjwt's `Locator` SPI — this repo has no `shared-jwt`
+  dependency and parses with jjwt, so it could reuse neither the monorepo's provider nor Nimbus.
+  Validates `iss`/`aud`; the optional `kid` pin is ignored under JWKS (it would break rotation).
 - Principal = `profileId` claim (fallback `sub`); `TEEN → ROLE_PATIENT`, `THERAPIST → ROLE_THERAPIST`.
 - `/api/v1/test/**` permit-all; everything else authenticated; method security for role checks.
 - `GlobalExceptionHandler` → RFC `ProblemDetail`: `SlotAlreadyBooked → 409`, `ResourceNotFound → 404`,

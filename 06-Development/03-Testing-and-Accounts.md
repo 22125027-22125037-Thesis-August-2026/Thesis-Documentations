@@ -97,12 +97,32 @@ curl -X POST http://localhost:8085/api/v1/test/trigger-cleanup      # delete sta
 
 ## 5. Automated tests
 
-| Service | Coverage (representative) |
-|---|---|
-| **Therapist API** | `ScheduleGenerationServiceIntegrationTest` (TZ conversion, idempotent generation), `ReviewServiceIntegrationTest` (creation, duplicate prevention, non-completed rejection, rating recompute), context-startup test |
-| Others | Spring context-load tests; mobile app has Jest config (`jest.config.js`) |
+| Service | Coverage (representative) | State (verified 2026-07-20) |
+|---|---|---|
+| **Therapist API** | `ScheduleGenerationServiceIntegrationTest` (TZ conversion, idempotent generation), `ReviewServiceIntegrationTest` (creation, duplicate prevention, non-completed rejection, rating recompute), context-startup test | 🔴 **the test suite does not compile**, so none of these run — see below |
+| **Social** | 45 tests incl. `JwtTokenServiceTest` (14, green), `ChatServiceTest`, `FriendServiceTest` | 🟡 2 deterministic failures + 1 flake — see below |
+| **Notification** | consumer + dispatcher tests | 🟢 green |
+| Others | Spring context-load tests; mobile app has Jest config (`jest.config.js`) | — |
 
-Run the Gradle repos' tests with `./gradlew test`; the Maven monorepo with `./mvnw test`.
+Run the Gradle repos' tests with `./gradlew test`. ⚠️ The Maven monorepo's `./mvnw` is broken —
+`.mvn/wrapper/maven-wrapper.properties` is missing, so the wrapper cannot resolve a distribution.
+Use a system Maven (`mvn test`) until the wrapper is restored.
+
+### Known test-suite problems (don't mistake these for your own breakage)
+
+1. **therapist-api's tests do not compile on `main`.** `BookingServiceTest` calls
+   `AppointmentRepository.findClosestUpcomingOrRecentInProgress(...)` with arguments that no longer
+   match the interface, so `compileTestJava` fails and **the whole suite is skipped**. The coverage
+   claimed above is therefore aspirational, not running. Fixing the call signature is the first step
+   to getting any therapist-api test signal back.
+2. **thesis_social has 2 deterministic failures**, both pre-existing and both consistent with the
+   dormant-event finding: `ChatServiceTest.sendMessageShouldPersistNotifyAndPublishEvent` expects the
+   `message_sent` publish that is commented out, and
+   `ChatServiceTest.listChannelsShouldIncludeCounterpartLastMessageAndUnreadCount` asserts on it.
+3. **`FriendServiceTest.unfriendShouldDeleteFriendshipAndDirectChannel` is flaky (~50%)**, failing
+   with Mockito's `PotentialStubbingProblem` only in a full-suite run and passing in isolation —
+   a strict-stubbing order dependence. Measured at 2/4 on both `main` and a feature branch, so a
+   single red run is **not** evidence that a change broke it. Compare failure *rates*, not one run.
 
 > Test coverage is an explicit area for future expansion — see
 > [07-Academic](../07-Academic/01-Thesis-Context-and-Future-Work.md).
