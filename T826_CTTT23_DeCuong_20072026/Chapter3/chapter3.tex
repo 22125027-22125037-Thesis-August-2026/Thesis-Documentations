@@ -4,14 +4,19 @@
 \section{Requirements Analysis}
 \label{sec:requirements}
 
-uMatter has four direct actors: the primary user, can be the teenager who
-is seeking support for mental health or a close friend and family,
-who tracks their wellbeing on the mobile application and owns every piece of
-data they produce; the
-therapist, working from the web dashboard; and the
-administrator. Importantly, a teen may admit to their tracked record:
-therapists, parents and close friends (other user accounts), the AI companion, all subject to the same explicit, scoped, revocable grants
-(Section~\ref{sec: data}).
+uMatter has three direct actors: the primary user, who can be the teenager
+seeking support for mental health or a close friend or family member, and
+who tracks their wellbeing on the mobile application and owns every piece
+of data they produce; the therapist, working from the web dashboard; and
+the administrator. Importantly, a teen may admit others to their tracked
+record: therapists, parents and close friends (other user accounts), and
+the AI companion, all subject to the same explicit, scoped, revocable
+grants (Section~\ref{sec:datasec}).
+
+Table~\ref{tab:freq} lists the key functional requirements distilled from
+these actors' needs, and Table~\ref{tab:nfreq} lists the key non-functional
+requirements that constrain how they are implemented; both are traced back
+to the design objectives introduced in Chapter~\ref{Chapter1}.
 
 \begin{table}[htbp]
   \centering
@@ -84,10 +89,16 @@ therapists, parents and close friends (other user accounts), the AI companion, a
     % Assuming your main.tex is at the root directory, you need the full path
     \includegraphics[width=\textwidth]{Chapter3/images/ch3-overall-architecture.png}
     \caption{The overall microservices architecture of uMatter.}
-    \label{fig:ch3_overall_architecture}
+    \label{fig:ch3-overall-architecture}
 \end{figure}
 
-uMatter follows a microservices architecture: independently deployable Spring Boot services sit behind a single Nginx API gateway, which is the only entry point reachable by the two client applications - a React Native mobile app for teenagers/patients and a React web dashboard for therapists. The gateway is responsible for routing requests to the correct backend service and for terminating HTTPS at the edge of the system.
+uMatter follows a microservices architecture, shown in
+Figure~\ref{fig:ch3-overall-architecture}: independently deployable Spring
+Boot services sit behind a single Nginx API gateway, which is the only entry
+point reachable by the two client applications - a React Native mobile app
+for teenagers/patients and a React web dashboard for therapists. The gateway
+is responsible for routing requests to the correct backend service and for
+terminating HTTPS at the edge of the system.
 
 This decomposition is not free, and for a two-person academic project the
 choice deserves justification. We accept the operational overhead of seven
@@ -96,7 +107,7 @@ two things. First, independent lifecycles, which are not hypothetical here:
 the services live in separate repositories, evolving without
 coordinated upgrades. Second, each service is scoped to a single functional area, can be developed, deployed, and scaled independently, and owns its own data.
 
-This decomposition follows the pattern described by Newman~\cite{2021-Newman-Microservices}, synchronous request/response interactions between services and clients use REST-style HTTP APIs~\cite{2000-Fielding-REST}; workflows that are naturally asynchronous, such as sending a notification after an event happens elsewhere in the system, are handled through RabbitMQ instead~\cite{RabbitMQ}.
+This decomposition follows the pattern described by Newman~\cite{2021-Newman-Microservices}. Synchronous request/response interactions between services and clients use REST-style HTTP APIs~\cite{2000-Fielding-REST}; workflows that are naturally asynchronous, such as sending a notification after an event happens elsewhere in the system, are handled through RabbitMQ instead~\cite{RabbitMQ}.
 
 \section{Service Decomposition}
 
@@ -112,7 +123,7 @@ The backend is organized into seven services, summarized in Table~\ref{tab:servi
  \hline
  Auth & User registration/login, JWT issuance and refresh, JWKS key publication, role management \\
  \hline
- Tracking & Mood, sleep, and journal entry storage; the source of truth for a user's self-reported well-being data \\
+ Tracking & Mood, sleep, and journal entry storage; the source of truth for a user's self-reported wellbeing data \\
  \hline
  AI & Manages conversations with the AI companion, grounding responses in the user's own tracking data \\
  \hline
@@ -130,7 +141,7 @@ The backend is organized into seven services, summarized in Table~\ref{tab:servi
 
 
 \section{Data Architecture}
-\label{sec: data}
+\label{sec:data}
 
 uMatter follows a database-per-service pattern: each backend service owns a private PostgreSQL database, and no service reaches directly into another service's schema. Cross-service data needs are satisfied either through a synchronous API call to the owning service or through an asynchronous event, never through shared tables. This keeps each service free to evolve its own schema without coordinating a migration across the whole system, at the cost of needing an explicit strategy (API calls or events) for any data that spans services.
 
@@ -149,7 +160,7 @@ To ensure data integrity and fault tolerance across these asynchronous boundarie
     \centering
     
     \includegraphics[width=0.8\textwidth]{Chapter3/images/ch3-replication-events.png}
-    \caption{The four replication streams}
+    \caption{The four event-driven replication streams maintained via RabbitMQ.}
     \label{fig:ch3-replication-events}
 \end{figure}
 
@@ -166,14 +177,14 @@ To ensure data integrity and fault tolerance across these asynchronous boundarie
 
 Authentication is stateless: the Auth service issues JSON Web Tokens signed with an RSA private key, following RFC 7519~\cite{2015-RFC7519-JWT}, and publishes the corresponding public key through a JWKS endpoint. Every other service validates incoming tokens locally against this published key, so no service needs to call back to Auth (or share a session store) simply to authenticate a request. Roles embedded in the token (teen/patient, therapist, admin) drive coarse-grained authorization at the gateway and service level.
 
-Fine-grained authorization is handled by a permission-based data sharing model, which is central to uMatter's design goal of not exposing sensitive tracked data by default. A user's mood, sleep, food, journal, step, and breathing records are private to that user unless the user explicitly grants another party access. A grant names a \emph{set of tracking categories} it covers, so a user may share, for example, their sleep and nutrition but withhold their journal, carries a thirty-day expiry, and is revocable at any time. Enforcement lives at the Tracking service boundary: every read of a category is gated on an active, unexpired grant whose scope set includes that category, checked against a locally replicated copy of the grants (Section~\ref{sec:events}) rather than left to the client application, so that a compromised or misbehaving client cannot bypass it. The same mechanism serves every audience uniformly: a therapist, a parent, a friend, and the AI companion are all grantees enforced by identical code.
+Fine-grained authorization is handled by a permission-based data sharing model, which is central to uMatter's design goal of not exposing sensitive tracked data by default. Figure~\ref{fig:ch3-permission-grant-flow} traces a single permission-checked read through this model end to end. A user's mood, sleep, food, journal, step, and breathing records are private to that user unless the user explicitly grants another party access. A grant names a \emph{set of tracking categories} it covers, so a user may share, for example, their sleep and nutrition but withhold their journal, carries a thirty-day expiry, and is revocable at any time. Enforcement lives at the Tracking service boundary: every read of a category is gated on an active, unexpired grant whose scope set includes that category, checked against a locally replicated copy of the grants (Section~\ref{sec:events}) rather than left to the client application, so that a compromised or misbehaving client cannot bypass it. The same mechanism serves every audience uniformly: a therapist, a parent, a friend, and the AI companion are all grantees enforced by identical code.
 
 Service-to-service calls follow a two-tier trust model. User-facing APIs
 (\texttt{/api/**}) always require a valid JWT, validated locally by the
-receiving service. Internal APIs (\texttt{/internal/**}) --- such as the
+receiving service. Internal APIs (\texttt{/internal/**}) - such as the
 Tracking endpoint the AI service calls to assemble conversation context, or
 the grant snapshot the Tracking service pulls from Auth during nightly
-reconciliation --- do not carry the user's token; the caller passes the
+reconciliation - do not carry the user's token; the caller passes the
 subject's profile identifier explicitly. These endpoints are protected by
 network topology instead: they are reachable only on the private container
 network, and the gateway refuses any external request whose path begins with
@@ -190,13 +201,13 @@ with third-party workloads, perimeter trust is a proportionate design.
     \centering
     
     \includegraphics[width=\textwidth]{Chapter3/images/ch3-ai-grounding.png}
-    \caption{A sequence diagram of AI grounding}
+    \caption{A sequence diagram of AI grounding.}
     \label{fig:ch3-ai-grounding}
 \end{figure}
 
-The AI companion is implemented in the AI service. It retrieves the user's recent tracking summary from the Tracking service and includes it as context when calling Google's Gemini 2.5 Flash model~\cite{2024-Gemini-TechReport}. Grounding the model in the user's own data lets the companion respond to something concrete (``you logged trouble sleeping three nights this week'') rather than only offering generic supportive text. Crucially, this retrieval is gated by the same data-access grant model as every other audience (Section~\ref{sec:datasec}): the AI service holds no standing access, and the Tracking service returns context only when the user has an active grant to the reserved AI-companion principal. Consent is off by default --- a user who has not opted in still receives a companion, just one that converses without personal grounding --- and can be revoked at any time from the chat screen, after which the next reply is ungrounded.
+The AI companion is implemented in the AI service, and Figure~\ref{fig:ch3-ai-grounding} traces how a reply is grounded. It retrieves the user's recent tracking summary from the Tracking service and includes it as context when calling Google's Gemini 2.5 Flash model~\cite{2024-Gemini-TechReport}. Grounding the model in the user's own data lets the companion respond to something concrete (``you logged trouble sleeping three nights this week'') rather than only offering generic supportive text. Crucially, this retrieval is gated by the same data-access grant model as every other audience (Section~\ref{sec:datasec}): the AI service holds no standing access, and the Tracking service returns context only when the user has an active grant to the reserved AI-companion principal. Consent is off by default - a user who has not opted in still receives a companion, just one that converses without personal grounding - and can be revoked at any time from the chat screen, after which the next reply is ungrounded.
 
-Two safeguards run on every message before and around this grounding, and both are deliberately narrow. First, user messages pass a lightweight keyword guardrail: a message matching a small list of Vietnamese self-harm or violence phrases short-circuits the model entirely and returns a fixed response directing the user to emergency hotlines, rather than being sent to Gemini. Second, personally identifying details (emails, phone numbers, and self-introduced names) are scrubbed from the message, history, and context before they leave the platform, and chat contents are encrypted at rest. What the AI service deliberately does not do is any form of clinical risk assessment or automated escalation to a third party --- no scoring, no alerting a therapist or family member --- which is left out of scope, as discussed in Chapter~\ref{Chapter5}, pending the clinical collaboration such a feature would require. The keyword guardrail is a within-conversation safety redirect, not a diagnostic claim.
+Two safeguards run on every message before and around this grounding, and both are deliberately narrow. First, user messages pass a lightweight keyword guardrail: a message matching a small list of Vietnamese self-harm or violence phrases short-circuits the model entirely and returns a fixed response directing the user to emergency hotlines, rather than being sent to Gemini. Second, personally identifying details (emails, phone numbers, and self-introduced names) are scrubbed from the message, history, and context before they leave the platform, and chat contents are encrypted at rest. What the AI service deliberately does not do is any form of clinical risk assessment or automated escalation to a third party - no scoring, no alerting a therapist or family member - which is left out of scope, as discussed in Chapter~\ref{Chapter5}, pending the clinical collaboration such a feature would require. The keyword guardrail is a within-conversation safety redirect, not a diagnostic claim.
 
 \section{Professional Workflows}
 
@@ -230,11 +241,11 @@ exactly what their child has chosen to show them, which is the point.
     \centering
     
     \includegraphics[width=\textwidth]{Chapter3/images/ch3-notification-events.png}
-    \caption{An event-flow diagram}
+    \caption{An event-flow diagram of domain event publication and consumption.}
     \label{fig:ch3-notification-events}
 \end{figure}
 
-RabbitMQ~\cite{RabbitMQ} connects services that should not depend on each other synchronously. 
+RabbitMQ~\cite{RabbitMQ} connects services that should not depend on each other synchronously, as illustrated in Figure~\ref{fig:ch3-notification-events}.
 
 Table~\ref{tab:events} catalogs the domain events. Each queue is paired with
 a dead-letter queue, so a message that repeatedly fails processing is parked
@@ -292,7 +303,9 @@ exercise.
 
 \textbf{Emergency path.} The emergency-support area is a dedicated screen
 reachable from anywhere in the application in one tap. It is intentionally
-static client-side content, support and hotline resources render.
+static client-side content: support and hotline resources that render
+without any network call, so the screen stays available even if the backend
+is unreachable.
 
 \section{Deployment Topology}
 
@@ -300,8 +313,8 @@ static client-side content, support and hotline resources render.
     \centering
     
     \includegraphics[width=\textwidth]{Chapter3/images/ch3-deployment-topology.png}
-    \caption{A deployment diagram}
+    \caption{A deployment diagram of the uMatter production topology.}
     \label{fig:ch3-deployment-topology}
 \end{figure}
 
-All services are packaged as Docker containers~\cite{Docker} and orchestrated with Docker Compose, grouped into stacks by repository. The full system - Spring Boot services, PostgreSQL instances, RabbitMQ, Redis, MinIO, and supporting tools such as pgAdmin - runs on a single cloud virtual machine, fronted by a reverse proxy that terminates HTTPS. The concrete deployment used for evaluation, including the migration between cloud providers, is described in Chapter~\ref{Chapter4}.
+All services are packaged as Docker containers~\cite{Docker} and orchestrated with Docker Compose, grouped into stacks by repository, as shown in Figure~\ref{fig:ch3-deployment-topology}. The full system - Spring Boot services, PostgreSQL instances, RabbitMQ, Redis, MinIO, and supporting tools such as pgAdmin - runs on a single cloud virtual machine, fronted by a reverse proxy that terminates HTTPS. The concrete deployment used for evaluation, including the migration between cloud providers, is described in Chapter~\ref{Chapter4}.
