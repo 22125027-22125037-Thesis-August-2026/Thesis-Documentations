@@ -141,15 +141,16 @@ UI, grant model details (scope/expiry, enforcement caveats, the AI-service grant
 event topology (two dormant notification flows) folded in.*
 
 *Second verification pass, 2026-07-20 — corrections made:*
-- **JWKS is not implemented.** Ten files claimed Auth publishes a JWKS endpoint and that Dashboard
-  fetches from it. In fact `JwtUtils.getJwksResponse()` is called by no controller, `MHSA_APP_JWKSENDPOINT`
-  is bound by no `@Value`, and every service (Dashboard included) verifies with a static
-  `JWT_PUBLIC_KEY`. Corrected everywhere; the operational consequence (manual key rotation) is now
-  stated in [07-Academic](07-Academic/01-Thesis-Context-and-Future-Work.md).
+- **JWKS was documented but not implemented — so it was implemented.** Ten files claimed Auth
+  publishes a JWKS endpoint and that Dashboard fetches from it. None of it was true:
+  `JwtUtils.getJwksResponse()` was called by no controller, `MHSA_APP_JWKSENDPOINT` was bound by no
+  `@Value`, and Dashboard verified with a static `JWT_PUBLIC_KEY` like everyone else. Rather than
+  document the gap, the gap was closed — see the code-change note below.
 - **Two service docs contradicted the event map.** Tracking-Service claimed it "publishes
   streak-milestone events that become notifications" and Social-API claimed it "produces
   `message.missed`". Neither is true — both now match [04-Event-Driven-Messaging](01-Architecture/04-Event-Driven-Messaging.md),
   and the affected manual test flow in [06-Development/03](06-Development/03-Testing-and-Accounts.md) is fixed.
+  The dormant consumers behind those claims have since been **deleted** (below).
 - **`appointment.booked` sends email *and* push**, not email alone; and it fires **at booking time**,
   not when the therapist confirms (the showcase said otherwise).
 - **API reference gaps:** added `GET /internal/grants`, `GET /internal/therapist-profiles`,
@@ -161,6 +162,29 @@ event topology (two dormant notification flows) folded in.*
   Social's real routing keys (`social.message_read`, not `social.message.read`), the mobile app's
   transport (HTTPS/WSS in **all** builds, no raw IP anywhere in `src/`), and a note that
   `therapist-web-ui/.env` holds five dead vars with wrong ports.
+
+*Code changed to match the docs, 2026-07-20* — two findings were fixed in source rather than written
+down as gaps:
+
+- **JWKS now works end to end.** Auth serves `GET /internal/v1/.well-known/jwks.json`
+  (`JwksController`); Dashboard resolves verification keys from it by `kid` (`JwksKeyProvider` in
+  `shared-jwt`), fetching lazily so Auth is not a boot dependency, caching by kid, and refetching at
+  most once a minute when an unknown kid appears. Dashboard is now handed **no signing material at
+  all** — it previously received the RSA *private* key, which it never used and had no business
+  holding.
+  - **A latent bug was fixed on the way.** `getJwksResponse()` encoded the modulus with
+    `BigInteger.toByteArray()`, whose two's-complement sign byte makes a 2048-bit modulus serialise
+    as 257 bytes instead of 256. Measured across 20 generated keys: **20/20 were affected**. Nimbus
+    tolerates it, jose4j and python-jose reject it. Nothing had ever called the method, so nothing
+    had ever caught it.
+  - **Rotation no longer implies re-login.** Setting `mhsa.app.jwtPreviousPublicKey` +
+    `…PreviousSigningKid` publishes both keys during an overlap, so tokens already issued keep
+    validating until they expire. Five services still take the key statically and remain a redeploy
+    to rotate — deliberately, to limit blast radius while one consumer proves the path.
+- **The dormant notification consumers were deleted.** `streak.milestone` and `message.missed` had
+  queues, DLQs, DTOs and consumers in `notification-api`, and no producer anywhere. Live queues with
+  no publisher are what caused a service doc and a manual test script to describe features that did
+  not exist, so the consumer side was removed rather than left as bait.
 
 *Confirmed accurate and left unchanged:* the full port map and 20-container count, all four compose
 stacks, Spring Boot/Java/React/RN versions, Gemini 2.5 Flash, the gateway route table, the grant model

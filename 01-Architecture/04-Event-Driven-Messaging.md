@@ -34,33 +34,38 @@ All exchanges are **topic** exchanges; each domain owns its own exchange.
 | Producer domain | Exchange | Routing key | Consumer queue (owned by Notification) | DLX | DLQ |
 |---|---|---|---|---|---|
 | **Booking** (Therapist API) | `booking.exchange` | `appointment.booked` | `notification.booking.booked.q` | `booking.dlx` | `notification.booking.booked.dlq` |
-| **Tracking** ⚠️ *no producer* | `tracking.exchange` | `streak.milestone` | `notification.tracking.streak.q` | `tracking.dlx` | `notification.tracking.streak.dlq` |
-| **Social** ⚠️ *no producer* | `social.exchange` | `message.missed` | `notification.social.message-missed.q` | `social.dlx` | `notification.social.message-missed.dlq` |
 
-> ⚠️ **Two of these three flows are consumer-ready but dormant — nothing publishes them** (verified
-> July 2026):
-> - **`streak.milestone`:** the Tracking service never emits it. Its `TrackingEventPublisher`
->   publishes different, unrelated messages (`tracking.streak.updated`, `tracking.mood.logged`, …)
->   straight to same-named default-exchange queues that **no service consumes** — dead scaffolding.
-> - **`message.missed`:** the Social service never emits it. Social's `RabbitDomainEventPublisher`
->   publishes `social.friend_request_created`, `social.friend_request_accepted`, and
->   `social.message_read` envelopes (routing key = `social` prefix + `_`-separated event type) to its
->   **own** `social.domain.events` exchange on the social-stack broker, which **no service consumes**
->   either; its `message_sent` publish is commented out in `ChatService`.
+**`appointment.booked` → inbox + email + push is the only notification pipeline.** That is the whole
+table now, and it used to have three rows.
+
+> **Removed July 2026: `streak.milestone` and `message.missed`.** Notification declared queues, DLQs
+> and full consumers for both, but no service ever published either routing key — the producers were
+> designed and never built. The queues sat bound and permanently empty while the consumer classes
+> read, to anyone browsing the code, as evidence that streak and missed-message notifications
+> existed. They did not. That misreading had already propagated into a manual test script telling a
+> tester to exercise a path that could not work.
 >
-> Only **`appointment.booked` → email/inbox** is a live end-to-end notification pipeline today.
-> Wiring the two dormant flows means adding a producer that publishes the documented routing key on
-> the documented exchange (core-stack broker) with a `NotificationEnvelope`-shaped payload.
+> Rather than leave live queues with no publisher, the consumers, DTOs, queue declarations and
+> topology config were deleted. What the producers *do* publish, and why it goes nowhere, is
+> unchanged and documented below:
+> - **Tracking's** `TrackingEventPublisher` emits `tracking.streak.updated`, `tracking.mood.logged`
+>   and friends straight to same-named default-exchange queues that **no service consumes**.
+> - **Social's** `RabbitDomainEventPublisher` emits `social.friend_request_created`,
+>   `social.friend_request_accepted` and `social.message_read` envelopes (routing key = `social`
+>   prefix + `_`-separated event type) to its **own** `social.domain.events` exchange on the
+>   social-stack broker, which **no service consumes** either; its `message_sent` publish is
+>   commented out in `ChatService`.
+>
+> Reinstating either notification means building the producer first, then restoring the consumer to
+> match — not the other way round.
 
-Each consumed event maps to an inbox type and an outbound channel:
+The one consumed event maps to an inbox type and outbound channels:
 
 | Routing key | Event DTO | Inbox `type` | Outbound channel(s) |
 |---|---|---|---|
-| `appointment.booked` | `BookingConfirmedEvent` | `BOOKING` | **Email (HTML) *and* FCM push** — the only consumer that does both |
-| `streak.milestone` | `StreakMilestoneEvent` | `STREAK` | **FCM push** |
-| `message.missed` | `MessageMissedEvent` | `CHAT` | **FCM push** |
+| `appointment.booked` | `BookingConfirmedEvent` | `BOOKING` | inbox row + **email (HTML)** + **FCM push** |
 
-All three save the inbox row **first** and treat outbound delivery as best-effort: a device with no
+It saves the inbox row **first** and treats outbound delivery as best-effort: a device with no
 registered token logs `push skipped`, and a per-token `NotificationDispatchException` is caught and
 logged so one dead device cannot fail the event.
 
@@ -249,9 +254,10 @@ Nightly reconcile (23:00 / 23:30 / 23:45 ICT) re-syncs each replica from the own
 ## 6. Producer → consumer summary diagram (notification layer)
 
 ```
-Therapist API ──appointment.booked──► booking.exchange ──► notification.booking.booked.q ──► Email + FCM push
-(nobody)      ──streak.milestone────► tracking.exchange ─► notification.tracking.streak.q ─► FCM push   ⚠️ dormant (§2)
-(nobody)      ──message.missed──────► social.exchange ───► notification.social.…q ─────────► FCM push   ⚠️ dormant (§2)
+Therapist API ──appointment.booked──► booking.exchange ──► notification.booking.booked.q ──► inbox + Email + FCM push
+
+(streak.milestone and message.missed used to appear here with "(nobody)" as the producer.
+ Both were removed in July 2026 — see §2.)
 
 Therapist API (matching) also emits onto booking.exchange:
    profile.demographics.updated · tracking.mood.logged · ai.crisis.alerted

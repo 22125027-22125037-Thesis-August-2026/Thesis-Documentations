@@ -95,17 +95,18 @@ com.mhsa.backend.auth
 | GET | `/internal/v1/profile/{profileId}/summary` | profile summary for Dashboard (`InternalController`) |
 | GET | `/internal/grants` | full grants snapshot — pulled by Tracking's nightly `GrantReconciliationService` (`InternalGrantsController`) |
 | GET | `/internal/therapist-profiles` | therapist-profile snapshot — pulled by therapist-api's nightly `TherapistProfileReconciliationService` (`InternalTherapistProfileController`) |
-
-> ⚠️ There is **no** `/internal/v1/.well-known/jwks.json` handler — see §5.
+| GET | `/internal/v1/.well-known/jwks.json` | the signing key's public half as a JWKS (`JwksController`) |
 
 ---
 
 ## 5. Integrations
 
-- **JWT:** signs RS256 tokens with the RSA private key (`MHSA_APP_JWTPRIVATEKEY`). The whole system
-  depends on this. Every other service verifies with the matching **public key distributed as an env
-  var** (`JWT_PUBLIC_KEY`) — ⚠️ **not** via JWKS: `JwtUtils.getJwksResponse()` exists in `shared-jwt`
-  but no controller exposes it, so the JWKS endpoint is unimplemented. See
+- **JWT:** signs RS256 tokens with the RSA private key (`MHSA_APP_JWTPRIVATEKEY`), stamping the
+  `kid` header. The whole system depends on this. Auth publishes the matching public key at
+  `/internal/v1/.well-known/jwks.json`; **Dashboard** verifies from that key set, while the other
+  five services still take the key as the `JWT_PUBLIC_KEY` env var. During a rotation overlap,
+  setting `mhsa.app.jwtPreviousPublicKey` + `…PreviousSigningKid` publishes both keys so tokens
+  already issued keep validating. See
   [01-Architecture/05-Security-and-Authentication](../01-Architecture/05-Security-and-Authentication.md).
 - **MinIO:** avatar uploads to bucket `mhsa-media`.
 - **Therapist API:** `THERAPIST_API_BASE_URL = http://therapist-api:8085` and the shared

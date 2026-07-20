@@ -33,19 +33,17 @@ It is the only service that turns "something happened in another domain" into a 
 | Domain | Exchange | Routing key | Queue | DLX / DLQ | Live? |
 |---|---|---|---|---|---|
 | Booking | `booking.exchange` | `appointment.booked` | `notification.booking.booked.q` | `booking.dlx` / `…booked.dlq` | ✅ **live** |
-| Tracking | `tracking.exchange` | `streak.milestone` | `notification.tracking.streak.q` | `tracking.dlx` / `…streak.dlq` | ⚠️ **dormant** |
-| Social | `social.exchange` | `message.missed` | `notification.social.message-missed.q` | `social.dlx` / `…message-missed.dlq` | ⚠️ **dormant** |
 
-> ⚠️ **Two of the three consumers never receive anything.** Tracking never publishes
-> `streak.milestone` and Social never publishes `message.missed` — the consumers, queues, and DLQs
-> are all correctly declared, but no producer exists. Only the booking pipeline runs end-to-end.
-> See [04-Event-Driven-Messaging §2](../01-Architecture/04-Event-Driven-Messaging.md).
+> **This table had three rows until July 2026.** The Tracking (`streak.milestone`) and Social
+> (`message.missed`) consumers were removed: both were fully declared — queue, DLX, DLQ, consumer,
+> DTO — and **no service ever published either routing key**. They were bound and permanently empty.
+> Keeping them meant the codebase asserted two notification features that did not exist. Building
+> either one starts with the producer. See
+> [04-Event-Driven-Messaging §2](../01-Architecture/04-Event-Driven-Messaging.md).
 
 | Routing key | Inbox `type` | Outbound |
 |---|---|---|
-| `appointment.booked` | `BOOKING` | **Email (HTML) + FCM push** (both) |
-| `streak.milestone` | `STREAK` | FCM push |
-| `message.missed` | `CHAT` | FCM push |
+| `appointment.booked` | `BOOKING` | inbox row + **email (HTML)** + **FCM push** |
 
 Listener semantics: `auto` ack, **no requeue on failure** (error handler → DLQ on first failure),
 concurrency 3–10, prefetch 20. Retry/backoff is configured in `application.yml` but **not wired**

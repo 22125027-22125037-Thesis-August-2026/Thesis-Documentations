@@ -69,8 +69,9 @@ All under `/api/v1/tracking/`. The log resources share a consistent CRUD shape.
 - **AI service** calls `/internal/v1/tracking/context/{profileId}` to fetch a user's recent
   tracking summary before prompting Gemini.
 - **Dashboard service** calls `/internal/v1/dashboard/{profileId}/summary`.
-- **Notification:** ⚠️ **not wired.** Notification consumes `streak.milestone` off `tracking.exchange`,
-  but **Tracking never publishes it.** `TrackingEventPublisher` instead sends `tracking.diary.created`,
+- **Notification:** ⚠️ **not wired.** Notification used to consume `streak.milestone` off
+  `tracking.exchange`; that consumer was removed in July 2026 because **Tracking never published it.**
+  `TrackingEventPublisher` instead sends `tracking.diary.created`,
   `tracking.mood.logged`, `tracking.streak.updated`, `tracking.sleep.logged`, `tracking.food.logged`
   via the two-arg `convertAndSend(routingKey, msg)` — i.e. to the **default exchange**, landing in
   same-named queues that **no service consumes**. Dead scaffolding on both ends; see

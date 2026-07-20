@@ -19,39 +19,58 @@ uMatter uses **stateless** authentication. There is no server-side session; ever
   rollout compatibility, and `role`.
 - **Access-token lifetime:** 1 hour (`MHSA_APP_JWTEXPIRATIONMS = 3600000`).
 
-### Key distribution — static public key (JWKS is **not** implemented)
+### Key distribution — JWKS (Dashboard) and static public key (everyone else)
 
-**Every service is configured with the RSA public key directly**, via `JWT_PUBLIC_KEY` →
-`mhsa.app.jwtPublicKey` (`JwtUtils` binds it with `@Value` and parses it at startup into
-`publicVerificationKey`). Verification is local and per-service; nothing is fetched at runtime.
+Auth publishes the public half of its signing key as a JWKS document, and Dashboard consumes it.
+The remaining services are still configured with the key directly via `JWT_PUBLIC_KEY` →
+`mhsa.app.jwtPublicKey`. Both paths verify locally; neither calls back to Auth per request.
 
 ```
-Auth (holds RSA private key) ──signs──► JWT
-       │
-       │ the same public key is distributed as an env var (out of band, from the .env files)
-       ▼
-JWT_PUBLIC_KEY env ──►  Auth, Dashboard, Therapist, Tracking, AI, Social, Notification
-                        each parses it once at startup and verifies RS256 signatures locally
+Auth (holds RSA private key) ──signs──► JWT  (kid in header)
+   │
+   ├─ GET /internal/v1/.well-known/jwks.json ──► Dashboard
+   │     fetched lazily, cached by kid, refreshed when an unknown kid appears
+   │     Dashboard is handed no signing material at all
+   │
+   └─ JWT_PUBLIC_KEY env (out of band, from the .env files)
+         ──► Therapist, Tracking, AI, Social, Notification
+             each parses it once at startup and verifies RS256 locally
 ```
 
-> ⚠️ **The JWKS endpoint documented in earlier revisions does not exist** (verified against source,
-> July 2026). The scaffolding is half-built and easy to mistake for a working feature:
-> - `JwtUtils.getJwksResponse()` **is** implemented in `shared-jwt` (it builds a proper
->   `{kty, use, kid, alg, n, e}` key set from the RSA public key) — but **no controller calls it**.
->   Auth's `InternalController` only maps `/internal/v1/profile/{profileId}/summary`. There is no
->   `.well-known/jwks.json` handler anywhere in the codebase.
-> - `MHSA_APP_JWKSENDPOINT` is set in `docker-compose.yml` and
->   `dashboard-service/application-docker.properties`, but **no Java code reads it** — there is no
->   `@Value("${mhsa.app.jwksEndpoint}")` binding in any module. It is an inert config value pointing
->   at a URL that would 404.
-> - Dashboard therefore does **not** verify via JWKS. Its `SecurityConfig` builds the same
->   `new JwtAuthenticationFilter(jwtUtils, userDetailsService)` as every other service, and compose
->   passes it `MHSA_APP_JWTPUBLICKEY: ${JWT_PUBLIC_KEY}` like everyone else.
->
-> To actually ship JWKS: add a `@GetMapping("/.well-known/jwks.json")` on Auth's `InternalController`
-> returning `jwtUtils.getJwksResponse()`, then bind `mhsa.app.jwksEndpoint` in a consumer and fetch +
-> cache the key set. Until then, **key rotation means redeploying every service with a new
-> `JWT_PUBLIC_KEY`** — the operational cost the JWKS design was meant to remove.
+**The endpoint** is `JwksController` in `auth-service`, returning `jwtUtils.getJwksResponse()`. It
+sits under `/internal/**`, which `SecurityConfig` permits and the gateway does not route: a key set
+is public information, but only services on the compose network need it.
+
+**The consumer** is `JwksKeyProvider` in `shared-jwt`, active in any service that sets
+`mhsa.app.jwksEndpoint`. Two properties worth stating because they are the parts that usually go
+wrong:
+
+- **The fetch is lazy, not at startup.** Fetching in `@PostConstruct` would make Auth a hard boot
+  dependency for every consumer. Instead the first RS256 token triggers the fetch, so a consumer
+  starts fine while Auth is still coming up — it just cannot validate until the first fetch lands.
+- **Refresh is rate-limited to once a minute.** An unknown `kid` triggers a refetch, since that is
+  what a rotation looks like from the consumer's side. Without a floor on the interval, tokens
+  carrying forged kids would turn into a request amplifier aimed at Auth.
+
+If a refresh fails, previously cached keys keep being served — a transient Auth outage does not
+invalidate keys that are still good.
+
+### What this buys, and the rotation question
+
+Rotating the key pair no longer requires redeploying Dashboard. The more interesting property is
+that **rotation does not have to log anyone out**, which is easy to assume it must.
+
+Set `mhsa.app.jwtPreviousPublicKey` + `mhsa.app.jwtPreviousSigningKid` alongside the new pair and
+Auth publishes *both* keys. New tokens are signed with the new kid; tokens already in the wild
+carry the old kid and still find their key in the set. They expire naturally over the next hour and
+clients pick up new ones. Drop the previous-key config once that window passes. That overlap is the
+entire reason JWKS is a key *set* rather than a single key, and it is why rotation is a background
+operation rather than a forced re-login for every user.
+
+The five services still on `JWT_PUBLIC_KEY` do not get this — for them, rotation is still a
+redeploy. Moving them over is a one-line compose change each (swap `MHSA_APP_JWTPUBLICKEY` for
+`MHSA_APP_JWKSENDPOINT`); it is deliberately not done yet so that a JWKS or Auth-availability
+problem can only affect one service.
 
 ---
 

@@ -66,12 +66,17 @@ not their sum.
 
 ## 5. Security
 
-- Verifies RS256 JWTs **locally, using the RSA public key injected as `MHSA_APP_JWTPUBLICKEY`**
-  (`${JWT_PUBLIC_KEY}` in compose) — exactly like every other service. Its `SecurityConfig` builds the
-  shared `new JwtAuthenticationFilter(jwtUtils, userDetailsService)`.
-- ⚠️ `MHSA_APP_JWKSENDPOINT` is set in compose and `application-docker.properties`, but **no code
-  reads it and the endpoint it names does not exist** — Dashboard does *not* fetch a JWKS key set.
-  See [01-Architecture/05-Security §1](../01-Architecture/05-Security-and-Authentication.md).
+- Verifies RS256 JWTs **locally, against Auth's published key set** — it is the one service wired to
+  `MHSA_APP_JWKSENDPOINT` (`http://auth-service:8081/internal/v1/.well-known/jwks.json`). Keys are
+  fetched lazily on the first token, cached by `kid`, and refetched (at most once a minute) when a
+  kid it has not seen shows up. Its `SecurityConfig` still builds the shared
+  `new JwtAuthenticationFilter(jwtUtils, userDetailsService)`; the key resolution changed underneath,
+  not the filter.
+- **Dashboard is handed no signing material at all** — neither `MHSA_APP_JWTPUBLICKEY` nor
+  `MHSA_APP_JWTPRIVATEKEY`. It previously received the private key, which it never used; a service
+  that only verifies tokens has no business holding the key that mints them.
+- Because verification is JWKS-backed, rotating the key pair does **not** require redeploying
+  Dashboard. See [01-Architecture/05-Security §1](../01-Architecture/05-Security-and-Authentication.md).
 - Holds no database; it is purely a composition layer.
 
 ---

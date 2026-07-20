@@ -44,9 +44,11 @@ Gateway routing map: [01-Architecture/01-System-Architecture §4](../01-Architec
 | GET | `/internal/v1/profile/{profileId}/summary` | *(internal)* | profile summary (BFF) |
 | GET | `/internal/grants` | *(internal)* | grants snapshot for Tracking's nightly reconcile |
 | GET | `/internal/therapist-profiles` | *(internal)* | therapist-profile snapshot for therapist-api's nightly reconcile |
+| GET | `/internal/v1/.well-known/jwks.json` | *(internal)* | signing key's public half, as a JWKS |
 
-> ⚠️ There is **no** `/internal/v1/.well-known/jwks.json` endpoint, despite `MHSA_APP_JWKSENDPOINT`
-> being set in compose. Services verify JWTs with a statically configured public key — see
+> `/internal/v1/.well-known/jwks.json` returns `{"keys":[{kty,use,kid,alg,n,e}]}` — normally one key,
+> two during a rotation overlap. Dashboard consumes it; the other services are still configured with
+> the public key directly. See
 > [01-Architecture/05-Security §1](../01-Architecture/05-Security-and-Authentication.md).
 
 ---

@@ -16,8 +16,9 @@
 The Social service reduces isolation with a **peer layer**: a friend graph (requests, accept/reject,
 block) and **real-time 1:1 / group chat** delivered over **STOMP-over-WebSocket**.
 
-> ⚠️ **Social does *not* emit `message.missed`.** The Notification service has a ready consumer for
-> it, but nothing publishes it — offline recipients get **no push**. Social's own publisher
+> ⚠️ **Social does *not* emit `message.missed`, and offline recipients get no push.** Notification
+> used to carry a ready consumer for it; that consumer was removed in July 2026 precisely because
+> nothing publishes the event. Social's own publisher
 > (`RabbitDomainEventPublisher`) emits `social.friend_request_created`,
 > `social.friend_request_accepted`, and `social.message_read` to its **own** `social.domain.events`
 > exchange, which no service consumes; the `message_sent` publish is **commented out**
@@ -130,13 +131,13 @@ registry.enableStompBrokerRelay("/queue", "/topic")
 ---
 
 ## 6. Events
-- **Produces:** ⚠️ **not `message.missed`** — despite Notification having a ready consumer for it on
-  `social.exchange`, Social never publishes it, so **offline recipients get no push**. What Social
-  *does* publish (via `RabbitDomainEventPublisher`, to its own `social.domain.events` exchange on the
+- **Produces:** ⚠️ **not `message.missed`** — so **offline recipients get no push**. Notification's
+  consumer for it was removed in July 2026 (it had never received a message). What Social *does*
+  publish (via `RabbitDomainEventPublisher`, to its own `social.domain.events` exchange on the
   **social-stack** broker, consumed by **nobody**): `social.friend_request_created`,
   `social.friend_request_accepted`, `social.message_read`. The `message_sent` publish is commented out
-  in `ChatService`. Wiring offline push means publishing a `MessageMissedEvent`-shaped payload on
-  `social.exchange` with routing key `message.missed` **on the core-stack broker**.
+  in `ChatService`. Wiring offline push means building the producer here **and** restoring a consumer
+  in Notification — publishing on the **core-stack** broker, since that is where Notification listens.
 - **Consumes:** `therapist.assignment.changed` ← `booking.exchange` (the **core-stack** broker, via a
   second AMQP connection — see [04-Event-Driven-Messaging §4](../01-Architecture/04-Event-Driven-Messaging.md)).
   On every newly **ACTIVE** therapist↔patient match, `TherapistRelationshipService` creates their
