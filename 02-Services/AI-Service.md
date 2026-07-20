@@ -71,7 +71,8 @@ POST /api/v1/ai/chat/send  { message }
       keyword list (accent-insensitive), SKIP Gemini entirely and return a canned emergency reply
       with hotlines 115 / 19001567, flagged crisisDetected = true
    3. AI service → Tracking (internal): GET /internal/v1/tracking/context/{profileId}?days=7
-      ⚠️ no grant check — see §7
+      → Tracking checks for an active grant (user → AI-companion principal). No grant ⇒ 403,
+        and the AI service returns a [USER CONTEXT - NOT SHARED] block (ungrounded reply). See §7.
    4. PII scrub (PiiScrubberService): emails, VN phone numbers, and VN personal names in the
       message, history, and context are replaced with placeholders before leaving the system
    5. build a prompt = system persona + scrubbed tracking context + last-10-message history + message
@@ -111,11 +112,15 @@ Configuration (`docker-compose.yml` env):
 - **Encryption at rest** — `chat_messages.content` passes through `AesEncryptor`
   (a JPA `@Convert`er), so raw chat text is not readable in the DB.
 
+**Consent-gated grounding** (implemented 2026-07-20): the AI companion is a **grantee** under the same
+data-access-grant model as a therapist/parent/friend. It is a reserved system profile
+(`SystemProfiles.AI_COMPANION_ID`, seeded in `auth_db`); Tracking's `ContextController` returns
+grounding context **only** when the user holds an active grant to it, else **403** → the AI service
+returns `[USER CONTEXT - NOT SHARED]` and replies without personal grounding. Consent is **off by
+default**, toggled from the mobile chat screen (grant `READ_ALL`, no expiry), and revocable. This
+satisfies FR4/NFR1 (grounded *iff* granted). *Deploy pending — needs auth `V8` (AI profile seed).*
+
 **Known gaps** (verified in code):
-- ⚠️ **No consent check on grounding.** The Tracking context fetch is an `/internal/` call with the
-  bare profileId — the AI reads the user's tracking data **without a data-access grant**, unlike a
-  therapist/parent/friend. This contradicts the design intent (FR4: grounded *iff* granted) and is
-  planned to be fixed by making the AI a grantee under the same grant model.
 - **`AuthEventListener` is inert scaffolding.** It declares plain queues (`auth.grant.created`,
   `auth.user.updated`, `auth.token.revoked`) that are **not bound to any exchange** (auth publishes
   grants on the `auth.events` topic exchange), and its handlers only log. The AI service therefore

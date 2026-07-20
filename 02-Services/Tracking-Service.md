@@ -81,16 +81,18 @@ All under `/api/v1/tracking/`. The log resources share a consistent CRUD shape.
 ## 5. Security & access control
 
 - All `/api/**` endpoints require a valid JWT; the principal is the profile id (`sub`).
-- Per-profile reads (`GET /{moods|sleeps|foods|diaries|steps|breathing}/{profileId}`) are guarded by
-  **`AccessGuard.canReadTrackingData`**: allowed for the owner themself, or for a viewer holding an
-  **ACTIVE, unexpired data-access grant** (the local mirror replicated from Auth). No grant ⇒ 403.
-  This is one mechanism for every audience — therapist, parent, and friend alike.
-- ⚠️ **The grant's `accessScope` (`READ_JOURNAL`/`READ_ALL`) is not consulted** by the guard —
-  enforcement today is all-or-nothing per grantee.
-- ⚠️ **`/internal/v1/tracking/context/{profileId}` performs no grant check** — it trusts the caller
-  (network-topology protection only). Its one caller is the AI service, which therefore reads
-  tracking context without user consent; fixing this is planned work
-  (see [AI-Service §7](AI-Service.md)).
+- Per-profile reads (`GET /{moods|sleeps|foods|diaries|steps|breathing}/{profileId}`) are guarded
+  **per category** by **`AccessGuard.canReadCategory(auth, profileId, 'READ_X')`**: allowed for the
+  owner themself, or for a viewer holding an **ACTIVE, unexpired grant whose scope set covers that
+  category** (`AccessScopes.allows`, on the local mirror replicated from Auth). No coverage ⇒ 403.
+  One mechanism for every audience — therapist, parent, friend, and the AI companion alike.
+- **Scope is a set of category tokens** (`READ_MOOD`, `READ_SLEEP`, `READ_FOOD`, `READ_JOURNAL`,
+  `READ_STEPS`, `READ_BREATHING`, or `READ_ALL`), so a grant can share sleep and food while
+  withholding the journal — the diary endpoint requires `READ_JOURNAL` (or `READ_ALL`) specifically.
+- **`/internal/v1/tracking/context/{profileId}` is consent-gated for the AI** (`ContextController`):
+  it returns context only when the user has an active grant to the reserved AI-companion principal
+  (`SystemProfiles.AI_COMPANION_ID`), else 403. The AI service degrades to an ungrounded reply
+  (see [AI-Service §7](AI-Service.md)). *Per-category enforcement + AI gating implemented 2026-07-20.*
 
 ---
 

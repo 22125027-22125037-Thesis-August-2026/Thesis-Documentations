@@ -48,9 +48,10 @@ Gateway routing map: [01-Architecture/01-System-Architecture §4](../01-Architec
 
 ## 2. Tracking Service — `:8084` — gateway `/api/v1/tracking/`
 
-Log resources share a CRUD shape. `{profileId}` scopes reads to a user — allowed for the owner or
-any viewer holding an ACTIVE unexpired grant (therapist, parent, or friend); scope is not yet
-differentiated. The internal context endpoint is **not** grant-checked.
+Log resources share a CRUD shape. `{profileId}` scopes reads to a user — allowed for the owner or a
+viewer holding an ACTIVE unexpired grant whose **category set** covers that resource (therapist,
+parent, friend, or the AI companion). E.g. the diary endpoint needs `READ_JOURNAL` (or `READ_ALL`).
+The internal AI-context endpoint is grant-checked against the reserved AI-companion principal.
 
 | Resource | Endpoints |
 |---|---|

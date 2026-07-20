@@ -100,25 +100,31 @@ Owner   → POST /api/v1/auth/grants { granteeProfileId, accessScope, expiresAt 
         → recorded in auth_db.data_access_grants and replicated to tracking_db
           (auth.grant.created/revoked events + nightly reconcile — see 04-Event-Driven-Messaging §4)
 Grantee → GET /api/v1/tracking/{moods|sleeps|foods|diaries|steps|breathing}/{ownerProfileId}
-        → Tracking's AccessGuard allows: self, or an ACTIVE unexpired grant. Otherwise 403.
+        → Tracking's AccessGuard allows: self, or an ACTIVE unexpired grant whose scope set
+          covers THIS category. Otherwise 403.
 ```
 
-A grant carries an **`accessScope`** (`READ_JOURNAL` | `READ_ALL`) and an optional **`expiresAt`**
-(the mobile app's friend-profile screen issues `READ_ALL` with a 30-day expiry). The owner can revoke
-at any time (`DELETE /api/v1/auth/grants/{granteeProfileId}`); grant status is queryable
-(`GET /api/v1/auth/grants/status/{otherProfileId}`).
+**`accessScope` is a *set* of per-category tokens** — `READ_MOOD`, `READ_SLEEP`, `READ_FOOD`,
+`READ_JOURNAL`, `READ_STEPS`, `READ_BREATHING`, or the `READ_ALL` shorthand — stored as a
+comma-separated string in the single `access_scope` column (e.g. `READ_SLEEP,READ_FOOD`). One grant
+per (granter, grantee) pair carries any subset, so a user can share sleep and nutrition but withhold
+their journal. A grant also has an optional **`expiresAt`** (the mobile friend-profile screen issues
+a 30-day expiry). Owners revoke at any time (`DELETE /api/v1/auth/grants/{granteeProfileId}`); grant
+status is queryable (`GET /api/v1/auth/grants/status/{otherProfileId}`).
 
-Two caveats, verified in code:
+**Enforcement is per category** (`AccessScopes.allows(scopeCsv, token)` in `shared-contracts`, checked
+by Tracking's `AccessGuard.canReadCategory(auth, profileId, 'READ_X')` on every per-category read).
+`READ_ALL` covers everything; otherwise only the listed categories are readable. The mobile app mirrors
+this: `DailyLogsSection` renders only the cards a grant covers, and the friend-profile grant sheet is a
+category multi-select.
 
-- ⚠️ **`accessScope` is stored and replicated but not yet enforced.** Tracking's
-  `AccessGuard.canReadTrackingData` → `findActiveGrant(...)` checks only `status = ACTIVE` and
-  non-expiry — it never reads the scope column. In practice a `READ_JOURNAL` grant currently opens
-  the same doors as `READ_ALL` (all-or-nothing access).
-- ⚠️ **The AI service bypasses the grant model entirely.** Its grounding fetch
-  (`GET /internal/v1/tracking/context/{profileId}`) is an internal endpoint protected only by
-  network topology — no grant check. So the AI companion reads a user's tracking context whether or
-  not the user consented, which contradicts the design intent that the AI needs a grant like any
-  other audience (FR4 in the thesis). Making the AI a grantee is planned work.
+**The AI companion is a grantee like any other.** It is represented by a reserved system profile
+(`SystemProfiles.AI_COMPANION_ID`, seeded in `auth_db`). Its grounding fetch
+(`GET /internal/v1/tracking/context/{profileId}`) is gated in `ContextController`: Tracking returns
+context only when the user holds an active grant to the AI principal, else **403** and the AI service
+degrades to an ungrounded reply. Consent is **off by default** (default-deny), toggled from the chat
+screen, and revocable — satisfying FR4/NFR1 (grounded *iff* granted). *Implemented 2026-07-20;
+deploy pending (auth `V7`/`V8`, tracking `V9` migrations widen `access_scope` and seed the AI profile).*
 
 ---
 
