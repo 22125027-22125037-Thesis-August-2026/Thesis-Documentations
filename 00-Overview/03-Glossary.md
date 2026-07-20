@@ -22,7 +22,7 @@
 | **Grant** | See *Data-Access Grant*. |
 | **Idempotency** **[domain]** | Guaranteeing an event processed twice has the same effect as once. The Notification service uses Redis (`SET … NX EX`) to dedupe events. |
 | **Internal endpoint** **[domain]** | An endpoint under `/internal/...` for service-to-service calls only; **blocked at the gateway** so it is unreachable from the internet. |
-| **JWKS** | JSON Web Key Set — a public endpoint (`/internal/v1/.well-known/jwks.json` on Auth) that publishes the RSA **public** key so other services can verify JWTs. |
+| **JWKS** | JSON Web Key Set — the standard way to publish an RSA **public** key over HTTP so other services can verify JWTs. ⚠️ **Not implemented in uMatter:** `JwtUtils.getJwksResponse()` exists but no controller serves it, and `MHSA_APP_JWKSENDPOINT` is read by no code. Services are configured with the public key directly via `JWT_PUBLIC_KEY`. |
 | **JWT** | JSON Web Token — the signed access token carried in `Authorization: Bearer …`. Signed with **RS256** (asymmetric). |
 | **MHSA** | "Mental Health Support Application" — the original/internal name for the project; appears in Java package names (`com.mhsa.backend.*`) and the MinIO bucket (`mhsa-media`). Synonymous with **uMatter**. |
 | **MinIO** | An S3-compatible object-storage server used for media (avatars, diary/treasure images & audio). |

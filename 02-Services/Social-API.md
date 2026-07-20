@@ -14,8 +14,16 @@
 ## 1. Purpose
 
 The Social service reduces isolation with a **peer layer**: a friend graph (requests, accept/reject,
-block) and **real-time 1:1 / group chat** delivered over **STOMP-over-WebSocket**. When a recipient
-is offline, it emits a `message.missed` event so the Notification service can push them.
+block) and **real-time 1:1 / group chat** delivered over **STOMP-over-WebSocket**.
+
+> ⚠️ **Social does *not* emit `message.missed`.** The Notification service has a ready consumer for
+> it, but nothing publishes it — offline recipients get **no push**. Social's own publisher
+> (`RabbitDomainEventPublisher`) emits `social.friend_request_created`,
+> `social.friend_request_accepted`, and `social.message_read` to its **own** `social.domain.events`
+> exchange, which no service consumes; the `message_sent` publish is **commented out**
+> ([`ChatService.java:168`](../../thesis_social/src/main/java/com/thesis/social/chat/service/ChatService.java#L168)
+> — *"Temporarily disable message-sent domain event publishing"*). See
+> [04-Event-Driven-Messaging §2](../01-Architecture/04-Event-Driven-Messaging.md).
 
 ---
 
@@ -28,7 +36,7 @@ com.thesis.social
 ├── profile/     # local mirror of minimal profile data
 ├── common/      # entity, exception, util, web
 ├── config/      # WebSocket/STOMP + RabbitMQ relay config
-├── event/       # event publishing (message.missed)
+├── event/       # DomainEventPublisher + EventTypes → social.domain.events (unconsumed)
 └── security/    # JWT filter
 ```
 
@@ -49,6 +57,7 @@ com.thesis.social
 ### Friends — `/api/v1/friends` (`FriendController`)
 | Method | Path | Purpose |
 |---|---|---|
+| GET | `/` | **list my friends** |
 | POST | `/requests` | send a friend request |
 | DELETE | `/requests/{requestId}` | cancel a request |
 | POST | `/requests/{requestId}/accept` | accept |
@@ -121,7 +130,13 @@ registry.enableStompBrokerRelay("/queue", "/topic")
 ---
 
 ## 6. Events
-- **Produces:** `message.missed` → `social.exchange` → Notification → FCM push (inbox type `CHAT`).
+- **Produces:** ⚠️ **not `message.missed`** — despite Notification having a ready consumer for it on
+  `social.exchange`, Social never publishes it, so **offline recipients get no push**. What Social
+  *does* publish (via `RabbitDomainEventPublisher`, to its own `social.domain.events` exchange on the
+  **social-stack** broker, consumed by **nobody**): `social.friend_request_created`,
+  `social.friend_request_accepted`, `social.message_read`. The `message_sent` publish is commented out
+  in `ChatService`. Wiring offline push means publishing a `MessageMissedEvent`-shaped payload on
+  `social.exchange` with routing key `message.missed` **on the core-stack broker**.
 - **Consumes:** `therapist.assignment.changed` ← `booking.exchange` (the **core-stack** broker, via a
   second AMQP connection — see [04-Event-Driven-Messaging §4](../01-Architecture/04-Event-Driven-Messaging.md)).
   On every newly **ACTIVE** therapist↔patient match, `TherapistRelationshipService` creates their

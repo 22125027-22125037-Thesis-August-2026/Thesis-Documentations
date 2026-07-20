@@ -41,8 +41,13 @@ Gateway routing map: [01-Architecture/01-System-Architecture §4](../01-Architec
 | GET | `/api/v1/patients/{profileId}` | therapist/admin | patient lookup |
 | POST | `/admin/v1/therapists/{id}/license/verify` | admin | approve license |
 | POST | `/admin/v1/therapists/{id}/license/reject` | admin | reject license |
-| GET | `/internal/v1/.well-known/jwks.json` | *(internal)* | JWKS public key |
 | GET | `/internal/v1/profile/{profileId}/summary` | *(internal)* | profile summary (BFF) |
+| GET | `/internal/grants` | *(internal)* | grants snapshot for Tracking's nightly reconcile |
+| GET | `/internal/therapist-profiles` | *(internal)* | therapist-profile snapshot for therapist-api's nightly reconcile |
+
+> ⚠️ There is **no** `/internal/v1/.well-known/jwks.json` endpoint, despite `MHSA_APP_JWKSENDPOINT`
+> being set in compose. Services verify JWTs with a statically configured public key — see
+> [01-Architecture/05-Security §1](../01-Architecture/05-Security-and-Authentication.md).
 
 ---
 
@@ -117,7 +122,8 @@ The internal AI-context endpoint is grant-checked against the reserved AI-compan
 | | GET | `/api/v1/matching/therapists` | patient |
 | | POST | `/api/v1/matching/assign/{therapistId}` | patient |
 | Assignment | GET | `/api/v1/profiles/{profileId}/assigned-therapist` | self-or-admin |
-| Clinical notes | GET | `/api/v1/notes/appointments/{appointmentId}` | therapist |
+| Clinical notes | GET | `/api/v1/notes` | therapist/admin (paginated list; filters `therapistId`, `patientId`, `status`) |
+| | GET | `/api/v1/notes/appointments/{appointmentId}` | therapist |
 | | GET/PUT | `/api/v1/notes/{noteId}` | therapist |
 | | POST | `/api/v1/notes` | therapist (create) |
 | | POST | `/api/v1/notes/{noteId}/finalize` | therapist |
@@ -136,7 +142,8 @@ The internal AI-context endpoint is grant-checked against the reserved AI-compan
 
 | Area | Method | Path |
 |---|---|---|
-| Friends | POST | `/api/v1/friends/requests` |
+| Friends | GET | `/api/v1/friends` (the friend list) |
+| | POST | `/api/v1/friends/requests` |
 | | DELETE | `/api/v1/friends/requests/{requestId}` |
 | | POST | `/api/v1/friends/requests/{requestId}/accept` |
 | | POST | `/api/v1/friends/requests/{requestId}/reject` |

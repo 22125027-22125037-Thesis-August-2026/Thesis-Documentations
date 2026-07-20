@@ -61,7 +61,7 @@ matters — notification first (cross-stack consumers attach after it), auth las
 | Stack (repo) | Containers it runs | Build order |
 |---|---|---|
 | [**notification_api**](https://github.com/22125027-22125037-Thesis-August-2026/notification_api) | notification-service, notification-postgres, umatter-redis | 1st |
-| [**therapist-api**](https://github.com/22125027-22125037-Thesis-August-2026/therapist-api) | therapist-api, therapist-postgres | 2nd |
+| [**therapist-api**](https://github.com/22125027-22125037-Thesis-August-2026/therapist-api) | therapist-api-api-1, therapist-api-postgres-1 (no `container_name` set — see §4) | 2nd |
 | [**thesis_social**](https://github.com/22125027-22125037-Thesis-August-2026/thesis_social) | social-api, social-postgres, social-rabbitmq | 3rd |
 | [**uMatter-Backend_Auth_Tracking_AI**](https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI) | nginx, auth/ai/tracking/dashboard services, postgres ×3, pgadmin, redis, rabbitmq, minio, minio-init | 4th (4 Spring services) |
 
@@ -100,10 +100,16 @@ it is a one-shot bucket initialiser and the only service with no restart policy)
 | `umatter-redis` | redis:7-alpine | 6372 |
 
 ### Stack 2 — `therapist-api`
-| Container | Image | Host ports |
-|---|---|---|
-| `therapist-api` | built (Spring Boot 4.0.5) | 8085 |
-| `therapist-postgres` | postgres:15-alpine | 5435 |
+> ⚠️ This is the **only stack whose compose sets no `container_name`**, so Docker derives the names
+> from the project folder. Use the derived names with `docker logs` / `docker exec`.
+
+| Compose service | Actual container name | Image | Host ports |
+|---|---|---|---|
+| `api` | **`therapist-api-api-1`** | built (Spring Boot 4.0.5) | 8085 |
+| `postgres` | **`therapist-api-postgres-1`** | postgres:15-alpine | 5435 |
+
+The service is nonetheless reachable as **`therapist-api`** from other stacks: its `api` service
+declares that as a **network alias** on `umatter-shared`. So DNS name ≠ container name here.
 
 ### Stack 3 — `thesis_social`
 | Container | Image | Host ports |

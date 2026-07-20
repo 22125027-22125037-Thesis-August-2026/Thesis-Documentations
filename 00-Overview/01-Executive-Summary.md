@@ -53,8 +53,9 @@ The project is a working demonstration of **modern distributed-systems engineeri
 2. **Event-driven architecture** — asynchronous, decoupled communication through RabbitMQ topic
    exchanges with **dead-letter queues**, **retry/backoff**, and **Redis-based idempotency** to
    guarantee at-least-once events never produce duplicate notifications.
-3. **Security engineering** — stateless **JWT (RS256)** authentication with an **asymmetric key
-   published via a JWKS endpoint**, role-based access control (Teen / Therapist / Admin), and a
+3. **Security engineering** — stateless **JWT (RS256)** authentication with an **asymmetric key pair**
+   (only Auth holds the private key; every other service verifies with the public key), role-based
+   access control (Teen / Therapist / Admin), and a
    **consent-driven data-access-grant** model so a therapist only ever sees data the patient shared.
 4. **Cloud-native operations** — reproducible infrastructure, an explicit port topology, a
    gateway-centric network design, and a disaster-recovery story (the documented rebuild runbook).

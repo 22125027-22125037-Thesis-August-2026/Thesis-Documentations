@@ -119,8 +119,13 @@ When you want more than self-help, uMatter connects you with a **verified psycho
    steps, and **leave a rating & review** to help others.
 
 You're always in control of your appointments — confirm, view details, or cancel with a reason — and
-you're kept in the loop by both a **push notification and an email** the moment your therapist confirms
-(or if a session is cancelled), so a change to your plans never slips past you.
+the moment you **book**, you get both a **push notification and an email** confirming the session, so
+it never slips past you.
+
+> *Implementation note (accuracy for the council):* the `appointment.booked` event is published by
+> `BookingService` right after the appointment row is saved — i.e. **at booking time**, not when the
+> therapist later confirms. The therapist's `confirm` / `reject` / `cancel` actions currently publish
+> **no** event, so they generate no notification. Wiring those is a natural next step.
 
 ---
 

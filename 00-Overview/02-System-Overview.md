@@ -27,7 +27,7 @@ service's database — they integrate only via REST calls and RabbitMQ events.
 
 | Service | Bounded context | Owns | Headline features |
 |---|---|---|---|
-| **Auth Service** | Identity | `auth_db` | Registration/login, JWT issuance + JWKS, profiles (Teen/Therapist), avatars, **data-access grants**, therapist license verification |
+| **Auth Service** | Identity | `auth_db` | Registration/login, RS256 JWT issuance, profiles (Teen/Therapist), avatars, **data-access grants**, therapist license verification |
 | **Tracking Service** | Self-care data | `tracking_db` | Mood, sleep, food, diary, steps, breathing logs; streaks; "treasures"; media attachments; aggregated **context** for AI & therapists |
 | **AI Service** | AI companion | `ai_db` | Gemini-powered chat sessions, grounded in the user's tracking context |
 | **Dashboard Service** | Aggregation (BFF) | *(stateless)* | Fans out to other services to assemble combined summaries for the clients |

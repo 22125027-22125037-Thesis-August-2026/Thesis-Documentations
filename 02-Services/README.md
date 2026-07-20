@@ -14,7 +14,7 @@ how to run → known gaps**.
 
 | Service | Port | Repo | DB | One-line role |
 |---|---|---|---|---|
-| [Auth](Auth-Service.md) | 8081 | [uMatter-Backend](https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI) (monorepo) | `auth_db` | Identity, JWT/JWKS, profiles, grants, license verification |
+| [Auth](Auth-Service.md) | 8081 | [uMatter-Backend](https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI) (monorepo) | `auth_db` | Identity, RS256 JWT issuance, profiles, grants, license verification |
 | [AI](AI-Service.md) | 8087 | [uMatter-Backend](https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI) (monorepo) | `ai_db` | Gemini-powered companion grounded in user context |
 | [Tracking](Tracking-Service.md) | 8084 | [uMatter-Backend](https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI) (monorepo) | `tracking_db` | Mood/sleep/food/diary/steps/breathing/streaks/treasures |
 | [Dashboard](Dashboard-Service.md) | 8083 | [uMatter-Backend](https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI) (monorepo) | none (BFF) | Aggregates other services for the clients |
@@ -28,7 +28,7 @@ how to run → known gaps**.
 
 - **Java 17**, **Spring Boot** (4.0.x or 3.3.x), **Spring Security** (stateless), **Spring Data JPA**.
 - **Flyway** migrations with `ddl-auto: validate`.
-- **RS256 JWT** verification (public key via JWKS or `JWT_PUBLIC_KEY`).
+- **RS256 JWT** verification (public key from `JWT_PUBLIC_KEY`; JWKS is not implemented).
 - **Docker Compose** packaging; every stack joins the **`umatter-shared`** external network.
 - **`/internal/...`** endpoints for service-to-service calls (blocked at the gateway).
 - Configuration via **`.env`** (no port keys — ports are literals in compose).

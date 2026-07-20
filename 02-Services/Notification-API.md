@@ -30,15 +30,20 @@ It is the only service that turns "something happened in another domain" into a 
 
 ## 2. RabbitMQ topology (consumer side)
 
-| Domain | Exchange | Routing key | Queue | DLX / DLQ |
-|---|---|---|---|---|
-| Booking | `booking.exchange` | `appointment.booked` | `notification.booking.booked.q` | `booking.dlx` / `…booked.dlq` |
-| Tracking | `tracking.exchange` | `streak.milestone` | `notification.tracking.streak.q` | `tracking.dlx` / `…streak.dlq` |
-| Social | `social.exchange` | `message.missed` | `notification.social.message-missed.q` | `social.dlx` / `…message-missed.dlq` |
+| Domain | Exchange | Routing key | Queue | DLX / DLQ | Live? |
+|---|---|---|---|---|---|
+| Booking | `booking.exchange` | `appointment.booked` | `notification.booking.booked.q` | `booking.dlx` / `…booked.dlq` | ✅ **live** |
+| Tracking | `tracking.exchange` | `streak.milestone` | `notification.tracking.streak.q` | `tracking.dlx` / `…streak.dlq` | ⚠️ **dormant** |
+| Social | `social.exchange` | `message.missed` | `notification.social.message-missed.q` | `social.dlx` / `…message-missed.dlq` | ⚠️ **dormant** |
+
+> ⚠️ **Two of the three consumers never receive anything.** Tracking never publishes
+> `streak.milestone` and Social never publishes `message.missed` — the consumers, queues, and DLQs
+> are all correctly declared, but no producer exists. Only the booking pipeline runs end-to-end.
+> See [04-Event-Driven-Messaging §2](../01-Architecture/04-Event-Driven-Messaging.md).
 
 | Routing key | Inbox `type` | Outbound |
 |---|---|---|
-| `appointment.booked` | `BOOKING` | Email (HTML) |
+| `appointment.booked` | `BOOKING` | **Email (HTML) + FCM push** (both) |
 | `streak.milestone` | `STREAK` | FCM push |
 | `message.missed` | `CHAT` | FCM push |
 

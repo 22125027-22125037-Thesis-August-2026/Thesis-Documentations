@@ -18,7 +18,7 @@ The guiding principles, and where each is realised:
 | **No cross-DB coupling** | Cross-domain links are plain UUID fields, never JPA joins | `account_id`, `profile_id` scalar columns |
 | **Backend for Frontend** | A service composes others for the client | Dashboard service |
 | **Event-Driven** | Producers announce facts; consumers react asynchronously | RabbitMQ topic exchanges |
-| **Stateless auth** | No server session; every request carries a JWT | RS256 JWT + JWKS |
+| **Stateless auth** | No server session; every request carries a JWT | RS256 JWT, public key distributed as config |
 | **Externalised config** | Ports/keys/secrets via env + compose, not hard-coded | `.env`, `docker-compose.yml` |
 
 ---
@@ -124,7 +124,7 @@ section of [02-Service-Catalog-and-Ports](02-Service-Catalog-and-Ports.md).
 | **Messaging** | RabbitMQ (topic exchanges, DLQ), Spring AMQP |
 | **Cache / dedupe** | Redis (Spring Data Redis) |
 | **Object storage** | MinIO (S3 API, AWS SDK / presigned URLs) |
-| **Auth** | JWT RS256, JWKS endpoint, Spring Security (stateless) |
+| **Auth** | JWT RS256 (signs with the private key), Spring Security (stateless) |
 | **Real-time** | STOMP over WebSocket (Social chat), WebSocket relay via RabbitMQ STOMP plugin |
 | **Push / email** | Firebase Admin SDK (FCM), SMTP + Thymeleaf templates |
 | **Video** | Zoom Meeting SDK (pluggable provider; Jitsi alternative implemented) |

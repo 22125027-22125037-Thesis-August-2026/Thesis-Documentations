@@ -22,7 +22,7 @@ to end (this folder).
 | Distributed systems | 7 microservices, API gateway, service discovery via Docker DNS, cross-stack networking |
 | Software architecture | DDD bounded contexts, BFF, event-driven design, clean layering |
 | Databases | Database-per-service, schema versioning (Flyway), concurrency-safe booking |
-| Security | RS256 JWT + JWKS, RBAC, consent-gated data access |
+| Security | RS256 JWT (asymmetric), RBAC, consent-gated data access |
 | Cloud & DevOps | Containerisation, reproducible cloud deployment, documented DR runbook |
 | AI integration | LLM (Gemini) grounded in user context |
 | Full-stack | React Native mobile + React web, both on one gateway |
@@ -39,7 +39,7 @@ to end (this folder).
 | **Database-per-service (PostgreSQL)** | enforces bounded contexts; no hidden coupling; each team owns its schema | cross-domain reads need APIs/events, not joins (by design) |
 | **API Gateway (Nginx)** | one public surface; centralises CORS, routing, internal-endpoint blocking, upload limits | a single point to keep healthy (it's stateless and cheap) |
 | **RabbitMQ events** | decoupled, resilient async comms; DLQ + retry + idempotency teach reliability engineering | eventual consistency (acceptable for notifications) |
-| **JWT RS256 + JWKS** | stateless verification at every service without sharing a private key; industry-standard | key-rotation needs care (JWKS makes it tractable) |
+| **JWT RS256** | stateless verification at every service without sharing the private key; industry-standard | key rotation is manual — the public key is an env var on every service, so rotating it means redeploying all of them. JWKS would make this tractable and is scaffolded (`JwtUtils.getJwksResponse()`) but **not wired up** — a concrete piece of future work. |
 | **Redis** | fast cache + atomic idempotency primitive (`SETNX EX`) | another moving part |
 | **MinIO (S3 API)** | keeps binaries out of Postgres; presigned URLs offload bandwidth; S3-compatible so cloud-portable | needs the gateway to proxy media |
 | **Google Gemini 2.5 Flash** | strong, low-latency LLM; the AI is *grounded* in the user's own tracking data for personalisation | external dependency + cost |

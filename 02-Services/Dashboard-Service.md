@@ -6,7 +6,7 @@
 | **Repo / module** | [`uMatter-Backend_Auth_Tracking_AI/dashboard-service`](https://github.com/22125027-22125037-Thesis-August-2026/uMatter-Backend_Auth_Tracking_AI) (Maven monorepo) |
 | **Java package** | `com.mhsa.backend.dashboard` |
 | **Database** | **none** — stateless |
-| **Tech** | Spring Boot 4.0.2, Java 17, Spring Security (JWKS verification) |
+| **Tech** | Spring Boot 4.0.2, Java 17, Spring Security (local RS256 verification) |
 | **Gateway prefix** | `/api/v1/dashboard/` |
 
 ---
@@ -31,7 +31,7 @@ com.mhsa.backend.dashboard
 ├── config/
 ├── controller/  # DashboardController
 ├── dto/         # the composed response DTOs
-├── jwt/         # JWKS-based token verification
+├── jwt/         # SecurityUtils — reads the authenticated profile id off the SecurityContext
 ├── security/
 └── service/     # parallel aggregation orchestration
 ```
@@ -66,10 +66,13 @@ not their sum.
 
 ## 5. Security
 
-- Verifies JWTs using the **JWKS** endpoint published by Auth
-  (`MHSA_APP_JWKSENDPOINT = http://auth-service:8081/internal/v1/.well-known/jwks.json`) — it fetches
-  the public key and validates RS256 signatures locally.
-- Holds no private key and no database; it is purely a composition layer.
+- Verifies RS256 JWTs **locally, using the RSA public key injected as `MHSA_APP_JWTPUBLICKEY`**
+  (`${JWT_PUBLIC_KEY}` in compose) — exactly like every other service. Its `SecurityConfig` builds the
+  shared `new JwtAuthenticationFilter(jwtUtils, userDetailsService)`.
+- ⚠️ `MHSA_APP_JWKSENDPOINT` is set in compose and `application-docker.properties`, but **no code
+  reads it and the endpoint it names does not exist** — Dashboard does *not* fetch a JWKS key set.
+  See [01-Architecture/05-Security §1](../01-Architecture/05-Security-and-Authentication.md).
+- Holds no database; it is purely a composition layer.
 
 ---
 

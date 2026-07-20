@@ -14,7 +14,8 @@
 ## 1. Purpose
 
 Auth is the **identity backbone** of uMatter. It owns user accounts and profiles, issues and signs
-JWTs (and publishes the public key via JWKS so every other service can verify them), manages the
+JWTs (signing with the RSA private key; every other service verifies with the public key it is
+configured with), manages the
 **data-access-grant** consent model, stores avatars in MinIO, and handles **therapist license
 verification** (admin) and therapist directory data.
 
@@ -33,7 +34,7 @@ com.mhsa.backend.auth
 ├── messaging/     # RabbitMQ producers/consumers
 ├── model/         # JPA entities (profiles, grants, refresh tokens)
 ├── repository/
-├── security/      # JWT signing, JWKS, filters
+├── security/      # JWT signing, AccessGuard, filters
 └── service/
 ```
 
@@ -89,17 +90,23 @@ com.mhsa.backend.auth
 | POST | `/{id}/license/reject` | reject a therapist's license |
 
 ### Internal (service-to-service, gateway-blocked)
-- `/internal/v1/.well-known/jwks.json` — **JWKS** public key set
-- `/internal/v1/profile/{profileId}/summary` — profile summary for Dashboard
-- `/internal/grants/...` — grant checks for other services
-- `/internal/therapist-profiles/...` — therapist profile sync
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/internal/v1/profile/{profileId}/summary` | profile summary for Dashboard (`InternalController`) |
+| GET | `/internal/grants` | full grants snapshot — pulled by Tracking's nightly `GrantReconciliationService` (`InternalGrantsController`) |
+| GET | `/internal/therapist-profiles` | therapist-profile snapshot — pulled by therapist-api's nightly `TherapistProfileReconciliationService` (`InternalTherapistProfileController`) |
+
+> ⚠️ There is **no** `/internal/v1/.well-known/jwks.json` handler — see §5.
 
 ---
 
 ## 5. Integrations
 
-- **JWT/JWKS:** signs RS256 tokens; publishes the public key at the JWKS endpoint. The whole system
-  depends on this. See [01-Architecture/05-Security-and-Authentication](../01-Architecture/05-Security-and-Authentication.md).
+- **JWT:** signs RS256 tokens with the RSA private key (`MHSA_APP_JWTPRIVATEKEY`). The whole system
+  depends on this. Every other service verifies with the matching **public key distributed as an env
+  var** (`JWT_PUBLIC_KEY`) — ⚠️ **not** via JWKS: `JwtUtils.getJwksResponse()` exists in `shared-jwt`
+  but no controller exposes it, so the JWKS endpoint is unimplemented. See
+  [01-Architecture/05-Security-and-Authentication](../01-Architecture/05-Security-and-Authentication.md).
 - **MinIO:** avatar uploads to bucket `mhsa-media`.
 - **Therapist API:** `THERAPIST_API_BASE_URL = http://therapist-api:8085` and the shared
   `booking.exchange` are configured so Auth can do a **nightly assignment reconcile** and react to

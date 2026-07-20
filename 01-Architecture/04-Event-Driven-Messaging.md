@@ -43,9 +43,10 @@ All exchanges are **topic** exchanges; each domain owns its own exchange.
 >   publishes different, unrelated messages (`tracking.streak.updated`, `tracking.mood.logged`, …)
 >   straight to same-named default-exchange queues that **no service consumes** — dead scaffolding.
 > - **`message.missed`:** the Social service never emits it. Social's `RabbitDomainEventPublisher`
->   publishes `social.message.read` / `social.friend.request.*` envelopes to its **own**
->   `social.domain.events` exchange (on the social-stack broker), which **no service consumes**
->   either; its message-*sent* event is commented out.
+>   publishes `social.friend_request_created`, `social.friend_request_accepted`, and
+>   `social.message_read` envelopes (routing key = `social` prefix + `_`-separated event type) to its
+>   **own** `social.domain.events` exchange on the social-stack broker, which **no service consumes**
+>   either; its `message_sent` publish is commented out in `ChatService`.
 >
 > Only **`appointment.booked` → email/inbox** is a live end-to-end notification pipeline today.
 > Wiring the two dormant flows means adding a producer that publishes the documented routing key on
@@ -53,11 +54,15 @@ All exchanges are **topic** exchanges; each domain owns its own exchange.
 
 Each consumed event maps to an inbox type and an outbound channel:
 
-| Routing key | Event DTO | Inbox `type` | Outbound channel |
+| Routing key | Event DTO | Inbox `type` | Outbound channel(s) |
 |---|---|---|---|
-| `appointment.booked` | `BookingConfirmedEvent` | `BOOKING` | **Email** (HTML) |
+| `appointment.booked` | `BookingConfirmedEvent` | `BOOKING` | **Email (HTML) *and* FCM push** — the only consumer that does both |
 | `streak.milestone` | `StreakMilestoneEvent` | `STREAK` | **FCM push** |
 | `message.missed` | `MessageMissedEvent` | `CHAT` | **FCM push** |
+
+All three save the inbox row **first** and treat outbound delivery as best-effort: a device with no
+registered token logs `push skipped`, and a per-token `NotificationDispatchException` is caught and
+logged so one dead device cannot fail the event.
 
 ### Additional integration events (matching workflow)
 The Therapist API's matching flow publishes several **cross-domain integration events** onto
@@ -102,9 +107,10 @@ Every consumer does **both** a DB write and a dispatch, in this order:
 1. idempotency.tryAcquire(routingKey, messageId)   # Redis — short-circuit duplicates
 2. historyService.save(profileId, type, title, …)  # Postgres — commit the inbox row
 3. dispatch:
-     booking  → emailDispatcher.send(...)          # SMTP
-     tracking → for each device_token: FCM push
-     social   → for each device_token: FCM push
+     booking  → emailDispatcher.sendBookingConfirmation(...)   # SMTP, wrapped in try/catch
+                then fanOutPush(...)                           # AND FCM push
+     tracking → fanOutPush(...)                                # FCM push only
+     social   → fanOutPush(...)                                # FCM push only
 ```
 The inbox row (step 2) is the **authoritative record**; a single dead FCM token logs a warning but
 does not fail the event (the user still sees the inbox row when they open the app).
@@ -126,7 +132,7 @@ Two more topic exchanges exist for this (beyond the notification ones in §2):
 | `auth.events` | auth-service | `therapist.profile.updated`, `auth.grant.created`, `auth.grant.revoked` |
 | `booking.exchange` | therapist-api | `therapist.assignment.changed` (the same exchange as §2's `appointment.booked`; consumers' `THERAPIST_API_EXCHANGE` env points here) |
 
-### 4.1 The three replication streams
+### 4.1 The four replication streams
 
 | Stream | Producer (owner) | Routing key(s) → exchange | Consumer (replica) | Queue | DLX / DLQ | Replica service |
 |---|---|---|---|---|---|---|
@@ -142,9 +148,17 @@ What each replica is *for*:
   `is_lgbtq_allied`, `gender`, slots, Zoom) — those stay locally owned.
 - **Grants** → tracking mirrors the consent grants so it can **enforce a therapist's access to patient
   data from its own DB**, with no per-request call to auth. (This is the privacy gate from
-  [05-Security §5](05-Security-and-Authentication.md), made efficient.) *Tracking is the only real
-  grant consumer: the AI service also declares grant queues, but they are unbound to any exchange
-  and their listener only logs — inert scaffolding (see [AI-Service §7](../02-Services/AI-Service.md)).*
+  [05-Security §5](05-Security-and-Authentication.md), made efficient.) *Tracking's `GrantEventConsumer`
+  is the **only real grant consumer**. Two other listeners look like consumers but are inert:*
+  - *ai-service's `RabbitMQConfig` declares four queues (`auth.user.deleted`, `auth.user.updated`,
+    `auth.grant.created`, `auth.token.revoked`) with **no bindings**, and `AuthEventListener` only
+    `log.info`s three of them (see [AI-Service §7](../02-Services/AI-Service.md)).*
+  - *tracking-service separately declares **unbound** `auth.user.deleted` / `auth.user.updated` queues
+    with an `AuthEventListener` — but Auth never publishes those routing keys at all.*
+
+  *Because Auth publishes to the `auth.events` **topic exchange** and these queues are bound to
+  nothing, they can only ever be reached via the default exchange — which nobody targets. They stay
+  permanently empty.*
 - **Assignment** → auth mirrors the active patient↔therapist pairing (owned by therapist-api's
   matching flow) so auth can answer "who is this patient's therapist?" locally.
 - **Chat link** → social-api reacts to every newly **ACTIVE** assignment by creating the
@@ -235,7 +249,7 @@ Nightly reconcile (23:00 / 23:30 / 23:45 ICT) re-syncs each replica from the own
 ## 6. Producer → consumer summary diagram (notification layer)
 
 ```
-Therapist API ──appointment.booked──► booking.exchange ──► notification.booking.booked.q ──► Email
+Therapist API ──appointment.booked──► booking.exchange ──► notification.booking.booked.q ──► Email + FCM push
 (nobody)      ──streak.milestone────► tracking.exchange ─► notification.tracking.streak.q ─► FCM push   ⚠️ dormant (§2)
 (nobody)      ──message.missed──────► social.exchange ───► notification.social.…q ─────────► FCM push   ⚠️ dormant (§2)
 
@@ -271,4 +285,4 @@ For the **replication layer's** diagram, see [§4.5](#45-replication-summary-dia
    [§4.3](#43-watermark-idempotency-how-replays--out-of-order-are-handled).
 3. **Add a nightly `…ReconciliationService`** that pulls the owner's `/internal/…` snapshot and
    idempotently upserts (the safety net in [§4.4](#44-nightly-reconciliation-the-self-healing-safety-net)).
-4. **Update this page** ([§4.1](#41-the-three-replication-streams) table).
+4. **Update this page** ([§4.1](#41-the-four-replication-streams) table).

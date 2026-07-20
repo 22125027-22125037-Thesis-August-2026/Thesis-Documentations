@@ -15,12 +15,11 @@
 
 Tracking owns all of a teen's **self-care data**: mood, sleep, food, diary, steps, breathing
 exercises, habit streaks, and media-rich "treasures". It also produces the **aggregated context**
-that powers the AI companion and the therapist's view of a consenting patient, and it publishes
-**streak-milestone** events that become notifications.
+that powers the AI companion and the therapist's view of a consenting patient.
 
-This is the richest data domain in the system (8 Flyway migrations — the demo-data seed was
+This is the richest data domain in the system (**9 Flyway migrations**, V1–V9 — the demo-data seed was
 renumbered V4→V8 in July 2026 to resolve a duplicate-version clash with the grant-watermark
-migration).
+migration, and V9 widened `access_scope` for per-category grant sets).
 
 ---
 
@@ -70,7 +69,16 @@ All under `/api/v1/tracking/`. The log resources share a consistent CRUD shape.
 - **AI service** calls `/internal/v1/tracking/context/{profileId}` to fetch a user's recent
   tracking summary before prompting Gemini.
 - **Dashboard service** calls `/internal/v1/dashboard/{profileId}/summary`.
-- **Notification:** publishes `streak.milestone` to `tracking.exchange` → FCM push.
+- **Notification:** ⚠️ **not wired.** Notification consumes `streak.milestone` off `tracking.exchange`,
+  but **Tracking never publishes it.** `TrackingEventPublisher` instead sends `tracking.diary.created`,
+  `tracking.mood.logged`, `tracking.streak.updated`, `tracking.sleep.logged`, `tracking.food.logged`
+  via the two-arg `convertAndSend(routingKey, msg)` — i.e. to the **default exchange**, landing in
+  same-named queues that **no service consumes**. Dead scaffolding on both ends; see
+  [04-Event-Driven-Messaging §2](../01-Architecture/04-Event-Driven-Messaging.md).
+- **Inbound (dead too):** `AuthEventListener` consumes `auth.user.deleted` and `auth.user.updated`,
+  but those queues are declared **unbound** in `RabbitMQConfig` and Auth's `AuthEventPublisher` only
+  ever emits `auth.grant.created/revoked` and `therapist.profile.updated`. The **live** inbound path
+  is `GrantEventConsumer` (§5), which *is* bound to `auth.events`.
 - **MinIO:** diary/treasure/media binaries; clients receive **presigned URLs** served through the
   HTTPS edge (`S3_PUBLIC_ENDPOINT = https://umatter-apcs.duckdns.org`, Caddy → Nginx `/mhsa-media/`
   → MinIO with the Host header preserved for the SigV4 signature).

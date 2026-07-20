@@ -43,7 +43,7 @@ Thesis Documentations/
 │   ├── 02-Service-Catalog-and-Ports.md . Every service, container, and port (port map)
 │   ├── 03-Data-Architecture.md ......... Database-per-service, schemas, MinIO storage
 │   ├── 04-Event-Driven-Messaging.md .... RabbitMQ exchanges, events, queues
-│   └── 05-Security-and-Authentication.md  JWT/JWKS, roles, data-access grants
+│   └── 05-Security-and-Authentication.md  RS256 JWT, roles, data-access grants
 │
 ├── 02-Services/ ........................ Deep dive per backend service
 │   ├── README.md ....................... Index + responsibility matrix
@@ -90,7 +90,7 @@ Thesis Documentations/
 - **Architecture:** 7 Spring Boot microservices behind an **Nginx API Gateway** (`:8080`), with a
   React Native mobile app for teens and a React web dashboard for therapists.
 - **Patterns:** Microservices · API Gateway · Database-per-Service · Backend-for-Frontend (BFF) ·
-  Event-Driven (RabbitMQ) · Stateless JWT auth with a JWKS-published RSA key.
+  Event-Driven (RabbitMQ) · Stateless RS256 JWT auth with an asymmetric RSA key pair.
 - **Infrastructure:** PostgreSQL (one DB per service), Redis (cache + idempotency), RabbitMQ
   (events), MinIO (S3-compatible media storage), all orchestrated with **Docker Compose**.
 - **Deployment:** A single **Microsoft Azure** Ubuntu VM running **4 Docker stacks / 20 containers**,
@@ -134,7 +134,36 @@ system, update the matching doc here. The most important invariants to keep accu
 4. **The deployment facts** — [05-Deployment/01-Deployment-Overview](05-Deployment/01-Deployment-Overview.md)
    must name the VM the system actually runs on. It has moved twice.
 
-*Last assembled: 2026-06-16. Deployment docs rewritten 2026-07-11 for the Oracle → Azure migration.
-Verified against source code 2026-07-20: V6 users→profiles merge, HTTPS/same-origin web UI, grant
-model details (scope/expiry, enforcement caveats, the AI-service grant bypass), and the real event
-topology (two dormant notification flows) folded in.*
+*Last assembled: 2026-06-16. Deployment docs rewritten 2026-07-11 for the Oracle → Azure migration.*
+
+*Verified against source code 2026-07-20 (first pass): V6 users→profiles merge, HTTPS/same-origin web
+UI, grant model details (scope/expiry, enforcement caveats, the AI-service grant bypass), and the real
+event topology (two dormant notification flows) folded in.*
+
+*Second verification pass, 2026-07-20 — corrections made:*
+- **JWKS is not implemented.** Ten files claimed Auth publishes a JWKS endpoint and that Dashboard
+  fetches from it. In fact `JwtUtils.getJwksResponse()` is called by no controller, `MHSA_APP_JWKSENDPOINT`
+  is bound by no `@Value`, and every service (Dashboard included) verifies with a static
+  `JWT_PUBLIC_KEY`. Corrected everywhere; the operational consequence (manual key rotation) is now
+  stated in [07-Academic](07-Academic/01-Thesis-Context-and-Future-Work.md).
+- **Two service docs contradicted the event map.** Tracking-Service claimed it "publishes
+  streak-milestone events that become notifications" and Social-API claimed it "produces
+  `message.missed`". Neither is true — both now match [04-Event-Driven-Messaging](01-Architecture/04-Event-Driven-Messaging.md),
+  and the affected manual test flow in [06-Development/03](06-Development/03-Testing-and-Accounts.md) is fixed.
+- **`appointment.booked` sends email *and* push**, not email alone; and it fires **at booking time**,
+  not when the therapist confirms (the showcase said otherwise).
+- **API reference gaps:** added `GET /internal/grants`, `GET /internal/therapist-profiles`,
+  `GET /api/v1/notes`, `GET /api/v1/friends`; removed the phantom JWKS row.
+- **Container names:** therapist-api's compose sets no `container_name`, so its containers are
+  `therapist-api-api-1` / `therapist-api-postgres-1` (the port map claimed otherwise; the runbooks
+  were already right). `therapist-api` is a *network alias*, not a container name.
+- Also fixed: tracking migration count (8 → 9), "three replication streams" (there are four),
+  Social's real routing keys (`social.message_read`, not `social.message.read`), the mobile app's
+  transport (HTTPS/WSS in **all** builds, no raw IP anywhere in `src/`), and a note that
+  `therapist-web-ui/.env` holds five dead vars with wrong ports.
+
+*Confirmed accurate and left unchanged:* the full port map and 20-container count, all four compose
+stacks, Spring Boot/Java/React/RN versions, Gemini 2.5 Flash, the gateway route table, the grant model
+(per-category `AccessScopes` enforcement + the AI companion as a seeded grantee), the inert
+token-blacklist analysis, the dormant-retry analysis in the Notification consumers, the watermark
+replication design, and the nightly reconciliation schedule.*

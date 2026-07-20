@@ -19,22 +19,39 @@ uMatter uses **stateless** authentication. There is no server-side session; ever
   rollout compatibility, and `role`.
 - **Access-token lifetime:** 1 hour (`MHSA_APP_JWTEXPIRATIONMS = 3600000`).
 
-### Key distribution via JWKS
-The Auth service publishes its public key at a **JWKS** endpoint:
-```
-http://auth-service:8081/internal/v1/.well-known/jwks.json
-```
-Services like Dashboard fetch the key from here (`MHSA_APP_JWKSENDPOINT`) and verify tokens locally —
-no call to Auth per request. Other services (Therapist, Tracking, AI) are configured with the RSA
-public key directly via `JWT_PUBLIC_KEY`. Both approaches verify the same RS256 signature.
+### Key distribution — static public key (JWKS is **not** implemented)
+
+**Every service is configured with the RSA public key directly**, via `JWT_PUBLIC_KEY` →
+`mhsa.app.jwtPublicKey` (`JwtUtils` binds it with `@Value` and parses it at startup into
+`publicVerificationKey`). Verification is local and per-service; nothing is fetched at runtime.
 
 ```
 Auth (holds RSA private key) ──signs──► JWT
-       │ publishes public key
+       │
+       │ the same public key is distributed as an env var (out of band, from the .env files)
        ▼
-JWKS endpoint  ◄──fetch──  Dashboard, …    every service verifies the signature locally,
-JWT_PUBLIC_KEY env  ◄────  Therapist, Tracking, AI, Social, Notification
+JWT_PUBLIC_KEY env ──►  Auth, Dashboard, Therapist, Tracking, AI, Social, Notification
+                        each parses it once at startup and verifies RS256 signatures locally
 ```
+
+> ⚠️ **The JWKS endpoint documented in earlier revisions does not exist** (verified against source,
+> July 2026). The scaffolding is half-built and easy to mistake for a working feature:
+> - `JwtUtils.getJwksResponse()` **is** implemented in `shared-jwt` (it builds a proper
+>   `{kty, use, kid, alg, n, e}` key set from the RSA public key) — but **no controller calls it**.
+>   Auth's `InternalController` only maps `/internal/v1/profile/{profileId}/summary`. There is no
+>   `.well-known/jwks.json` handler anywhere in the codebase.
+> - `MHSA_APP_JWKSENDPOINT` is set in `docker-compose.yml` and
+>   `dashboard-service/application-docker.properties`, but **no Java code reads it** — there is no
+>   `@Value("${mhsa.app.jwksEndpoint}")` binding in any module. It is an inert config value pointing
+>   at a URL that would 404.
+> - Dashboard therefore does **not** verify via JWKS. Its `SecurityConfig` builds the same
+>   `new JwtAuthenticationFilter(jwtUtils, userDetailsService)` as every other service, and compose
+>   passes it `MHSA_APP_JWTPUBLICKEY: ${JWT_PUBLIC_KEY}` like everyone else.
+>
+> To actually ship JWKS: add a `@GetMapping("/.well-known/jwks.json")` on Auth's `InternalController`
+> returning `jwtUtils.getJwksResponse()`, then bind `mhsa.app.jwksEndpoint` in a consumer and fetch +
+> cache the key set. Until then, **key rotation means redeploying every service with a new
+> `JWT_PUBLIC_KEY`** — the operational cost the JWKS design was meant to remove.
 
 ---
 
@@ -72,8 +89,9 @@ the public internet. Two layers enforce this:
 2. **At the network:** internal endpoints are called over the Docker network
    (e.g. `http://auth-service:8081/internal/...`), not the public IP.
 
-This is how the JWKS endpoint, dashboard summaries, AI's context fetch, and grant checks stay private
-while still being callable between services.
+This is how the dashboard summaries, AI's context fetch, and the reconciliation snapshots
+(`/internal/grants`, `/internal/therapist-profiles`) stay private while still being callable between
+services.
 
 ---
 
@@ -135,8 +153,13 @@ deploy pending (auth `V7`/`V8`, tracking `V9` migrations widen `access_scope` an
   auto-renewed) and proxies `/api/*` etc. to the Nginx gateway on `:8080`. Release builds of the
   mobile app are HTTPS/WSS-only with cleartext forbidden, and the therapist web UI is served by
   Caddy at the domain root — the **same origin as the API**, so its requests need no CORS at all.
-- Raw-IP HTTP (`http://85.211.241.204:8080`) remains only for **dev/debug builds** and on-VM
-  diagnostics; it is not what shipping clients use.
+- The **mobile app is HTTPS/WSS in every build**, not just release: `axiosClient.ts` sets
+  `BASE_URL = __DEV__ ? 'https://umatter-apcs.duckdns.org' : 'https://umatter-apcs.duckdns.org'`
+  (both ternary branches are the same domain — the branch is vestigial), and `ChatScreen` defaults to
+  `wss://umatter-apcs.duckdns.org/ws`. No raw IP appears anywhere in `thesis-mobile/src`.
+- Raw-IP HTTP (`http://85.211.241.204:8080`) survives only in the **therapist web UI's
+  `.env.development`** (a laptop `npm run dev` pointing at the VM, which is genuinely cross-origin)
+  and in on-VM diagnostics. No shipping client uses it.
 - Full detail (DuckDNS, Caddyfile routes, certificate handling, the migration order):
   [05-Deployment/04-DNS-HTTPS-and-Play-Release](../05-Deployment/04-DNS-HTTPS-and-Play-Release.md).
 
