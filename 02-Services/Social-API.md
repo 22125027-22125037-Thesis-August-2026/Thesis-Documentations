@@ -86,7 +86,37 @@ Mobile / Web (STOMP.js) ──WebSocket──► Social :8086 (STOMP broker rela
 - Social's broker enables `rabbitmq_stomp` (host `61613`) and `rabbitmq_web_stomp` (host `15675`)
   precisely to relay chat to WebSocket clients — Auth's broker doesn't need these.
 - Because real-time chat needs a direct socket, **`:8086` is opened to the internet** (one of the
-  four public ingress ports), in addition to the gateway.
+  four public ingress ports), in addition to the gateway. In production clients connect through the
+  Caddy HTTPS edge instead: `wss://umatter-apcs.duckdns.org/ws` → Caddy → `127.0.0.1:8086`.
+
+### ⚠️ The relay's virtual host must be pinned (fixed 2026-07-20)
+
+`enableStompBrokerRelay(...)` **forwards the client's STOMP `host` header to RabbitMQ as the virtual
+host**. `@stomp/stompjs` sets that header from the broker URL's hostname (per the STOMP 1.2 spec), so
+clients were sending `host: umatter-apcs.duckdns.org` — a vhost that does not exist on a broker which
+only has `/`. RabbitMQ rejected **every** CONNECT:
+
+```
+ERROR  message:Bad CONNECT
+Virtual host 'umatter-apcs.duckdns.org' access denied
+```
+
+The symptom is deceptive: the **WebSocket upgrade succeeds** (`101` through Caddy), so the transport
+looks healthy and the client only surfaces a bare, message-less socket error. The tell is server-side —
+`WebSocketMessageBrokerStats` logging `0 total` sessions and `processed CONNECT(0)`, meaning no STOMP
+CONNECT ever completed. Chat had never worked in production.
+
+The fix pins the vhost so a client header can never leak into broker addressing:
+
+```java
+registry.enableStompBrokerRelay("/queue", "/topic")
+    .setVirtualHost(properties.getBroker().getRelayVirtualHost())   // SOCIAL_STOMP_RELAY_VHOST, default "/"
+```
+
+> **Diagnosing this class of bug:** test the STOMP layer, not just the upgrade. `curl` proving `101`
+> only proves the transport. Send a real CONNECT frame and read the reply — and force **HTTP/1.1**
+> (`curl --http1.1`), because HTTP/2 forbids `Upgrade` headers and a plain `curl` will report a
+> misleading `400`.
 
 ---
 
