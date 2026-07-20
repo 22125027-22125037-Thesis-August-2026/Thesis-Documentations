@@ -1,0 +1,32 @@
+\appendix
+
+\chapter{API Endpoint Summary}
+\label{Appendix1}
+
+This appendix lists a representative subset of the REST endpoints exposed by each uMatter service. It is intended as a quick-reference companion to the full API reference maintained in the project documentation, not a complete specification.
+
+\begin{table}[ht]
+\caption{Representative endpoints by service}
+\label{tab:api-summary}
+\begin{center}
+\begin{tabular}{ |L{3.2cm}|L{4.5cm}|L{6cm}| }
+ \hline
+ \textbf{Service} & \textbf{Example endpoint} & \textbf{Purpose} \\
+ \hline
+ Auth & POST /api/auth/login & Authenticate a user and issue a JWT access/refresh token pair \\
+ \hline
+ Tracking & POST /api/tracking/mood & Record a mood/sleep/journal entry for the authenticated user \\
+ \hline
+ AI & POST /api/ai/chat & Send a message to the AI companion, grounded in the user's tracking context \\
+ \hline
+ Dashboard & GET /api/dashboard/summary & Aggregate tracking data into a user-facing summary view \\
+ \hline
+ Therapist & POST /api/therapist/appointments & Book an appointment with a matched therapist \\
+ \hline
+ Social & GET /api/social/feed & Retrieve a user's peer social feed \\
+ \hline
+ Notification & GET /api/notifications & Retrieve a user's in-app notification inbox \\
+ \hline
+\end{tabular}
+\end{center}
+\end{table}

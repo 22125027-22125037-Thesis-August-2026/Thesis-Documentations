@@ -1,0 +1,59 @@
+\chapter{Implementation and Evaluation}
+\label{Chapter4}
+
+This chapter describes how the design in Chapter~\ref{Chapter3} was implemented, the security-hardening process applied to it, the cloud deployment used to run and evaluate the system, the distribution of the mobile client, and an evaluation of the resulting platform.
+
+\section{Implementation Overview}
+
+The backend services are implemented in Java 17. The Auth, Tracking, AI, and Dashboard services are built on Spring Boot~4.0 and organized as a Maven multi-module project so that shared code (for example, JWT validation logic) is written once and reused. The Therapist service is a separate Gradle project on Spring Boot~4.0, while the Social and Notification services are Gradle projects on the slightly earlier Spring Boot~3.3, reflecting when they were added to the system. Persistence throughout uses Spring Data JPA over PostgreSQL. The Social service's real-time chat is implemented with STOMP over WebSocket, and the Notification service integrates Firebase Cloud Messaging for push delivery in addition to email and an in-app inbox.
+
+On the client side, the mobile application for teenagers is built with React Native~0.83 and React~19 in TypeScript, and the therapist-facing web dashboard is built with React~18, TypeScript, Vite, and Tailwind CSS.
+
+\section{Security Hardening}
+
+Because uMatter handles sensitive personal data and coordinates real appointments, the implemented services were subjected to structured security audits organized around the OWASP Top~10 risk categories~\cite{2021-OWASP-Top10}, covering three areas in particular:
+
+\begin{itemize}
+\item \textbf{Business logic correctness} - verifying that workflows such as matching, booking, and permission granting behave correctly under normal and adversarial input, not only in the happy path.
+\item \textbf{Access control} - specifically JPQL injection patterns in hand-written queries, insecure direct object references (for example, a user supplying another user's record identifier to an endpoint that does not re-check ownership), and mass assignment (a client supplying extra fields in a request body that get bound to fields the client should not be able to set, such as a role or a permission flag).
+\item \textbf{Data integrity} - ensuring that concurrent requests cannot leave the system in an inconsistent state.
+\end{itemize}
+
+The most significant data-integrity issue identified was a race condition in appointment booking: two concurrent requests to book the same therapist for the same time slot could both pass an application-level availability check before either write was committed, resulting in a double booking. This was closed not by adding an application-level lock, which would not be safe against multiple service instances, but by adding a database-level partial unique index on the appointment table, scoped to active (non-cancelled) appointments for a given therapist and time slot. This pushes the correctness guarantee down to the database itself, so the constraint holds regardless of how many instances of the Therapist service are running concurrently.
+
+The most significant access-control finding was in the AI service's own path to a user's tracking data, rather than in a caller manipulating another user's identifier. The Tracking service's internal context endpoint, used by the AI service to retrieve grounding data, was reachable by any authenticated internal caller with no check that the requesting caller had actually been granted access to that data - it relied entirely on network-level trust between services, which is precisely the class of implicit trust the permission-based data-sharing model in Section~\ref{sec:authz} is designed to remove. The fix followed the same pattern used elsewhere in the codebase: the AI companion was added as a reserved grantee in the existing access-grant table (Section~\ref{sec:authz}), and the Tracking service's context endpoint now checks for an active grant before returning anything, exactly as it already did for a therapist. No new authorization mechanism was introduced; an existing one was extended to a caller that had previously been exempted from it.
+
+\section{Deployment}
+
+uMatter was originally deployed on Oracle Cloud Infrastructure (OCI). During the course of this thesis, the deployment was migrated in full to Microsoft Azure, under an Azure for Students subscription. The migration involved:
+
+\begin{itemize}
+\item Resolving Azure region-policy restrictions that initially blocked the target subscription from provisioning a virtual machine in the desired region.
+\item Configuring Network Security Group (NSG) rules to open the ports required by the API gateway and by directly-exposed services (for example, RabbitMQ's management port during setup, and ports 80 and 443 for the reverse proxy).
+\item Working around Azure Cloud Shell setup issues encountered while preparing the target VM.
+\item Reproducing the auto-shutdown behavior available on the previous provider using a cron-based scheduled shutdown on the Ubuntu VM, to control cost under the student subscription, with the containers configured to restart automatically on boot so the nightly shutdown/restart cycle does not require manual intervention.
+\end{itemize}
+
+The resulting deployment runs on a single, right-sized Azure VM hosting roughly twenty-one containers: multiple Spring Boot JVM services, several PostgreSQL instances (one per owning service), RabbitMQ, Redis, MinIO, and pgAdmin. HTTPS routing is provided by Caddy as a reverse proxy, with DuckDNS supplying a stable hostname for the VM's dynamic address, and the VM's public IP configured as static so the hostname does not need to be re-pointed after the nightly auto-shutdown cycle. This mirrors the general topology described in Chapter~\ref{Chapter3}, with Caddy taking the reverse-proxy/HTTPS-termination role and Nginx continuing to serve as the internal API gateway between the proxy and the backend services.
+
+\section{Mobile Application Distribution}
+
+Beyond the backend deployment described above, the mobile client for teenagers/patients was packaged and published to the Google Play Store, rather than distributed as a manually installed APK. Publishing through Google Play means end users install and update the app the same way as any other Android application, without needing to trust or manually side-load a build shared outside the store.
+
+This distribution choice also shaped a concrete backend requirement: the published app communicates with the API gateway exclusively over HTTPS on port 443. Modern Android builds block plaintext HTTP traffic by default, so terminating TLS correctly at the reverse proxy, using a Let's Encrypt certificate obtained over port 80, was not an optional hardening step but a hard prerequisite for the Play Store build to reach the backend at all. This is part of why ports 80 and 443 were treated as non-negotiable during the NSG configuration step of the Azure migration above, alongside the additional ports used by the API gateway and other directly exposed services during development.
+
+\section{Evaluation}
+
+The system was evaluated along three dimensions: functional completeness against the design goals in Chapter~\ref{Chapter1}, security posture after hardening, and feature positioning relative to the competitive landscape reviewed in Chapter~\ref{Chapter2}.
+
+\subsection{Functional Completeness}
+
+All seven backend services described in Chapter~\ref{Chapter3} are implemented and deployed, and both client applications (mobile for teens, web for therapists) are functional against them, with the mobile app distributed through the Google Play Store rather than as a development-only build. The permission-based data-sharing model is enforced at the API level, so tracked data is not visible to a therapist, or to the AI companion, that has not been explicitly granted access to it. The AI companion retrieves and uses a user's own recent tracking data as context for its responses only under an active grant, and falls back to an ungrounded, generic conversation otherwise, so a user who never grants access still has a working companion rather than a broken one.
+
+\subsection{Security Posture}
+
+The structured audits identified and closed concrete issues in each of the three areas examined (business logic, access control, and data integrity), including the appointment-booking race condition described above. This does not constitute a formal, independent penetration test, and should be read as an internal hardening pass rather than a certification of the system's security; further external review would be a reasonable next step before any production use involving real users.
+
+\subsection{Comparison with Existing Platforms}
+
+Revisiting the comparison in Table~\ref{tab:competitive}, the implemented system delivers on the feature combination that motivated this thesis: self-care tracking, an AI companion grounded in the user's own data, and peer social features, alongside licensed-therapist matching, booking, video consultation, and clinical notes, connected by a permission-based sharing model that none of the compared single-purpose platforms offer in combination. The clearest gap relative to mature commercial platforms such as BetterHelp and Talkspace~\cite{BetterHelp,Talkspace} is operational maturity: those platforms have been hardened and scaled in production for years, whereas uMatter, as a thesis project, has been validated on a single-VM deployment and an internal security-audit process rather than at production scale.

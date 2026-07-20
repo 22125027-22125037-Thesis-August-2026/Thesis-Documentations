@@ -1,0 +1,26 @@
+\chapter{Conclusion and Future Work}
+\label{Chapter5}
+
+\section{Conclusion}
+
+This thesis set out to design, implement, and evaluate uMatter, a mental-health support platform for teenagers that unifies self-care tracking with professional therapy access, addressing a gap identified between existing self-care applications (Daylio, Bearable) and existing therapy platforms (BetterHelp, Talkspace, Wysa), none of which combine both halves of the care journey behind a single, permission-based data-sharing model.
+
+The resulting system is a seven-service microservices architecture behind an API gateway, with a database-per-service data layer, stateless JWT authentication, and an AI companion grounded in each user's own tracking data. A structured security-hardening process identified and resolved concrete issues across business logic, access control, and data integrity, including a database-level fix for a race condition in appointment booking. The full stack was deployed to cloud infrastructure - migrated from Oracle Cloud to Microsoft Azure over the course of the project - and evaluated both functionally and against the competitive landscape it was designed to improve on.
+
+Taken together, this work shows that a single, security-conscious microservices platform can plausibly serve both sides of adolescent mental health support - self-care and professional therapy - rather than requiring a teenager to use two disconnected products.
+
+\section{Limitations}
+
+Three limitations should be kept in mind when interpreting these results. First, this is a software engineering thesis, not a clinical study: no claims are made about the platform's clinical efficacy, and features that would require clinical judgment were explicitly excluded rather than approximated. Second, the security hardening performed was an internal, structured audit rather than an independent third-party penetration test. Third, the deployment evaluated in Chapter~\ref{Chapter4} runs on a single virtual machine and has not been load-tested at a scale representative of real-world production traffic.
+
+\section{Future Work}
+
+Building directly on the limitations above, future work on uMatter falls into three groups:
+
+\begin{enumerate}
+\item \textbf{Clinical collaboration.} Any safety-oriented feature that acts on self-reported mental-health data - most notably automated risk detection for at-risk users - requires input from licensed mental-health professionals before it can be responsibly designed, and is intentionally left out of this thesis pending that collaboration. A layered risk-detection framework, informed by clinical guidance, is a natural next step once that collaboration is in place.
+\item \textbf{Safety-oriented features more broadly.} Beyond risk detection, this includes guardian-visibility controls appropriate for a teenage user base, clearer in-app pathways to crisis resources, and clinical review of the AI companion's behavior in sensitive conversations.
+\item \textbf{Operational maturity.} Independent security review beyond the internal audits performed here, load and scalability testing of the current single-VM deployment, and a multi-instance or managed-database deployment topology to remove the single VM as a point of failure.
+\end{enumerate}
+
+Pursued together, these directions would move uMatter from a functioning thesis prototype toward a platform that could be responsibly evaluated with real teenage users under appropriate clinical and institutional oversight.

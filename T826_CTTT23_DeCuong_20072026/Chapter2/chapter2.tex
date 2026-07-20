@@ -1,0 +1,78 @@
+\chapter{Related Work}
+\label{Chapter2}
+
+The Abstract and Chapter~\ref{Chapter1} describe adolescent mental-health support today as fragmented across four kinds of tools. This chapter surveys each of these four fragments in turn, positions uMatter relative to them, and reviews the architectural and security literature that informs the design presented in Chapter~\ref{Chapter3}.
+
+\section{Self-Care and Tracking Applications}
+
+Daylio and Bearable are representative of a category of lightweight, single-purpose self-care applications~\cite{Daylio,Bearable}. Daylio focuses on quick, low-friction mood and activity logging, encouraging habit formation through streaks and reminders. Bearable extends this idea to a broader set of symptoms and factors (sleep, medication, exercise, weather, and more), letting users explore correlations in their own data.
+
+Both applications are valuable for self-observation, but neither connects a user to a professional: there is no booking, matching, or clinical workflow, and the data collected has no path out of the app other than manual export. For a teenager who identifies a concerning pattern in their own tracked data, these tools offer no next step, and our own baseline study found the same limitation from the user's side: trackers were judged useful for noticing patterns and worthless for changing them.
+
+\section{Professional Therapy Platforms}
+
+BetterHelp and Talkspace sit at the opposite end of the spectrum~\cite{BetterHelp,Talkspace}. Both connect users with licensed therapists through a subscription model, primarily via asynchronous messaging with optional live sessions. Their onboarding is built around a short intake questionnaire used to match a new user to a therapist, and their core workflows (scheduling, secure messaging, video sessions) are mature and well-tested at scale.
+
+These platforms are built for a general adult audience, and they do not provide day-to-day self-care tracking as a first-class feature - a user's mood or sleep history is not something the platform helps them build up over time outside of a therapy session. A therapist on these platforms meets a patient with no context beyond what that patient can reconstruct from memory in the room, which is precisely the black-box week our baseline study identified as a recurring failure. These platforms also do not target the specific constraints of a teenage user base, such as guardian involvement or age-appropriate content and matching.
+
+\section{Social and Family Connection Platforms}
+
+A third fragment is not a mental-health product at all, but the general-purpose messaging and social platforms a teenager already uses to talk to friends and family. In Vietnam, this is overwhelmingly Zalo, the country's leading messaging platform~\cite{Zalo}, alongside global platforms such as Messenger. These platforms are conversational infrastructure, not wellbeing infrastructure: they carry whatever a teenager chooses to say, but they do not structure that conversation around mood or wellbeing, and they give a parent no visibility into how their child is actually doing beyond what that child volunteers to share.
+
+Family-oriented applications such as Life360 address a related but different problem, surfacing a family member's location and presence rather than their emotional state~\cite{Life360}, so a parent can confirm that their child arrived home safely without learning anything about how the child felt that day. This is precisely the gap our professional consultations surfaced: a parent has no way of knowing how their child is actually doing. It is also why our own consulted professionals disagreed on how far peer and family connection should go at all, one warning that a well-meaning friend's advice can run against clinical guidance, which is why uMatter treats a parent or friend as an audience that must be explicitly and revocably granted access, rather than a channel that is open by default.
+
+\section{General-Purpose AI for Mental Health Advice}
+
+A fourth fragment is not a product category but a documented behavior: adolescents and young adults increasingly turn to general-purpose AI chatbots, ChatGPT, Google Gemini, Meta AI, and similar tools, when they feel sad, angry, or nervous. A nationally representative U.S. survey found that roughly one in eight adolescents and young adults aged 12 to 21 had used a generative-AI chatbot for mental health advice, with the large majority of those users rating the advice helpful~\cite{2025-McBain-GenAI}. Wysa is the most mature purpose-built instance of this same pattern, wrapping a conversational AI companion around a mental-health-specific design, with an optional paid tier that adds access to human coaches~\cite{Wysa}.
+
+What both the general-purpose chatbots and Wysa share, from uMatter's perspective, is that neither is grounded in a continuous, structured record of the user's own life: a general-purpose chatbot starts from nothing every conversation, and Wysa's companion, while mental-health-aware, does not draw on a user's own logged mood, sleep, or journal history at all. uMatter's own companion can draw on that history, but only once the user has explicitly granted it access through the same permission model used for a therapist (Section~\ref{sec: data}); absent that grant, it converses without grounding rather than reading tracking data by default. The same survey work that documents this trend also cautions that there are few standardized benchmarks for the quality of the mental-health advice these systems provide, which echoes what our own consulted professionals insisted on: an AI companion should never substitute for a human professional, and, for at least one of the three we consulted, should not be given access to a user's personal tracking data at all.
+
+\section{Positioning of uMatter}
+
+Table~\ref{tab:competitive} summarizes this comparison across all four fragments surveyed above: self-care tracking, professional therapy, social and family connection, and AI-based advice-seeking. uMatter's distinguishing position is that it treats these as four aspects of one continuous user journey rather than four separate products a teenager must adopt and re-explain themselves, connected by a permission-based data-sharing model in which a user's own tracked history travels only where they explicitly allow it: to a matched therapist, to a parent or friend, or to the AI companion itself, with nothing shared by default.
+
+\begin{table}[ht]
+\caption{Feature comparison between uMatter and comparable platforms}
+\label{tab:competitive}
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{ |L{3.4cm}|C{2.6cm}|C{2.6cm}|C{2.6cm}|C{2.6cm}| }
+ \hline
+ \textbf{Feature} & \textbf{uMatter} & \textbf{BetterHelp / Talkspace} & \textbf{Wysa / General AI Chatbots} & \textbf{Daylio / Bearable} \\
+ \hline
+ Mood/sleep/journal tracking & Yes & No & Partial & Yes \\
+ \hline
+ AI companion grounded in own data & Yes & No & No (general) & No \\
+ \hline
+ Licensed therapist matching \& booking & Yes & Yes & Limited & No \\
+ \hline
+ Video consultation & Yes & Yes & No & No \\
+ \hline
+ Clinical notes for professionals & Yes & Yes & No & No \\
+ \hline
+ Peer social features & Yes & No & No & No \\
+ \hline
+ Parent/guardian visibility (with consent) & Yes & No & No & No \\
+ \hline
+ Teen-oriented design & Yes & No & Partial & Partial \\
+ \hline
+ Granular, permission-based data sharing & Yes & N/A & N/A & N/A \\
+ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{Architectural Foundations}
+
+The system architecture proposed in Chapter~\ref{Chapter3} builds on well-established distributed-systems practice rather than novel architectural research. The decomposition into independently deployable services, each owning its own data store, follows the microservices style described by Newman~\cite{2021-Newman-Microservices}, chosen over a monolithic design because uMatter's functional areas (authentication, tracking, AI, professional workflows, social features, notifications) have different scaling, security, and change-rate profiles. Inter-service communication uses a mix of synchronous REST calls, following the architectural constraints of the REST style~\cite{2000-Fielding-REST}, and asynchronous messaging through RabbitMQ for event-driven workflows~\cite{RabbitMQ}. Services are implemented with Spring Boot~\cite{SpringBoot} and packaged with Docker~\cite{Docker} to keep the development and deployment environments consistent.
+
+\section{Security Foundations}
+
+Securing a distributed system requires standards-based authentication and proactive threat modeling. Modern architectures favor stateless, token-based authentication via JSON Web Tokens (JWT)~\cite{2015-RFC7519-JWT}, verified cryptographically through JSON Web Key Sets (JWKS)~\cite{2015-RFC7517-JWK} to eliminate centralized session bottlenecks. System design is typically benchmarked against consensus frameworks like the OWASP Top 10~\cite{2021-OWASP-Top10} to proactively mitigate critical vulnerabilities such as Broken Access Control and Injection flaws.
+
+Beyond authentication, robust authorization relies on formal access control models. While Role-Based Access Control (RBAC)~\cite{1996-Sandhu-RBAC} efficiently manages coarse-grained permissions, Attribute-Based Access Control (ABAC) ~\cite{2014-NIST-ABAC} is necessary for fine-grained, ownership-driven data sharing. To enforce these models safely, security literature emphasizes the principle of Defense in Depth~\cite{1975-Saltzer-Schroeder}. Access rules are embedded declaratively at the method level.
+
+\section{AI Companion And Video Consultation}
+
+The in-app AI companion is powered by the Gemini API from Google, utilizing the Gemini 2.5 Flash model~\cite{2024-Gemini-TechReport}. Unlike a general-purpose chatbot, the companion is grounded in the user's own tracking history, so its responses can refer to a user's recently logged mood, sleep, or journal entries rather than operating from a blank context. Video consultation between users and therapists is facilitated through Jitsi Meet~\cite{Jitsi} public meeting rooms on the internet, providing an open-source video-conferencing solution that avoids dependence on a proprietary video vendor.

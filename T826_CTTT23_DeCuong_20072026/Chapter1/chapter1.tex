@@ -1,0 +1,259 @@
+\chapter{Introduction}
+\label{Chapter1}
+
+\section{Background and Motivation}
+
+Adolescent mental health in Vietnam has become a problem that needs more attention than ever. In recent years a ninth-grader in Ho Chi Minh City took his own
+life after a poor exam result~\cite{DanTri2017}, and a final-year Information
+Technology student at the University of Science, VNU-HCM died the same way~\cite{TuoiTre2024}. These are not isolated: a cross-sectional
+study of 1{,}316 high-school students across six districts of Ho Chi Minh City
+found that 46.5\% reported self-injury behaviour~\cite{PhamThao2019}, and the
+global picture agrees the World Health Organization estimates that one in
+seven adolescents aged 10-19 experiences a mental disorder, accounting for 15\%
+of the disease burden in this age group, with suicide the third leading cause of
+death among those aged 15-29~\cite{WHO_AdolescentMH}. What makes such cases so
+difficult to accept is that the distress is rarely invisible in hindsight. It is
+usually present beforehand, in ordinary conversations and small changes of
+behaviour, and simply never seen by anyone positioned to act. The signal exists;
+nothing is holding it.
+
+Yet the tools available to a teenager today address only fragments of this
+problem. On one side of the market, self-care applications such as Daylio and
+Bearable let users log their mood, sleep, and daily activities, helping them
+notice patterns in their own well-being~\cite{Daylio, Bearable}. These tools are
+lightweight and approachable, but they stop at self-observation: they do not
+connect a user who needs help to a licensed professional. On the other side,
+therapy-oriented platforms such as BetterHelp and Talkspace connect users with
+licensed therapists for text, audio, or video counseling~\cite{BetterHelp,
+Talkspace}, while AI-first platforms such as Wysa offer a conversational
+companion alongside optional access to coaches~\cite{Wysa}. These platforms are
+targeted primarily around adults, and around one side of the care
+journey, either self-tracking or professional therapy.
+The consequence is that a therapist meets a patient with no context beyond what
+that patient can reconstruct from memory in the room, and a parent has no way of
+knowing how their child is actually doing.
+
+\subsection*{What we learned from users}
+
+To find where these tools fail in practice, we ran a baseline study in which a
+psychology student at HCMUE, a Business student at
+RMIT, evaluated ten existing platforms: AI chatbots,
+trackers, peer communities, telehealth services, and clinical software
+against two personas: an undergraduate diagnosed with mild-to-moderate
+depression, and a tenth-grader under academic pressure whose family does not
+believe anything is wrong. Four findings shaped this thesis. First, the week
+between sessions is a black box: by the appointment, what the patient
+meant to discuss is forgotten or too exhausting to reconstruct. Second,
+input fatigue was the single most cited reason for abandoning a health
+app. Third, tracking alone produced no progress;
+trackers were judged useful for noticing patterns and worthless for changing
+them, while an AI companion was seen as genuinely supportive but never a
+substitute for a human professional. Fourth, privacy is a precondition,
+not a feature: the strongest reaction concerned data leaking at the moment the
+user is most vulnerable, and willingness to share was never absolute a
+journal could go to a therapist but not to friends, and an automatic crisis
+alert to family was rejected outright as pressure to perform a better mood than
+the one being felt.
+
+\subsection*{What we learned from professionals}
+
+We then consulted three mental-health professionals: a counsellor from the
+Psychological Counselling Office at the University of Science, VNU-HCM; the CEO
+of the psychology organization LUMOS; and a physician at Hoàn Mỹ Sài Gòn
+Hospital. Their guidance shaped the product directly: replacing periodic
+surveys with a continuous emotion timeline captured every few hours, because
+daily reflection yields richer and more meaningful data than any questionnaire;
+routing a user who logs anger toward a breathing exercise and a user who logs
+sadness toward their stored positive memories; and treating physical activity,
+sleep, and nutrition as inseparable from mental well-being.
+
+ Two of the three were
+substantially opposed to AI in mental health: one holding that an AI should
+answer only the easiest questions and should never be given access to a user's
+personal tracking data at all, while the third supported it, carefully
+applied, as a genuine source of companionship. One was openly distrustful of
+peer connection, on the grounds that a well-meaning friend may offer advice that
+runs directly against clinical guidance, and recommended that such connections
+be limited to parents and preceded by explicit warnings. As a result, every audience including the AI companion, a
+therapist, a trusted friend or parent, must be granted access explicitly, in
+scope, and revocably, with nothing shared by default.
+
+\subsection*{Why we built this}
+
+Finally, and most plainly: the two of us wanted to help. We are not clinicians,
+and this thesis does not pretend to treat anyone. But we can build software, and
+much of what is missing is a software problem somewhere for a young person's
+daily reality to be captured comfortably enough that it actually gets captured,
+and a controlled path from that record to the people who can help, whether that
+is an AI at 3 AM, a friend, a parent, or a licensed therapist.
+
+
+\section{Problem Statement}
+\label{sec:problems}
+
+
+\subsection*{Problem 1: Eliciting the data}
+
+\textit{How can a platform obtain an honest, continuous record of a teenager's mood,
+emotions, and daily wellbeing in a way that feels natural and comfortable rather than
+like clinical paperwork?}
+
+The ideal solution would be \textit{implicit}: inferring emotional state from signals the
+user already produces, without asking them to report anything. The motivating case is: before a recent suicide by a secondary-school student in Ho Chi Minh City \cite{DanTri2017}, the
+warning was present in ordinary conversations with friends; had it been noticed, it might
+have been acted upon. But capturing that class of signal means continuously listening to
+real-life conversations, reading messaging apps, or monitoring facial expressions around
+the clock. Such surveillance is technically fragile, ethically indefensible for minors,
+and in direct conflict with data-protection law.
+That decision converts Problem 1 into a design problem: self-report is only useful if it
+actually happens, day after day, and self-report is exactly what users abandon first.
+The difficulty is threefold:
+
+\begin{itemize}
+\item \textbf{Friction.} Every second of effort between "I feel something" and "it is
+recorded" costs data. Capture must be a single tap, expanded only if the user wants to
+elaborate.
+\item \textbf{Recall and initiation.} A teenager in a low mood is the least likely person
+to remember to open a wellbeing app. The system must come to the user rather than wait
+for them, without becoming a nag that gets muted or uninstalled.
+\end{itemize}
+
+This thesis addresses Problem 1 through a set of \textbf{daily reflection and tracking}
+features designed as one habit rather than ten tools: a one-tap \textbf{mood check-in}
+(\textit{Cảm xúc lúc này}) across five levels with an optional line of context; an
+\textbf{emotional journal} (\textit{Góc tâm tư}) for free-form reflection with photos, a
+mood calendar, and streaks; and \textbf{wellbeing logs} for sleep, nutrition and water,
+and breathing with step count collected automatically, the one passive signal that
+requires no surveillance of the user's private life. Elicitation itself is handled by
+\textbf{Focus Mode}, which nudges roughly every 90 minutes during waking hours and
+respects a Quiet Hours window, so the record accumulates without the user having to
+remember to build it.
+
+\subsection*{Problem 2: Acting on the data}
+
+\textit{Given that record, how can the platform tell whether a user is in distress, act appropriately when they are, and still be worth opening when they are not? Resolving this requires nuanced interpretation to distinguish acute distress from an ordinary bad day or a long-term downward trend. Furthermore, because most days are simply neutral or mildly negative, a platform built only for crises will remain closed on an average day. Finally, navigating these states safely demands strict data sensitivity, ensuring that any access to a user's mood, sleep, and journal data is always explicit and revocable, rather than granted by default.}
+
+In crisis, a dedicated emergency-support area always one tap away. For the ordinary day, the same record powers an AI companion whose
+replies are grounded in how the user has actually been sleeping and feeling, guided
+breathing and meditation, a Treasure Box of pre-saved positive memories to
+reopen when recall of the good is hardest, and lightweight achievements that make the
+habit itself rewarding.
+
+The two problems close a loop: better daily reflection makes every downstream response
+more precise, and responses that are genuinely useful on ordinary days are what keep the
+reflection going.
+
+\section{Objectives}
+\label{sec:objectives}
+
+
+\subsection*{Capturing the record (Problem 1)}
+
+\begin{itemize}
+  \item O1 Make capture experience as comfortable as possible.
+
+  \item O2 Bring the system to the user without becoming a nag.
+
+  \item O4 Cover physical wellbeing as the consulted professionals framed
+    it
+\end{itemize}
+
+\subsection*{Acting on the record (Problem 2)}
+
+\begin{itemize}
+  \item O5 Ground the AI companion in the user's own history
+
+  \item O6 Respond appropriately to the ordinary day, through
+    guided breathing and meditation, a Treasure Box of pre-saved positive
+    memories surfaced when recall of the good is hardest, emotion-appropriate
+    routing (anger toward breathing, sadness toward stored memories), and
+    lightweight achievements and streaks that make the habit itself rewarding.
+
+  \item O7 Keep the crisis path one tap away
+
+  \item O8 Close the black box between sessions
+\end{itemize}
+
+\subsection*{Consent, architecture, and validation}
+
+\begin{itemize}
+  \item O9 Share nothing by default.
+
+  \item O10 Build the system as a maintainable microservices
+    architecture
+
+  \item O11 Demonstrate that the result runs, by deploying and
+    validating the full stack on cloud infrastructure.
+\end{itemize}
+
+\section{Scope}
+\label{sec:scope}
+
+
+uMatter is built as an academic prototype: a working system, deployed and
+exercised end to end, whose purpose is to demonstrate that the unified
+experience can be delivered
+through a single coherent architecture. Its intended users are Vietnamese
+adolescents, with the audiences they may choose to admit, an AI companion, a licensed therapist, a parent, or a friend. Within that, the thesis covers the daily reflection and tracking features,
+the responses built on top of them, the permission model governing who may see
+what, the seven-service backend and its supporting infrastructure, and the
+deployment of the whole stack to cloud infrastructure.
+
+Several concerns that a production deployment would have to address are
+deliberately excluded, and are treated in 
+future work rather than as gaps in the implementation:
+
+\begin{itemize}
+  \item \textbf{Legal and regulatory compliance.} Data-protection obligations,
+    consent law for minors, and the licensure requirements governing
+    teletherapy are outside the scope of this thesis. 
+
+  \item \textbf{Dispute resolution.} The platform provides no mechanism for
+    adjudicating conflicts between a user and a therapist, or between users.
+
+  \item \textbf{Monetization.} No payment, billing, or compensation model is
+    implemented. This is not a missing feature: without it there is no
+    incentive structure to attract licensed professionals to the platform.
+
+  \item \textbf{Clinical validation.} uMatter makes no diagnostic claim and was
+    not evaluated in a clinical trial. No assertion is made that the platform
+    improves mental-health outcomes; the evaluation concerns the system, not its
+    therapeutic efficacy.
+
+  \item \textbf{Automated risk detection.} The platform does not attempt to
+    infer crisis from the tracked record and does not escalate on the user's
+    behalf. The emergency-support path is user-initiated by design, a
+    decision reinforced by our baseline study, in which an automatic crisis
+    alert to family was rejected outright as pressure to perform a better mood
+    than the one being felt. 
+
+
+\end{itemize}
+
+\section{Contributions}
+
+This thesis makes the following contributions:
+
+\begin{itemize}
+  \item \textbf{A unified platform.} uMatter integrates daily reflective
+    tracking, an AI companion, peer and family connection, and professional
+    therapy into a single system, so that a user need not re-explain themselves
+    each time they cross from one fragment of the existing market into another.
+
+  \item \textbf{A consent model.} The permission-based data-sharing design, in which every
+    audience is granted access explicitly, in scope, and revocably, with nothing
+    shared by default.
+
+
+  \item \textbf{Requirements grounded in primary study.} The design is
+    driven by a baseline evaluation of ten platforms against two
+    personas, conducted with a psychology student at HCMUE, and by consultation
+    with three mental-health professionals. The findings are reported and traced to the features they produced.
+
+    \item \textbf{A pioneering localized prototype.} As one of the first native 
+    applications tailored specifically for adolescent mental health in Vietnam, uMatter raises 
+    critical awareness about the well-being of Vietnamese teenagers and young adults. It provides 
+    a meaningful, usable prototype demonstrating that mental health can be supported in many connected ways, with the help of yourself and the people around who truly care about you, embodying the platform's core message: \textit{you matter}.
+
+\end{itemize}
+

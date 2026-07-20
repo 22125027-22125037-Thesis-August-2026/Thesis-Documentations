@@ -1,0 +1,4 @@
+\chapter{Deployment Configuration Notes}
+\label{Appendix2}
+
+This appendix summarizes the cloud deployment topology referenced in Chapter~\ref{Chapter4}: a single Ubuntu virtual machine running the full container stack (application services, PostgreSQL instances, RabbitMQ, Redis, MinIO, and pgAdmin) behind a reverse proxy that terminates HTTPS, with DNS provided by a dynamic DNS service. Secrets and environment files are kept outside version control and are managed directly on the deployment host and in the team's private configuration store.
