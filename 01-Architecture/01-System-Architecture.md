@@ -18,7 +18,7 @@ The guiding principles, and where each is realised:
 | **No cross-DB coupling** | Cross-domain links are plain UUID fields, never JPA joins | `account_id`, `profile_id` scalar columns |
 | **Backend for Frontend** | A service composes others for the client | Dashboard service |
 | **Event-Driven** | Producers announce facts; consumers react asynchronously | RabbitMQ topic exchanges |
-| **Stateless auth** | No server session; every request carries a JWT | RS256 JWT, public key distributed as config |
+| **Stateless auth** | No server session; every request carries a JWT | RS256 JWT; verifiers resolve the public key from Auth's JWKS by `kid` |
 | **Externalised config** | Ports/keys/secrets via env + compose, not hard-coded | `.env`, `docker-compose.yml` |
 
 ---
