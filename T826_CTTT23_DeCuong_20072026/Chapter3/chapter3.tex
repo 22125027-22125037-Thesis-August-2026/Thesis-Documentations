@@ -10,8 +10,8 @@ who tracks their wellbeing on the mobile application and owns every piece
 of data they produce; the therapist, working from the web dashboard; and
 the administrator. Importantly, a teen may admit others to their tracked
 record: therapists, parents and close friends (other user accounts), and
-the AI companion, all subject to the same explicit, scoped, revocable
-grants (Section~\ref{sec:datasec}).
+the AI companion, all subject to the same grant model
+(Section~\ref{sec:datasec}).
 
 Table~\ref{tab:freq} lists the key functional requirements distilled from
 these actors' needs, and Table~\ref{tab:nfreq} lists the key non-functional
@@ -246,7 +246,7 @@ with third-party workloads, perimeter trust is a proportionate design.
     \label{fig:ch3-ai-grounding}
 \end{figure}
 
-The AI companion is implemented in the AI service, and Figure~\ref{fig:ch3-ai-grounding} traces how a reply is grounded. It retrieves the user's recent tracking summary from the Tracking service and includes it as context when calling Google's Gemini 2.5 Flash model~\cite{2024-Gemini-TechReport}. Grounding the model in the user's own data lets the companion respond to something concrete (``you logged trouble sleeping three nights this week'') rather than only offering generic supportive text. Crucially, this retrieval is gated by the same data-access grant model as every other audience (Section~\ref{sec:datasec}): the AI service holds no standing access, and the Tracking service returns context only when the user has an active grant to the reserved AI-companion principal. Consent is off by default - a user who has not opted in still receives a companion, just one that converses without personal grounding - and can be revoked at any time from the chat screen, after which the next reply is ungrounded.
+The AI companion is implemented in the AI service, and Figure~\ref{fig:ch3-ai-grounding} traces how a reply is grounded. It retrieves the user's recent tracking summary from the Tracking service and includes it as context when calling Google's Gemini 2.5 Flash model~\cite{2024-Gemini-TechReport}. Grounding the model in the user's own data lets the companion respond to something concrete (``you logged trouble sleeping three nights this week'') rather than only offering generic supportive text. Crucially, this retrieval is gated by the same data-access grant model as every other audience (Section~\ref{sec:datasec}): the AI service holds no standing access, and the Tracking service returns context only when the user has an active grant to the reserved AI-companion principal. Consent is off by default - a user who has not opted in still receives a companion, just one that converses without personal grounding - and can be revoked from the chat screen, after which the next reply is ungrounded.
 
 Two safeguards run on every message before and around this grounding, and both are deliberately narrow. First, user messages pass a lightweight keyword guardrail: a message matching a small list of Vietnamese self-harm or violence phrases short-circuits the model entirely and returns a fixed response directing the user to emergency hotlines, rather than being sent to Gemini. Second, personally identifying details (emails, phone numbers, and self-introduced names) are scrubbed from the message, history, and context before they leave the platform, and chat contents are encrypted at rest. What the AI service deliberately does not do is any form of clinical risk assessment or automated escalation to a third party - no scoring, no alerting a therapist or family member - which is left out of scope, as discussed in Chapter~\ref{Chapter5}, pending the clinical collaboration such a feature would require. The keyword guardrail is a within-conversation safety redirect, not a diagnostic claim.
 
@@ -264,11 +264,10 @@ registration) connects to their child as a friend, and the connection itself
 exposes no tracked data whatsoever.
 
 Visibility is governed exclusively by the grant model of
-Section~\ref{sec:datasec}. From a friend's profile screen, a teen may grant
-that friend, who is a parent or peer, a scoped access to their tracked data,
-issued with a 30-day expiry and revocable at any time; the friend then sees
-mood and wellbeing summaries for the granted window, and nothing after
-revocation or expiry. There is deliberately no privileged parental path and
+Section~\ref{sec:datasec}. From a friend's profile screen, a teen may extend
+that same scoped grant to the friend, whether a parent or a peer; the friend
+then sees only the granted categories of mood and wellbeing data, and nothing
+after revocation or expiry. There is deliberately no privileged parental path and
 no automatic alerting: our baseline study found that an automatic crisis
 alert to family was rejected outright as pressure to perform a better mood
 than the one being felt, and the professionals we consulted advised that
