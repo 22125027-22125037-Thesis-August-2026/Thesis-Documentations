@@ -100,7 +100,7 @@ to the design objectives introduced in Chapter~\ref{Chapter1}.
 uMatter follows a microservices architecture, shown in Figure~\ref{fig:ch3-overall-architecture}:
 independently deployable Spring Boot services sit behind an edge reverse proxy (Caddy) that
 terminates HTTPS at the system boundary and is the only entry point reachable by
-the two client applications — a React Native mobile app for teenagers/patients
+the two client applications: a React Native mobile app for teenagers/patients
 and a React web dashboard for therapists. Caddy serves the static web dashboard
 at the same origin and forwards STOMP/WebSocket chat straight to the Social service
 ; all REST traffic is passed to an internal Nginx API gateway, which routes each request to
@@ -165,7 +165,7 @@ RabbitMQ~\cite{RabbitMQ} connects services that should not depend on each other 
 
 To prevent synchronous bottlenecks when one service frequently requires data owned by another, the system uses an event-driven replication strategy via RabbitMQ topic exchanges. As illustrated in Figure~\ref{fig:ch3-replication-events}, the architecture maintains four primary replication streams: the Therapist API replicates auth-owned therapist profiles; the Tracking Service maintains a local replica of data access grants (serving as the consent gate for patient data); the Auth service replicates patient-therapist assignments; and the Social service listens for active assignments to automatically provision direct chat channels between patients and their therapists.
 
-To keep the replicas correct across these asynchronous boundaries, every consumer applies the same resilience discipline. Messages are acknowledged manually, and any that repeatedly fail are routed to a dead-letter exchange and queue (DLX/DLQ) for inspection and replay rather than blocking the consumer. Duplicate deliveries are absorbed by watermark idempotency on event time — an event no newer than the last one applied is skipped — and a nightly reconciliation against the owning service repairs any drift a prolonged outage may leave, ensuring eventual consistency.
+To keep the replicas correct across these asynchronous boundaries, every consumer applies the same resilience discipline. Messages are acknowledged manually, and any that repeatedly fail are routed to a dead-letter exchange and queue (DLX/DLQ) for inspection and replay rather than blocking the consumer. Duplicate deliveries are absorbed by watermark idempotency on event time (an event no newer than the last one applied is skipped), and a nightly reconciliation against the owning service repairs any drift a prolonged outage may leave, ensuring eventual consistency.
 
 \begin{figure}[htbp]
     \centering
@@ -230,10 +230,10 @@ Enforcement lives at the Tracking service boundary: every read of a category is 
 
 Service-to-service calls follow a two-tier trust model. User-facing APIs
 (\texttt{/api/**}) always require a valid JWT, validated locally by the
-receiving service. Internal APIs (\texttt{/internal/**}) - such as the
+receiving service. Internal APIs (\texttt{/internal/**}), such as the
 Tracking endpoint the AI service calls to assemble conversation context, or
 the grant snapshot the Tracking service pulls from Auth during nightly
-reconciliation - do not carry the user's token; the caller passes the
+reconciliation, do not carry the user's token; the caller passes the
 subject's profile identifier explicitly. These endpoints are protected by
 network topology instead: they are reachable only on the private container
 network, and the gateway refuses any external request whose path begins with
@@ -255,7 +255,7 @@ with third-party workloads, perimeter trust is a proportionate design.
 
 The AI companion is implemented in the AI service, and Figure~\ref{fig:ch3-ai-grounding} traces how a reply is grounded. It retrieves the user's recent tracking summary from the Tracking service and includes it as context when calling Google's Gemini 2.5 Flash model~\cite{2024-Gemini-TechReport}. Grounding the model in the user's own data lets the companion respond to something concrete (``you logged trouble sleeping three nights this week'') rather than only offering generic supportive text. Crucially, this retrieval is gated by the same data-access grant model as every other audience (Section~\ref{sec:datasec}): the AI service holds no standing access, and the Tracking service returns context only when the user has an active grant to the reserved AI-companion principal. Consent is off by default: a user who has not opted in still receives a companion, just one that converses without personal grounding, and the grant can be revoked from the chat screen, after which the next reply is ungrounded.
 
-Two safeguards run on every message before and around this grounding, and both are deliberately narrow. First, user messages pass a lightweight keyword guardrail: a message matching a small list of Vietnamese self-harm or violence phrases short-circuits the model entirely and returns a fixed response directing the user to emergency hotlines, rather than being sent to Gemini. Second, personally identifying details (emails, phone numbers, and self-introduced names) are scrubbed from the message, history, and context before they leave the platform, and chat contents are encrypted at rest. What the AI service deliberately does not do is any form of clinical risk assessment or automated escalation to a third party - no scoring, no alerting a therapist or family member - which is left out of scope, as discussed in Chapter~\ref{Chapter5}, pending the clinical collaboration such a feature would require. The keyword guardrail is a within-conversation safety redirect, not a diagnostic claim.
+Two safeguards run on every message before and around this grounding, and both are deliberately narrow. First, user messages pass a lightweight keyword guardrail: a message matching a small list of Vietnamese self-harm or violence phrases short-circuits the model entirely and returns a fixed response directing the user to emergency hotlines, rather than being sent to Gemini. Second, personally identifying details (emails, phone numbers, and self-introduced names) are scrubbed from the message, history, and context before they leave the platform, and chat contents are encrypted at rest. What the AI service deliberately does not do is any form of clinical risk assessment or automated escalation to a third party (no scoring, no alerting a therapist or family member), which is left out of scope, as discussed in Chapter~\ref{Chapter5}, pending the clinical collaboration such a feature would require. The keyword guardrail is a within-conversation safety redirect, not a diagnostic claim.
 
 \section{Professional Workflows}
 
@@ -279,32 +279,32 @@ no automatic alerting: our baseline study found that an automatic crisis
 alert to family was rejected outright as pressure to perform a better mood
 than the one being felt, and the professionals we consulted advised that
 family connection be explicit and user-controlled. A parent therefore knows
-exactly what their child has chosen to show them, which is the point.
+exactly what their child has chosen to show them, which is the intended outcome.
 
-\section{Self-Care Feature Design}
+\section{Self-Care Features}
 \label{sec:selfcare}
 
-\textbf{Focus Mode.} Check-in prompts are scheduled entirely on the device:
+\paragraph{Focus Mode.} Check-in prompts are scheduled entirely on the device:
 enabling Focus Mode pre-schedules a batch of local notifications at roughly
 90-minute intervals (about three days' worth), and the queue is topped up
 whenever the application is opened. The Quiet Hours window (22:00--07:00 by
 default, user-configurable) is applied at scheduling time and stored only on
 the device.
 
-\textbf{Streaks and the mood calendar.} Streaks are computed server-side by
+\paragraph{Streaks and the mood calendar.} Streaks are computed server-side by
 the Tracking service as entries arrive, per tracking category, and the mood
 calendar is a read view over the same store. Cross-category trend summaries
 shown on the home screen are assembled by the Dashboard service, which reads
 Tracking through an internal aggregation API rather than owning any data of
 its own.
 
-\textbf{Treasure Box.} Stored positive memories are Tracking-service records
+\paragraph{Treasure Box.} Stored positive memories are Tracking-service records
 whose photo attachments live in MinIO, and they are surfaced along the
 emotion-routing path of Section~\ref{sec:requirements} (FR5): a user logging
 sadness is offered their saved memories, a user logging anger a breathing
 exercise.
 
-\textbf{Emergency path.} The emergency-support area is a dedicated screen
+\paragraph{Emergency path.} The emergency-support area is a dedicated screen
 reachable from anywhere in the application in one tap. It is intentionally
 static client-side content: support and hotline resources that render
 without any network call, so the screen stays available even if the backend
@@ -319,4 +319,4 @@ is unreachable.
     \label{fig:ch3-deployment-topology}
 \end{figure}
 
-All services are packaged as Docker containers~\cite{Docker} and orchestrated with Docker Compose, grouped into stacks by repository, as shown in Figure~\ref{fig:ch3-deployment-topology}. The full system - Spring Boot services, PostgreSQL instances, RabbitMQ, Redis, MinIO, and supporting tools such as pgAdmin - runs on a single cloud virtual machine, fronted by a reverse proxy that terminates HTTPS. The concrete deployment used for evaluation, including the migration between cloud providers, is described in Chapter~\ref{Chapter4}.
+All services are packaged as Docker containers~\cite{Docker} and orchestrated with Docker Compose, grouped into stacks by repository, as shown in Figure~\ref{fig:ch3-deployment-topology}. The full system (Spring Boot services, PostgreSQL instances, RabbitMQ, Redis, MinIO, and supporting tools such as pgAdmin) runs on a single cloud virtual machine, fronted by a reverse proxy that terminates HTTPS. The concrete deployment used for evaluation, including the migration between cloud providers, is described in Chapter~\ref{Chapter4}.
