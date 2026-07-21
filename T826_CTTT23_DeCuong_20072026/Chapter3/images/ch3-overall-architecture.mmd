@@ -1,0 +1,72 @@
+%%{init: {"theme": "neutral"}}%%
+flowchart TB
+    mobile["React Native mobile app<br/><i>teens / patients</i>"]
+    web["React web dashboard<br/><i>therapists — static, same origin</i>"]
+
+    subgraph edge["HTTPS edge"]
+        caddy["Caddy reverse proxy :443<br/>TLS termination (Let's Encrypt)"]
+        nginx["Nginx API gateway :8080<br/>path-prefix routing · central CORS · /internal/ → 403"]
+    end
+
+    subgraph services["Spring Boot services (7)"]
+        auth["Auth :8081"]
+        ai["AI :8087"]
+        tracking["Tracking :8084"]
+        dashboard["Dashboard (BFF) :8083<br/><i>stateless</i>"]
+        therapist["Therapist :8085"]
+        social["Social :8086"]
+        notification["Notification :8082"]
+    end
+
+    subgraph dbs["PostgreSQL — database per service (6)"]
+        authdb[("auth_db")]
+        aidb[("ai_db")]
+        trackingdb[("tracking_db")]
+        bookingdb[("booking_db")]
+        socialdb[("social_db")]
+        notifdb[("notification_db")]
+    end
+
+    subgraph infra["Shared infrastructure"]
+        rabbit["RabbitMQ<br/>topic exchanges + DLQs"]
+        redis["Redis<br/>cache · idempotency keys"]
+        minio["MinIO (S3)<br/>media objects"]
+    end
+
+    subgraph ext["External providers"]
+        gemini["Google Gemini 2.5 Flash"]
+        fcm["Firebase Cloud Messaging"]
+        smtp["SMTP email"]
+        jitsi["Jitsi Meet — public meet.jit.si<br/>embedded in-app (WebView / new tab); no SDK"]
+    end
+
+    mobile -->|"HTTPS REST · WSS"| caddy
+    web -->|"HTTPS (same origin)"| caddy
+    caddy -->|"/api/* · /mhsa-media/* · /health"| nginx
+    caddy -->|"/ws — STOMP chat"| social
+
+    nginx --> auth & ai & tracking & dashboard & therapist & social & notification
+
+    dashboard -. "internal REST" .-> auth
+    dashboard -. "internal REST" .-> tracking
+    dashboard -. "internal REST" .-> ai
+    ai -. "internal REST: tracking context" .-> tracking
+
+    auth --- authdb
+    ai --- aidb
+    tracking --- trackingdb
+    therapist --- bookingdb
+    social --- socialdb
+    notification --- notifdb
+
+    services -. "publish / consume events" .-> rabbit
+    tracking -.-> minio
+
+    ai -.-> gemini
+    notification -.-> fcm
+    notification -.-> smtp
+
+    %% Video is NOT server-mediated: the clients open meet.jit.si directly.
+    %% The Therapist service only authorises the join over REST (via the gateway).
+    mobile -. "video — direct to meet.jit.si" .-> jitsi
+    web -. "video — direct to meet.jit.si" .-> jitsi

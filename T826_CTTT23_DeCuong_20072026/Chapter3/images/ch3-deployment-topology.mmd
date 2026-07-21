@@ -1,0 +1,38 @@
+%%{init: {"theme": "neutral"}}%%
+flowchart TB
+    NET["Internet"]
+    DNS["umatter-apcs.duckdns.org<br/>(DuckDNS — VM republishes its IP every 5 min)"]
+
+    subgraph VM["Azure VM — Standard_B2as_v2 · 2 vCPU / 8 GiB + 8 GB swap · Ubuntu 24.04"]
+        CADDY["Caddy (host process) :80 / :443<br/>TLS via Let's Encrypt · HTTP → HTTPS redirect"]
+        WEBUI["Therapist web UI<br/>static SPA build in /var/www/umatter-web"]
+
+        subgraph DOCKER["Docker Engine — 4 Compose stacks · 20 containers · shared network: umatter-shared"]
+            subgraph S4["Stack — uMatter-Backend (core)"]
+                NGINX["nginx :8080 — API gateway"]
+                CORE["auth :8081 · ai :8087 · tracking :8084 · dashboard :8083"]
+                COREINFRA["PostgreSQL ×3 · Redis · RabbitMQ · MinIO · pgAdmin"]
+            end
+            subgraph S2["Stack — therapist-api"]
+                TAPI["therapist-api :8085 · PostgreSQL"]
+            end
+            subgraph S3["Stack — thesis_social"]
+                SAPI["social-api :8086 · PostgreSQL · RabbitMQ (STOMP)"]
+            end
+            subgraph S1["Stack — notification_api"]
+                NAPI["notification-service :8082 · PostgreSQL · Redis"]
+            end
+        end
+    end
+
+    NOTE["Every container: restart unless-stopped + mem_limit<br/>(JVM heap sized via MaxRAMPercentage) —<br/>the stack survives the VM's nightly auto-shutdown unattended"]
+
+    NET --> DNS
+    DNS --> CADDY
+    CADDY -->|"/ — SPA root"| WEBUI
+    CADDY -->|"/ws — WSS chat"| SAPI
+    CADDY -->|"/api/* · /mhsa-media/* · /health"| NGINX
+    NGINX --> CORE
+    NGINX --> TAPI
+    NGINX --> SAPI
+    NGINX --> NAPI

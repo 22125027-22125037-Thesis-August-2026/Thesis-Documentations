@@ -1,0 +1,23 @@
+%%{init: {"theme": "neutral"}}%%
+flowchart LR
+    A["Auth service<br/><i>owner: profiles, consent grants</i>"]
+    T["Therapist API<br/><i>owner: patient–therapist assignments</i>"]
+
+    AX["auth.events<br/>(topic exchange)"]
+    BX["booking.exchange<br/>(topic exchange)"]
+
+    RT["Therapist API<br/>TherapistProfileReplicaService<br/>→ auth-owned columns of therapists"]
+    RG["Tracking service<br/>GrantReplicaService<br/>→ data_access_grants replica<br/><i>(the consent gate of Fig. 3.x)</i>"]
+    RA["Auth service<br/>AssignmentReplicaService<br/>→ local answer to: who is this patient's therapist?"]
+    RS["Social service<br/>TherapistRelationshipService<br/>→ creates friendship + direct chat channel<br/>(ACTIVE assignments only)"]
+
+    NOTE["All replication consumers: manual ack · single consumer ·<br/>DLX/DLQ on failure · DB-watermark idempotency (occurredAt) ·<br/>nightly reconciliation from the owner's /internal snapshot"]
+
+    A -->|"therapist.profile.updated"| AX
+    A -->|"auth.grant.created / auth.grant.revoked"| AX
+    T -->|"therapist.assignment.changed"| BX
+
+    AX --> RT
+    AX --> RG
+    BX --> RA
+    BX --> RS

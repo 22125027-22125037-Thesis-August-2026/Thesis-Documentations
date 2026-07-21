@@ -1,0 +1,43 @@
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+    autonumber
+    actor P as Patient (mobile app)
+    actor T as Therapist (web dashboard)
+    participant G as API Gateway (Caddy + Nginx)
+    participant A as Auth service
+    participant MQ as RabbitMQ (auth.events)
+    participant TR as Tracking service
+
+    rect rgb(242,242,242)
+    note over P,TR: Phase 1 — Consent: the patient grants access
+    P->>G: POST /api/v1/auth/grants { granteeProfileId }
+    G->>A: forward (JWT validated)
+    A->>A: record grant in auth_db.data_access_grants
+    A--)MQ: publish auth.grant.created
+    MQ--)TR: consume (GrantReplicaService)
+    TR->>TR: mirror grant into tracking_db (watermark idempotency)
+    end
+
+    rect rgb(242,242,242)
+    note over T,TR: Phase 2 — Access: the therapist reads tracked data
+    T->>G: GET /api/v1/tracking/context/{patientId} (Bearer JWT)
+    G->>TR: forward
+    TR->>TR: verify RS256 signature locally (no call to Auth)
+    TR->>TR: check grant in local replica (no cross-service call)
+    alt grant present
+        TR-->>T: 200 — scoped summary of tracked data
+    else no grant
+        TR-->>T: 403 — no data returned
+    end
+    end
+
+    rect rgb(242,242,242)
+    note over P,TR: Phase 3 — Revocation
+    P->>G: DELETE /api/v1/auth/grants/{granteeProfileId}
+    G->>A: forward
+    A--)MQ: publish auth.grant.revoked
+    MQ--)TR: consume — grant removed from replica
+    note over TR: subsequent therapist requests now return 403
+    end
+
+    note over A,TR: Safety net: a nightly reconciliation job re-syncs the grant replica from Auth's internal snapshot

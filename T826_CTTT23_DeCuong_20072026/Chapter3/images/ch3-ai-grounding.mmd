@@ -1,0 +1,20 @@
+%%{init: {"theme": "neutral"}}%%
+sequenceDiagram
+    autonumber
+    actor U as Teen (mobile app)
+    participant G as API Gateway
+    participant AI as AI service
+    participant TR as Tracking service
+    participant GM as Google Gemini 2.5 Flash
+    participant DB as ai_db
+
+    U->>G: POST /api/v1/ai/send { message } (Bearer JWT)
+    G->>AI: forward
+    AI->>AI: verify JWT locally → resolve profileId
+    AI->>TR: GET /internal/v1/tracking/context/{profileId}<br/>(Docker network only — blocked at the gateway)
+    TR-->>AI: recent context: moods, sleep, journal summary
+    AI->>AI: build prompt = system persona + tracking context<br/>+ conversation history + new message
+    AI->>GM: generateContent (API key)
+    GM-->>AI: grounded reply
+    AI->>DB: persist user message + reply<br/>(chat_sessions / chat_messages)
+    AI-->>U: reply that references the user's actual week

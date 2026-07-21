@@ -1,0 +1,31 @@
+%%{init: {"theme": "neutral"}}%%
+flowchart LR
+    subgraph producers["Producers — publish after local commit"]
+        TH["Therapist API"]
+    end
+
+    subgraph broker["RabbitMQ — topic exchanges"]
+        BX["booking.exchange"]
+        Q1["notification.booking.booked.q"]
+        DLQ["dead-letter queue<br/>(poison messages)"]
+    end
+
+    subgraph consumer["Notification service"]
+        IDEM["1. Redis idempotency<br/>SETNX on messageId (24 h TTL)"]
+        INBOX["2. inbox row → notification_db<br/><i>the authoritative record</i>"]
+        DISPATCH["3. dispatch to channels"]
+    end
+
+    EMAIL["SMTP email (HTML)"]
+    FCM["FCM push (per device token)"]
+    APP["in-app inbox (mobile)"]
+
+    TH -->|"appointment.booked"| BX --> Q1
+    Q1 -. "on failure — x-dead-letter-exchange" .-> DLQ
+
+    Q1 --> IDEM
+    IDEM --> INBOX --> DISPATCH
+
+    DISPATCH --> EMAIL
+    DISPATCH --> FCM
+    INBOX -.-> APP
