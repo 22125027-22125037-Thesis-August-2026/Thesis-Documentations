@@ -92,13 +92,14 @@ to the design objectives introduced in Chapter~\ref{Chapter1}.
     \label{fig:ch3-overall-architecture}
 \end{figure}
 
-uMatter follows a microservices architecture, shown in
-Figure~\ref{fig:ch3-overall-architecture}: independently deployable Spring
-Boot services sit behind a single Nginx API gateway, which is the only entry
-point reachable by the two client applications - a React Native mobile app
-for teenagers/patients and a React web dashboard for therapists. The gateway
-is responsible for routing requests to the correct backend service and for
-terminating HTTPS at the edge of the system.
+uMatter follows a microservices architecture, shown in Figure~\ref{fig:ch3-overall-architecture}: 
+independently deployable Spring Boot services sit behind an edge reverse proxy (Caddy) that
+terminates HTTPS at the system boundary and is the only entry point reachable by
+the two client applications — a React Native mobile app for teenagers/patients
+and a React web dashboard for therapists. Caddy serves the static web dashboard 
+at the same origin and forwards STOMP/WebSocket chat straight to the Social service
+; all REST traffic is passed to an internal Nginx API gateway, which routes each request to 
+the owning backend service and applies central CORS.
 
 This decomposition is not free, and for a two-person academic project the
 choice deserves justification. We accept the operational overhead of seven
@@ -143,7 +144,7 @@ The backend is organized into seven services, summarized in Table~\ref{tab:servi
 \section{Data Architecture}
 \label{sec:data}
 
-uMatter follows a database-per-service pattern: each backend service owns a private PostgreSQL database, and no service reaches directly into another service's schema. Cross-service data needs are satisfied either through a synchronous API call to the owning service or through an asynchronous event, never through shared tables. This keeps each service free to evolve its own schema without coordinating a migration across the whole system, at the cost of needing an explicit strategy (API calls or events) for any data that spans services.
+uMatter follows a database-per-service pattern: each stateful backend service owns a private PostgreSQL database, and no service reaches directly into another service's schema. Cross-service data needs are satisfied either through a synchronous API call to the owning service or through an asynchronous event, never through shared tables. This keeps each service free to evolve its own schema without coordinating a migration across the whole system, at the cost of needing an explicit strategy (API calls or events) for any data that spans services.
 
 Two supporting stores complement PostgreSQL:
 
