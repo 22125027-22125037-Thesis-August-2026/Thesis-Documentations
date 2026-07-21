@@ -92,13 +92,13 @@ to the design objectives introduced in Chapter~\ref{Chapter1}.
     \label{fig:ch3-overall-architecture}
 \end{figure}
 
-uMatter follows a microservices architecture, shown in Figure~\ref{fig:ch3-overall-architecture}: 
+uMatter follows a microservices architecture, shown in Figure~\ref{fig:ch3-overall-architecture}:
 independently deployable Spring Boot services sit behind an edge reverse proxy (Caddy) that
 terminates HTTPS at the system boundary and is the only entry point reachable by
 the two client applications — a React Native mobile app for teenagers/patients
-and a React web dashboard for therapists. Caddy serves the static web dashboard 
+and a React web dashboard for therapists. Caddy serves the static web dashboard
 at the same origin and forwards STOMP/WebSocket chat straight to the Social service
-; all REST traffic is passed to an internal Nginx API gateway, which routes each request to 
+; all REST traffic is passed to an internal Nginx API gateway, which routes each request to
 the owning backend service and applies central CORS.
 
 This decomposition is not free, and for a two-person academic project the
@@ -153,24 +153,65 @@ Two supporting stores complement PostgreSQL:
 \item \textbf{MinIO}, an S3-compatible object store, holds binary media such as profile photos and any files attached to journal entries or clinical notes, keeping large binary payloads out of the relational databases.
 \end{itemize}
 
+\section{Event-Driven Messaging}
+\label{sec:events}
+
+RabbitMQ~\cite{RabbitMQ} connects services that should not depend on each other synchronously, and it plays two roles in uMatter: event-driven replication of data that one service owns but another needs, and fan-out of domain notifications to the parties an event affects.
+
 To prevent synchronous bottlenecks when one service frequently requires data owned by another, the system utilizes an event-driven replication strategy via RabbitMQ topic exchanges. As illustrated in Figure~\ref{fig:ch3-replication-events}, the architecture maintains four primary replication streams: the Therapist API replicates auth-owned therapist profiles; the Tracking Service maintains a local replica of data access grants (serving as the consent gate for patient data); the Auth service replicates patient-therapist assignments; and the Social service listens for active assignments to automatically provision direct chat channels between patients and their therapists.
 
 To ensure data integrity and fault tolerance across these asynchronous boundaries, all replication consumers implement a strict set of resilience patterns. Consumers utilize manual acknowledgments and operate as a single consumer per queue to maintain reliable processing. Message failures are routed to a Dead Letter Exchange and Queue (DLX/DLQ) for debugging and replay. Furthermore, to safely handle duplicate message deliveries, consumers enforce database-watermark idempotency based on an \texttt{occurredAt} timestamp. Finally, to guarantee eventual consistency and recover from any prolonged messaging outages, a nightly reconciliation process synchronizes the replica tables against an internal snapshot provided by the data owner.
 
 \begin{figure}[htbp]
     \centering
-    
     \includegraphics[width=0.8\textwidth]{Chapter3/images/ch3-replication-events.png}
     \caption{The four event-driven replication streams maintained via RabbitMQ.}
     \label{fig:ch3-replication-events}
 \end{figure}
+
+Beyond replication, domain events also drive user-facing notifications. As shown in Figure~\ref{fig:ch3-notification-events}, the Therapist service publishes \texttt{appointment.booked} when a patient books a session; the Notification service consumes it and fans the confirmation out to the affected user as an in-app inbox entry, an email, and a push notification.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Chapter3/images/ch3-notification-events.png}
+    \caption{An event-flow diagram of domain event publication and consumption.}
+    \label{fig:ch3-notification-events}
+\end{figure}
+
+Table~\ref{tab:events} catalogs the domain events exchanged over the broker; each queue is paired with a dead-letter queue, so a message that repeatedly fails processing is parked for inspection rather than blocking the consumer.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Domain events exchanged over RabbitMQ}
+  \label{tab:events}
+  % The X columns will automatically expand to fill \textwidth evenly.
+  \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|l|l|>{\raggedright\arraybackslash}X|}
+    \hline
+    \textbf{Event} & \textbf{Producer} & \textbf{Consumers} & \textbf{Purpose} \\
+    \hline
+    \texttt{auth.\allowbreak grant.\allowbreak created}, \texttt{auth.\allowbreak grant.\allowbreak revoked} & Auth &
+      Tracking & Replicate consent grants so enforcement is local to the
+      data owner \\
+    \hline
+    \texttt{therapist.\allowbreak profile.\allowbreak updated} & Auth & Therapist &
+      Keep the therapist directory in sync with account profiles \\
+    \hline
+    \texttt{therapist.\allowbreak assignment.\allowbreak changed} & Therapist &
+      Social, Auth & Propagate the active patient--therapist assignment
+      (e.g.\ opening the corresponding chat) \\
+    \hline
+    \texttt{appointment.\allowbreak booked} & Therapist & Notification & Fan out booking
+      confirmations as push, email, and in-app notifications \\
+
+    \hline
+  \end{tabularx}
+\end{table}
 
 \section{Authentication, Authorization, and Data Sharing}
 \label{sec:datasec}
 
 \begin{figure}[htbp]
     \centering
-    
     \includegraphics[width=\textwidth]{Chapter3/images/ch3-permission-grant-flow.png}
     \caption{A sequence diagram of a permission-checked data access.}
     \label{fig:ch3-permission-grant-flow}
@@ -200,7 +241,6 @@ with third-party workloads, perimeter trust is a proportionate design.
 
 \begin{figure}[htbp]
     \centering
-    
     \includegraphics[width=\textwidth]{Chapter3/images/ch3-ai-grounding.png}
     \caption{A sequence diagram of AI grounding.}
     \label{fig:ch3-ai-grounding}
@@ -235,50 +275,6 @@ than the one being felt, and the professionals we consulted advised that
 family connection be explicit and user-controlled. A parent therefore knows
 exactly what their child has chosen to show them, which is the point.
 
-\section{Event-Driven Messaging}
-\label{sec:events}
-
-\begin{figure}[htbp]
-    \centering
-    
-    \includegraphics[width=\textwidth]{Chapter3/images/ch3-notification-events.png}
-    \caption{An event-flow diagram of domain event publication and consumption.}
-    \label{fig:ch3-notification-events}
-\end{figure}
-
-RabbitMQ~\cite{RabbitMQ} connects services that should not depend on each other synchronously, as illustrated in Figure~\ref{fig:ch3-notification-events}.
-
-Table~\ref{tab:events} catalogs the domain events. Each queue is paired with
-a dead-letter queue, so a message that repeatedly fails processing is parked
-for inspection rather than blocking the consumer.
-
-\begin{table}[htbp]
-  \centering
-  \caption{Domain events exchanged over RabbitMQ}
-  \label{tab:events}
-  % The X columns will automatically expand to fill \textwidth evenly.
-  \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|l|l|>{\raggedright\arraybackslash}X|}
-    \hline
-    \textbf{Event} & \textbf{Producer} & \textbf{Consumers} & \textbf{Purpose} \\
-    \hline
-    \texttt{auth.\allowbreak grant.\allowbreak created}, \texttt{auth.\allowbreak grant.\allowbreak revoked} & Auth &
-      Tracking & Replicate consent grants so enforcement is local to the
-      data owner \\
-    \hline
-    \texttt{therapist.\allowbreak profile.\allowbreak updated} & Auth & Therapist &
-      Keep the therapist directory in sync with account profiles \\
-    \hline
-    \texttt{therapist.\allowbreak assignment.\allowbreak changed} & Therapist &
-      Social, Auth & Propagate the active patient--therapist assignment
-      (e.g.\ opening the corresponding chat) \\
-    \hline
-    \texttt{appointment.\allowbreak booked} & Therapist & Notification & Fan out booking
-      confirmations as push, email, and in-app notifications \\
-    
-    \hline
-  \end{tabularx}
-\end{table}
-
 \section{Self-Care Feature Design}
 \label{sec:selfcare}
 
@@ -312,7 +308,6 @@ is unreachable.
 
 \begin{figure}[htbp]
     \centering
-    
     \includegraphics[width=\textwidth]{Chapter3/images/ch3-deployment-topology.png}
     \caption{A deployment diagram of the uMatter production topology.}
     \label{fig:ch3-deployment-topology}
