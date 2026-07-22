@@ -48,7 +48,44 @@ The system was evaluated along three dimensions: functional completeness against
 
 \subsection{Functional Completeness}
 
-All seven backend services described in Chapter~\ref{Chapter3} are implemented and deployed, and both client applications (mobile for teens, web for therapists) are functional against them, with the mobile app distributed through the Google Play Store rather than as a development-only build. The permission-based data-sharing model holds at the API level: neither a therapist nor the AI companion can see tracked data without an explicit grant, and the AI companion falls back to an ungrounded, generic conversation when no grant is present, so a user who never grants access still has a working companion.
+All seven backend services described in Chapter~\ref{Chapter3} are implemented and deployed, and both client applications (mobile for teens, web for therapists) are functional against them. Table~\ref{tab:traceability} traces each requirement from Section~\ref{sec:requirements} to its implementation status.
+
+Every requirement is met except FR8: all three notification channels (push, email, and the in-app inbox) work and fire end-to-end for appointment booking, but the other domain events intended to raise notifications are not currently wired to producers, so coverage across events is partial.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Implementation status of the requirements in Section~\ref{sec:requirements}}
+  \label{tab:traceability}
+  \begin{tabular}{|l|p{8.2cm}|l|}
+    \hline
+    \textbf{ID} & \textbf{Requirement (summary)} & \textbf{Status} \\
+    \hline
+    FR1 & Mood check-in, journal, mood calendar, and streaks & Met \\
+    \hline
+    FR2 & Sleep, nutrition, water, and breathing logs; automatic step count & Met \\
+    \hline
+    FR3 & Focus Mode check-in prompts, silent during Quiet Hours & Met \\
+    \hline
+    FR4 & AI companion grounded in tracking data only under an active grant & Met \\
+    \hline
+    FR5 & Guided breathing and meditation, Treasure Box, one-tap emergency area & Met \\
+    \hline
+    FR6 & Therapist discovery, booking, video consultation, and clinical notes & Met \\
+    \hline
+    FR7 & Friend and parent connections with real-time chat & Met \\
+    \hline
+    FR8 & Push, email, and in-app notifications from domain events & Partial \\
+    \hline
+    NFR1 & Privacy by default, grants enforced server-side & Met \\
+    \hline
+    NFR2 & Stateless JWT validation against a published JWKS key & Met \\
+    \hline
+    NFR3 & Integrity under concurrent booking & Met \\
+    \hline
+    NFR4 & Independent services on a single cloud VM & Met \\
+    \hline
+  \end{tabular}
+\end{table}
 
 \subsection{Security Posture}
 
