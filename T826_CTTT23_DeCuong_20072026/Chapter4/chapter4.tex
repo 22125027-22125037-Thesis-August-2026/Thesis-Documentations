@@ -1,27 +1,13 @@
 \chapter{Implementation and Evaluation}
 \label{Chapter4}
 
-This chapter describes how the design in Chapter~\ref{Chapter3} was implemented, the security-hardening process applied to it, the cloud deployment used to run and evaluate the system, the distribution of the mobile client, and an evaluation of the resulting platform.
+This chapter describes how the design in Chapter~\ref{Chapter3} was implemented, the cloud deployment used to run and evaluate the system, the distribution of the mobile client, the security-hardening process applied to the platform, and an evaluation of the resulting system.
 
 \section{Implementation Overview}
 
 The backend services are implemented in Java 17. The Auth, Tracking, AI, and Dashboard services are built on Spring Boot~4.0 and organized as a Maven multi-module project so that shared code (for example, JWT validation logic) is written once and reused. The Therapist service is a separate Gradle project on Spring Boot~4.0, while the Social and Notification services are Gradle projects on the slightly earlier Spring Boot~3.3, reflecting when they were added to the system. Persistence throughout uses Spring Data JPA over PostgreSQL. The Social service's real-time chat is implemented with STOMP over WebSocket, and the Notification service integrates Firebase Cloud Messaging for push delivery in addition to email and an in-app inbox.
 
 On the client side, the mobile application for teenagers is built with React Native~0.83 and React~19 in TypeScript, and the therapist-facing web dashboard is built with React~18, TypeScript, Vite, and Tailwind CSS.
-
-\section{Security Hardening}
-
-Because uMatter handles sensitive personal data and coordinates real appointments, the implemented services were subjected to structured security audits organized around the OWASP Top~10 risk categories~\cite{2021-OWASP-Top10}, covering three areas in particular:
-
-\begin{itemize}
-\item \textbf{Business logic correctness} - verifying that workflows such as matching, booking, and permission granting behave correctly under normal and adversarial input, not only in the happy path.
-\item \textbf{Access control} - specifically JPQL injection patterns in hand-written queries, insecure direct object references (for example, a user supplying another user's record identifier to an endpoint that does not re-check ownership), and mass assignment (a client supplying extra fields in a request body that get bound to fields the client should not be able to set, such as a role or a permission flag).
-\item \textbf{Data integrity} - ensuring that concurrent requests cannot leave the system in an inconsistent state.
-\end{itemize}
-
-The most significant data-integrity issue identified was a race condition in appointment booking: two concurrent requests to book the same therapist for the same time slot could both pass an application-level availability check before either write was committed, resulting in a double booking. This was closed not by adding an application-level lock, which would not be safe against multiple service instances, but by making the slot claim a single atomic database operation: booking a slot is a conditional update that sets the slot's booked flag to true only where it is still false, so exactly one of two concurrent requests updates a row and the other is rejected. A unique constraint on the appointment's slot reference backs this up as a second line of defence. Because the guarantee lives in the database itself, it holds regardless of how many instances of the Therapist service are running concurrently.
-
-The most significant access-control finding was in the AI service's own path to a user's tracking data, rather than in a caller manipulating another user's identifier. The Tracking service's internal context endpoint, used by the AI service to retrieve grounding data, was reachable by any authenticated internal caller with no check that the requesting caller had actually been granted access to that data - it relied entirely on network-level trust between services, which is precisely the class of implicit trust the permission-based data-sharing model in Section~\ref{sec:datasec} is designed to remove. The fix followed the same pattern used elsewhere in the codebase: the AI companion was added as a reserved grantee in the existing access-grant table (Section~\ref{sec:datasec}), and the Tracking service's context endpoint now checks for an active grant before returning anything, exactly as it already did for a therapist. No new authorization mechanism was introduced; an existing one was extended to a caller that had previously been exempted from it.
 
 \section{Deployment}
 
@@ -36,11 +22,25 @@ uMatter was originally deployed on Oracle Cloud Infrastructure (OCI). During the
 
 The resulting deployment runs on a single, right-sized Azure VM hosting roughly twenty-one containers: multiple Spring Boot JVM services, several PostgreSQL instances (one per owning service), RabbitMQ, Redis, MinIO, and pgAdmin. HTTPS routing is provided by Caddy as a reverse proxy, with DuckDNS supplying a stable hostname for the VM's dynamic address, and the VM's public IP configured as static so the hostname does not need to be re-pointed after the nightly auto-shutdown cycle. This mirrors the general topology described in Chapter~\ref{Chapter3}, with Caddy taking the reverse-proxy/HTTPS-termination role and Nginx continuing to serve as the internal API gateway between the proxy and the backend services.
 
-\section{Mobile Application Distribution}
+\subsection{Mobile Application Distribution}
 
-Beyond the backend deployment described above, the mobile client for teenagers/patients was packaged and published to the Google Play Store, rather than distributed as a manually installed APK. Publishing through Google Play means end users install and update the app the same way as any other Android application, without needing to trust or manually side-load a build shared outside the store.
+The mobile client for teenagers/patients was packaged and published to the Google Play Store, rather than distributed as a manually installed APK. Publishing through Google Play means end users install and update the app the same way as any other Android application, without needing to trust or manually side-load a build shared outside the store.
 
-This distribution choice also shaped a concrete backend requirement: the published app communicates with the API gateway exclusively over HTTPS on port 443. Modern Android builds block plaintext HTTP traffic by default, so terminating TLS correctly at the reverse proxy, using a Let's Encrypt certificate obtained over port 80, was not an optional hardening step but a hard prerequisite for the Play Store build to reach the backend at all. This is part of why ports 80 and 443 were treated as non-negotiable during the NSG configuration step of the Azure migration above, alongside the additional ports used by the API gateway and other directly exposed services during development.
+This distribution choice also shaped a concrete backend requirement: the published app communicates with the API gateway exclusively over HTTPS on port 443, because modern Android builds block plaintext HTTP traffic by default. Terminating TLS correctly at the reverse proxy, using a Let's Encrypt certificate obtained over port 80, was therefore not an optional hardening step but a hard prerequisite for the Play Store build to reach the backend at all. This is why ports 80 and 443 were treated as non-negotiable when the NSG rules were configured.
+
+\section{Security Hardening}
+
+Because uMatter handles sensitive personal data and coordinates real appointments, the implemented services were subjected to structured security audits organized around the OWASP Top~10 risk categories~\cite{2021-OWASP-Top10}, covering three areas in particular:
+
+\begin{itemize}
+\item \textbf{Business logic correctness} - verifying that workflows such as matching, booking, and permission granting behave correctly under normal and adversarial input, not only in the happy path.
+\item \textbf{Access control} - specifically JPQL injection patterns in hand-written queries, insecure direct object references (for example, a user supplying another user's record identifier to an endpoint that does not re-check ownership), and mass assignment (a client supplying extra fields in a request body that get bound to fields the client should not be able to set, such as a role or a permission flag).
+\item \textbf{Data integrity} - ensuring that concurrent requests cannot leave the system in an inconsistent state.
+\end{itemize}
+
+The most significant data-integrity issue identified was a race condition in appointment booking: two concurrent requests to book the same therapist for the same time slot could both pass an application-level availability check before either write was committed, resulting in a double booking. This was closed not by adding an application-level lock, which would not be safe against multiple service instances, but by making the slot claim a single atomic database operation: booking a slot is a conditional update that sets the slot's booked flag to true only where it is still false, so exactly one of two concurrent requests updates a row and the other is rejected. A unique constraint on the appointment's slot reference backs this up as a second line of defence. Because the guarantee lives in the database itself, it holds regardless of how many instances of the Therapist service are running concurrently.
+
+The most significant access-control finding was in the AI service's own path to a user's tracking data, rather than in a caller manipulating another user's identifier. The Tracking service's internal context endpoint, used by the AI service to retrieve grounding data, was reachable by any authenticated internal caller with no check that the requesting caller had actually been granted access to that data - it relied entirely on network-level trust between services, which is precisely the class of implicit trust the permission-based data-sharing model in Section~\ref{sec:datasec} is designed to remove. The fix followed the same pattern used elsewhere in the codebase: the AI companion was added as a reserved grantee in the existing access-grant table (Section~\ref{sec:datasec}), and the Tracking service's context endpoint now checks for an active grant before returning anything, exactly as it already did for a therapist. No new authorization mechanism was introduced; an existing one was extended to a caller that had previously been exempted from it.
 
 \section{Evaluation}
 
