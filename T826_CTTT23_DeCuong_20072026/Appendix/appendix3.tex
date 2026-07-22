@@ -1,0 +1,39 @@
+\chapter{Requirement Traceability}
+\label{Appendix3}
+
+This appendix traces each functional and non-functional requirement from Section~\ref{sec:requirements} to its implementation status. The result is summarized in the Functional Completeness evaluation of Chapter~\ref{Chapter4}.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Implementation status of the requirements in Section~\ref{sec:requirements}}
+  \label{tab:traceability}
+  \begin{tabular}{|l|p{8.2cm}|l|}
+    \hline
+    \textbf{ID} & \textbf{Requirement (summary)} & \textbf{Status} \\
+    \hline
+    FR1 & Mood check-in, journal, mood calendar, and streaks & Met \\
+    \hline
+    FR2 & Sleep, nutrition, water, and breathing logs; automatic step count & Met \\
+    \hline
+    FR3 & Focus Mode check-in prompts, silent during Quiet Hours & Met \\
+    \hline
+    FR4 & AI companion grounded in tracking data only under an active grant & Met \\
+    \hline
+    FR5 & Guided breathing and meditation, Treasure Box, one-tap emergency area & Met \\
+    \hline
+    FR6 & Therapist discovery, booking, video consultation, and clinical notes & Met \\
+    \hline
+    FR7 & Friend and parent connections with real-time chat & Met \\
+    \hline
+    FR8 & Push, email, and in-app notifications from domain events & Partial \\
+    \hline
+    NFR1 & Privacy by default, grants enforced server-side & Met \\
+    \hline
+    NFR2 & Stateless JWT validation against a published JWKS key & Met \\
+    \hline
+    NFR3 & Integrity under concurrent booking & Met \\
+    \hline
+    NFR4 & Independent services on a single cloud VM & Met \\
+    \hline
+  \end{tabular}
+\end{table}
