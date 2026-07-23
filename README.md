@@ -24,6 +24,7 @@ This documentation is written for **three audiences**. Each has a recommended re
 | 🎀 **Anyone who just wants to see what the app does** (demo / pitch) | [08-Product-Showcase/Mobile-App-Showcase](08-Product-Showcase/Mobile-App-Showcase.md) | [08-Product-Showcase/Therapist-Web-Showcase](08-Product-Showcase/Therapist-Web-Showcase.md) |
 | 👩‍💻 **A new developer** joining the team | [06-Development/01-Developer-Onboarding](06-Development/01-Developer-Onboarding.md) | [05-Deployment/03-Local-Development-Setup](05-Deployment/03-Local-Development-Setup.md) → [02-Services](02-Services/README.md) → [04-API-Reference](04-API-Reference/README.md) |
 | 🤖 **You, vibe-coding a new feature with Claude** | [06-Development/02-Coding-with-Claude](06-Development/02-Coding-with-Claude.md) | the specific [service doc](02-Services/README.md) + [01-Architecture](01-Architecture/01-System-Architecture.md) |
+| 🧪 **Testing the product** (QA run, demo rehearsal, pre-defence check) | [09-Testing](09-Testing/README.md) | [09-Testing/01-Test-Environment](09-Testing/01-Test-Environment-Builds-and-Data.md) → [E2E-Mobile](09-Testing/E2E-Mobile/README.md) |
 
 ---
 
@@ -77,9 +78,15 @@ Thesis Documentations/
 ├── 07-Academic/ ........................ "Why these choices? What's next?"
 │   └── 01-Thesis-Context-and-Future-Work.md
 │
-└── 08-Product-Showcase/ ............... "What can the app do?" (advertisement / demo tour)
-    ├── Mobile-App-Showcase.md ......... feature showcase for teens/patients (the mobile app)
-    └── Therapist-Web-Showcase.md ...... feature showcase for therapists (the web console)
+├── 08-Product-Showcase/ ............... "What can the app do?" (advertisement / demo tour)
+│   ├── Mobile-App-Showcase.md ......... feature showcase for teens/patients (the mobile app)
+│   └── Therapist-Web-Showcase.md ...... feature showcase for therapists (the web console)
+│
+└── 09-Testing/ ......................... "Does it actually work?" (test plans + results)
+    ├── 00-Test-Strategy-and-Conventions.md  Levels, ID scheme, severity, entry/exit criteria
+    ├── 01-Test-Environment-Builds-and-Data.md  Devices, builds, accounts, reset recipes
+    ├── 02-Requirements-Traceability-Matrix.md  Showcase feature ↔ test plan coverage map
+    └── E2E-Mobile/ ..................... Phase 1 — 15 end-to-end mobile test plans (M01…M15)
 ```
 
 ---

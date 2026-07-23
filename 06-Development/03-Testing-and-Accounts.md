@@ -2,6 +2,12 @@
 
 > How to test uMatter: the seeded development accounts, manual test flows, and what automated tests
 > exist. For running the stack, see [05-Deployment/03-Local-Development-Setup](../05-Deployment/03-Local-Development-Setup.md).
+>
+> 📋 **This page is the developer's quick reference — how to poke the system.** The *deliberate*,
+> written-down test suite lives in **[09-Testing](../09-Testing/README.md)**: 15 detailed end-to-end
+> mobile test plans with numbered cases, backend verification steps and run logs. Start there for a
+> QA run, a demo rehearsal, or a pre-defence check. The §3 table below is the short version of what
+> [09-Testing/E2E-Mobile](../09-Testing/E2E-Mobile/README.md) covers case by case.
 
 ---
 
