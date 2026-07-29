@@ -141,255 +141,46 @@ system, update the matching doc here. The most important invariants to keep accu
 4. **The deployment facts** — [05-Deployment/01-Deployment-Overview](05-Deployment/01-Deployment-Overview.md)
    must name the VM the system actually runs on. It has moved twice.
 
-*Last assembled: 2026-06-16. Deployment docs rewritten 2026-07-11 for the Oracle → Azure migration.*
+---
 
-> **Last verified against all six code repositories: 2026-07-30.** See the fourth- through
-> seventh-pass notes at the end of this section for what changed since the checkpoint of
-> 2026-07-20 19:24 ICT.
+*Last assembled 2026-06-16. Deployment docs rewritten 2026-07-11 for the Oracle → Azure migration.*
 
-*Verified against source code 2026-07-20 (first pass): V6 users→profiles merge, HTTPS/same-origin web
-UI, grant model details (scope/expiry, enforcement caveats, the AI-service grant bypass), and the real
-event topology (two dormant notification flows) folded in.*
+> **Last verified against all six code repositories and the live Azure VM: 2026-07-30.**
 
-*Second verification pass, 2026-07-20 — corrections made:*
-- **JWKS was documented but not implemented — so it was implemented.** Ten files claimed Auth
-  publishes a JWKS endpoint and that Dashboard fetches from it. None of it was true:
-  `JwtUtils.getJwksResponse()` was called by no controller, `MHSA_APP_JWKSENDPOINT` was bound by no
-  `@Value`, and Dashboard verified with a static `JWT_PUBLIC_KEY` like everyone else. Rather than
-  document the gap, the gap was closed — see the code-change note below.
-- **Two service docs contradicted the event map.** Tracking-Service claimed it "publishes
-  streak-milestone events that become notifications" and Social-API claimed it "produces
-  `message.missed`". Neither is true — both now match [04-Event-Driven-Messaging](01-Architecture/04-Event-Driven-Messaging.md),
-  and the affected manual test flow in [06-Development/03](06-Development/03-Testing-and-Accounts.md) is fixed.
-  The dormant consumers behind those claims have since been **deleted** (below).
-- **`appointment.booked` sends email *and* push**, not email alone; and it fires **at booking time**,
-  not when the therapist confirms (the showcase said otherwise).
-- **API reference gaps:** added `GET /internal/grants`, `GET /internal/therapist-profiles`,
-  `GET /api/v1/notes`, `GET /api/v1/friends`; removed the phantom JWKS row.
-- **Container names:** therapist-api's compose sets no `container_name`, so its containers are
-  `therapist-api-api-1` / `therapist-api-postgres-1` (the port map claimed otherwise; the runbooks
-  were already right). `therapist-api` is a *network alias*, not a container name.
-- Also fixed: tracking migration count (8 → 9), "three replication streams" (there are four),
-  Social's real routing keys (`social.message_read`, not `social.message.read`), the mobile app's
-  transport (HTTPS/WSS in **all** builds, no raw IP anywhere in `src/`), and a note that
-  `therapist-web-ui/.env` holds five dead vars with wrong ports.
+### Verification log
 
-*Code changed to match the docs, 2026-07-20* — two findings were fixed in source rather than written
-down as gaps:
+A sweep re-reads every commit since the previous date across all local *and* remote refs, greps the
+docs for the affected identifiers, and folds each finding into the page that owns it. This log records
+only *that* a sweep happened — deliberately not what each one found, because anything still true is
+written down where it belongs and a running changelog of superseded claims is just a second place to
+go stale.
 
-- **JWKS now works end to end.** Auth serves `GET /internal/v1/.well-known/jwks.json`
-  (`JwksController`); Dashboard resolves verification keys from it by `kid` (`JwksKeyProvider` in
-  `shared-jwt`), fetching lazily so Auth is not a boot dependency, caching by kid, and refetching at
-  most once a minute when an unknown kid appears. Dashboard is now handed **no signing material at
-  all** — it previously received the RSA *private* key, which it never used and had no business
-  holding.
-  - **A latent bug was fixed on the way.** `getJwksResponse()` encoded the modulus with
-    `BigInteger.toByteArray()`, whose two's-complement sign byte makes a 2048-bit modulus serialise
-    as 257 bytes instead of 256. Measured across 20 generated keys: **20/20 were affected**. Nimbus
-    tolerates it, jose4j and python-jose reject it. Nothing had ever called the method, so nothing
-    had ever caught it.
-  - **Rotation no longer implies re-login.** Setting `mhsa.app.jwtPreviousPublicKey` +
-    `…PreviousSigningKid` publishes both keys during an overlap, so tokens already issued keep
-    validating until they expire.
+| Date (ICT) | Covered | Notable outcome |
+|---|---|---|
+| 2026-07-20 | passes 1–3 | JWKS implemented rather than documented away (below); dormant `streak.milestone` / `message.missed` consumers deleted |
+| 2026-07-29 13:11 | 5 commits | `COMPLETED` split into `PATIENT_COMPLETE` / `PROFESSIONAL_COMPLETE` / `OVERALL_COMPLETE`; `NO_SHOW` found never to exist in the backend enum |
+| 2026-07-29 22:34 | 8 mobile commits + laptop↔VM reconciliation | All five deployed repos level with the laptop, `.env` files compared by SHA-256; `therapist-web-ui/.env` was the one case where the **VM** was right and the laptop stale |
+| 2026-07-29 23:22 | 1 commit + a product decision | Health Connect reverted (`health.*` is restricted and would classify uMatter as a health app); video settled as **Jitsi, and only Jitsi** |
+| 2026-07-30 | no new commits | Cross-document audit: seven stale claims, six older than the three preceding sweeps — public ingress, the CORS allow-list, the runbook's repoint checklist, the academic chapter's TLS limitations, and therapist-api's test state |
 
-*Third pass, 2026-07-20 — the remaining five verifiers were migrated, so JWKS is now system-wide:*
-- **All six non-Auth services resolve keys from the key set.** Only Auth holds signing material, and
-  rotating the pair is now a change at Auth alone. Three client implementations were required,
-  because the services do not share a JWT stack: `JwksKeyProvider` (`shared-jwt`) for Tracking and
-  AI; `NimbusJwtDecoder.withJwkSetUri` for Notification and Social, both of which already used
-  Nimbus; and a new `JwksVerificationKeyLocator` on jjwt's `Locator` SPI for Therapist, which is a
-  standalone repo with no `shared-jwt` dependency and parses with jjwt.
-- **Tracking and AI were also handed the RSA *private* key and never used it.** Same defect as
-  Dashboard, and — as there — removing it from compose was not enough: each `entrypoint.sh`
-  re-derives it from `JWT_PRIVATE_KEY`, which arrives via `env_file: .env`. Fixed in the entrypoints
-  and **verified by reading `/proc/1/cmdline` in the running containers**, not by trusting the diff.
-- **A pinned `kid` would have broken rotation in two services.** Therapist and Social both enforced
-  an expected-`kid`; under JWKS that rejects the first token signed with a new key. Both now skip the
-  pin when a JWKS URI is set.
-- **Proven end-to-end on prod with a real signed token** (a throwaway account, since the seeded
-  accounts cannot log in): Dashboard, Tracking, AI, Social and Notification all returned **200**;
-  Therapist returned **403** on a therapist-only endpoint called by a teen — authenticated, then
-  authorization-denied — while a garbage signature returned **401** everywhere. The therapist log
-  shows the lazy JWKS fetch firing on that first token, eight minutes after startup.
-- **Also found while testing** (documented in [06-Development/03](06-Development/03-Testing-and-Accounts.md),
-  not caused by this work): therapist-api's **test suite does not compile** on `main`, so none of its
-  advertised coverage runs; social has 2 deterministic failures tied to the commented-out
-  `message_sent` event plus a ~50% Mockito flake; and the monorepo's `./mvnw` is broken (missing
-  `.mvn/wrapper/maven-wrapper.properties`).
-- **The dormant notification consumers were deleted.** `streak.milestone` and `message.missed` had
-  queues, DLQs, DTOs and consumers in `notification-api`, and no producer anywhere. Live queues with
-  no publisher are what caused a service doc and a manual test script to describe features that did
-  not exist, so the consumer side was removed rather than left as bait.
+**The one finding that changed code, not docs.** Ten files claimed Auth published a JWKS endpoint and
+that Dashboard consumed it. None of it was true, so the gap was closed instead of written down: Auth
+now serves `GET /internal/v1/.well-known/jwks.json` and **all six** other services resolve verification
+keys by `kid`, making a key rotation a change at Auth alone — see
+[05-Security §Key distribution](01-Architecture/05-Security-and-Authentication.md). A latent bug was
+fixed on the way: `BigInteger.toByteArray()`'s two's-complement sign byte made every 2048-bit modulus
+serialise as 257 bytes instead of 256 (20/20 generated keys affected; Nimbus tolerates it, jose4j and
+python-jose reject it). Nothing had ever called the method, so nothing had ever caught it.
 
-*Fourth pass — **sync checkpoint 2026-07-29 13:11 ICT**, covering every commit in all six code repos
-since the previous checkpoint of **2026-07-20 19:24 ICT**.* Five commits landed in that window, all of
-them one change and its client follow-ups; `uMatter-Backend_Auth_Tracking_AI`, `thesis_social` and
-`notification-api` had **zero** commits. Method: `git fetch --all` on each repo, then
-`git log --all --since=…` across every local *and* remote ref (all six are level with `origin/main`,
-no unmerged branches, no post-checkpoint stashes).
+> ⚠️ **Commit-following alone does not keep this accurate.** The 2026-07-30 sweep found seven stale
+> claims with **zero** new commits in any repo. The reliable signal is **two documents disagreeing** —
+> and the majority is not automatically right: three pages described the gateway's CORS allow-list, and
+> the two that agreed were the wrong ones. Re-read
+> [07-Academic §4–5](07-Academic/01-Thesis-Context-and-Future-Work.md) on every sweep; it is the page
+> nobody thinks to edit when code lands, and it spent weeks telling the council the system had no TLS
+> after HTTPS had shipped. Check prose under a table you just corrected, too — one fix landed in a
+> header row and missed the sentence three lines below it.
 
-- **`COMPLETED` was split three ways** (therapist-api `1c1a3cc`, Flyway `V11`): `PATIENT_COMPLETE`
-  (reviewed, no note), `PROFESSIONAL_COMPLETE` (note, no review), `OVERALL_COMPLETE` (both). A review
-  and a clinical note used to *each* flip an appointment straight to `COMPLETED`, so the status could
-  not tell you whether the note existed. The therapist also gained a **24-hour grace window** to file
-  a note after a patient-first review. Folded into [Therapist-API §3](02-Services/Therapist-API.md)
-  (new status-machine section), the [glossary](00-Overview/03-Glossary.md), the
-  [system overview](00-Overview/02-System-Overview.md) flow, both
-  [front-end docs](03-Frontend/Mobile-App.md), the [manual test flows](06-Development/03-Testing-and-Accounts.md),
-  and [E2E-M08](09-Testing/E2E-Mobile/E2E-M08-Therapist-Matching-and-Booking.md) / [M09](09-Testing/E2E-Mobile/E2E-M09-Consultation-Session-and-Aftercare.md).
-- **`NO_SHOW` never existed in the backend enum** (therapist-web-ui `cdf99f0`). Spring fails the
-  *whole* multi-value `@RequestParam` conversion on one bad token, so the web UI's "Past" tab was
-  `500`ing and silently hiding **every** completed appointment. Documented as a standing warning in
-  the service doc, the glossary and M08 — this is a trap any client can fall into again.
-- **E2E-M09 was documenting behaviour the system does not have.** M09-06 claimed ending a call moves
-  the appointment out of `IN_PROGRESS` and treated a stuck `IN_PROGRESS` as a defect. Nothing does
-  that — there is no scheduled job, and status advances *only* on a finalized note or a review. A
-  tester following the old script would have filed a false bug. Inverted: `IN_PROGRESS` after hangup
-  is now the expected result. M09-10 likewise claimed reviews require a completed session; the backend
-  only rejects `UPCOMING`/`CANCELLED` plus a 1-minute-after-start rule.
-- **Video-provider drift — raised here, resolved in the sixth pass below.** The docs described Zoom in
-  a dozen places while E2E-M09 described Jitsi.
-- **`thesis-mobile` carries uncommitted work** (chat screens, `versionCode 4`, and an `axiosClient.ts`
-  change pointing dev builds at HTTPS instead of `http://85.211.241.204:8080`). Not documented on
-  purpose — it has not landed, and the last item will contradict
-  [Mobile-App.md](03-Frontend/Mobile-App.md) once it does.
-
-*Fifth pass — **sync checkpoint 2026-07-29 22:34 ICT**, covering 8 commits pushed to `thesis-mobile`
-that evening (22:07–22:22).* The other five repos were unchanged since the fourth pass. Most of this
-is the work flagged as "uncommitted" above, now landed — plus one genuinely new feature.
-
-- **Health Connect step back-fill** (`a903a11`) — added, then **reverted the same day** (`d132a76`,
-  sixth pass below). Net effect on the docs is the *absence* of the feature, recorded deliberately.
-- **Dev builds now use HTTPS** (`43c3d76`), so `axiosClient.ts`'s `__DEV__` ternary has two identical
-  branches. [05-Security §6](01-Architecture/05-Security-and-Authentication.md) already described it
-  this way and is now correct; [Mobile-App.md](03-Frontend/Mobile-App.md) still claimed dev builds hit
-  `http://<PUBLIC_IP>:8080` and was fixed. The two docs had contradicted each other.
-- **Release identity was stale in two ways** (`7c46759`, `3eeccb4`): the Play section said
-  `com.thesisapp` / versionCode 1, when the real id is `com.apcsthesisteam.umatter` and the next upload
-  must be **versionCode 4 / 1.1** (Play reserves codes permanently). Debug builds now install
-  side-by-side via an `.dev` suffix — added to [09-Testing/01](09-Testing/01-Test-Environment-Builds-and-Data.md)
-  because opening the wrong icon is now a real way to invalidate a test run.
-- **Mood-only diary entries used to fail to save** (`2005bd0`) — the UI treats title/tags/note as
-  optional but the API rejects blank content. Noted in [E2E-M02](09-Testing/E2E-Mobile/E2E-M02-Emotional-Journal.md),
-  since the fallback makes `content` read as the emotion label rather than being empty.
-- *No doc impact:* `a4a49b0` (chat composer above the Android 16 IME — no doc states keyboard
-  behaviour or `targetSdk`) and `b53a361` (lockfile marker refresh, no version changes).
-
-*Laptop ↔ VM reconciliation, 2026-07-29 22:34 ICT.* All five deployed repos on the Azure VM sit at the
-**same commit as the laptop**, on `main` only, level with `origin`, with clean working trees. Ignored
-runtime config was compared by SHA-256, not by eye: the four `.env` files and
-`notification-api/secrets/firebase-credentials.json` matched exactly.
-
-- **One mismatch: `therapist-web-ui/.env`.** The VM held the correct comment-only file; the **laptop**
-  held the five dead wrong-port vars. The laptop was brought into line with the VM — the one case where
-  the "laptop is source of truth" rule pointed the wrong way, since copying laptop→VM would have
-  regressed production. [Therapist-Web-UI.md §5](03-Frontend/Therapist-Web-UI.md) is updated to match,
-  and the stale `VITE_API_URL` claim in its header table is gone.
-- A superseded `thesis_social/.env.bak-20260720082240` was removed from the VM (its only delta was a
-  *missing* HTTPS CORS origin — strictly older than the live file).
-- Still differing **by design**: `.env.local-bak-20260520` backups exist on the laptop only, and
-  `therapist-web-ui/tsconfig.app.tsbuildinfo` is modified on the VM because the UI is built there — a
-  tracked build artifact that arguably should not be tracked at all.
-- The web UI is served by Caddy from `/var/www/umatter-web`; the systemd unit is **`umatter-web.service`**
-  (not `therapist-web-ui.service`).
-
-*Sixth pass — **sync checkpoint 2026-07-29 23:22 ICT**.* One further `thesis-mobile` commit, plus a
-product decision from the author that resolved the long-standing video-provider drift.
-
-- **Health Connect was reverted** (`d132a76`), hours after it landed. Reading step history requires
-  `android.permission.health.READ_STEPS`; the whole `android.permission.health.*` family is
-  **restricted**, so Play blocks the release until the Health apps declaration is approved — which
-  would classify uMatter as a **health app**. `READ_STEPS` was the entire mechanism, so there was no
-  reduced form to keep. The native module, JS wrapper, dependency, manifest entries and
-  `syncRecentDays()` are all gone; the step tracker is the hardware counter alone
-  (`ACTIVITY_RECOGNITION`, a normal runtime permission). The fifth-pass docs were rolled back to match.
-  - **Kept from that work:** today's count is pushed on **app open and every foreground**, not only
-    when the steps screen is opened — so a day spent walking without visiting that screen still
-    reaches the backend. [E2E-M05](09-Testing/E2E-Mobile/E2E-M05-Automatic-Step-Counting.md) had
-    *already* claimed foreground sync before it was true; it is true now.
-  - **The trade-off is now documented as intended behaviour, not a bug:** a day the user never opens
-    the app cannot be recovered, because the sensor exposes only a cumulative since-boot value. A
-    tester seeing a zero for such a day should not raise a defect.
-  - [04-DNS-HTTPS-and-Play-Release](05-Deployment/04-DNS-HTTPS-and-Play-Release.md) §8 keeps a standing
-    warning so nobody reintroduces a `health.*` permission without knowing it re-opens the blocker.
-- **Video provider settled: it is Jitsi, and only Jitsi.** Confirmed by the author and in the code —
-  every deployed `.env` (laptop and VM, byte-identical) sets `VIDEO_PROVIDER=jitsi`,
-  `JitsiVideoServiceImpl` returns a random room UUID with a `null` password and `null` SDK JWT, and
-  both clients open `https://meet.jit.si/<room>`. Zoom was corrected across **eleven** documents —
-  the executive summary, system overview, glossary, architecture and data-architecture tables, the
-  service docs, both front-end docs, the API reference and the academic trade-off table.
-  - `ZoomVideoServiceImpl` still exists and is the *code* default (`matchIfMissing = true`), so the
-    remaining mentions deliberately describe it as **implemented but not enabled** — it is the
-    evidence that the pluggable-provider abstraction holds, not a description of the running system.
-  - Two related staleness bugs fell out of the same sweep: [Mobile-App.md](03-Frontend/Mobile-App.md)
-    still advertised a raw-IP dev backend in its header table, and
-    [Therapist-Web-UI.md](03-Frontend/Therapist-Web-UI.md) still called the UI "a Vite dev server on
-    `:5173`" in its header while its own §6 correctly described the retired service and the static
-    Caddy build.
-  - `therapist_zoom_credentials` and the `404`-if-no-credential rule are now flagged as **dead weight
-    under Jitsi** rather than presented as live booking behaviour.
-
-*Seventh pass — **sync checkpoint 2026-07-30**.* **No new commits in any of the six repos** since the
-sixth pass, so nothing here is code drift. This pass instead audited the docs *against each other* and
-against the live VM, on the theory that a claim two documents disagree about is a claim at least one of
-them has stopped checking. Six of the seven findings are **older than the sixth pass** — they were
-never caused by recent commits, which is exactly why six passes of commit-following missed them.
-
-- **The port map's public-ingress list was wrong, and it is the declared source of truth for ports.**
-  [02-Service-Catalog-and-Ports](01-Architecture/02-Service-Catalog-and-Ports.md) still listed
-  `22, 8080, 8086, 5173` "verified 2026-06-07" — omitting **`80` and `443`**, without which Let's
-  Encrypt cannot answer the HTTP-01 challenge and the Play Store app cannot reach the API at all, and
-  still opening the retired `5173`. The Azure runbook's NSG rule (`80 443 8080 8086`) had been right
-  since the migration; the two pages had simply disagreed for six weeks. **Re-verified on the VM**
-  (`ss -ltnp`): Caddy on `80`/`443`, docker-proxy on `8080`/`8086`, **nothing on `5173`**, and
-  `umatter-web.service` reports `disabled`. The page now also lists Caddy as the host process it is.
-- **The sixth pass fixed a header row and missed the paragraph under it.**
-  [Therapist-Web-UI.md §1](03-Frontend/Therapist-Web-UI.md) still opened with "It deliberately runs as
-  a lightweight Vite dev server rather than a container" — contradicting the header table the sixth
-  pass had just corrected, three lines above it.
-- **The CORS allow-list was documented as permitting the VM's public IP. It does not.**
-  [01-System-Architecture §4](01-Architecture/01-System-Architecture.md) and
-  [05-Security §gateway](01-Architecture/05-Security-and-Authentication.md) both claimed "VM IP any
-  port, localhost/127.0.0.1 any port". `nginx.conf`'s `map $http_origin $cors_origin` contains
-  **`localhost` and `127.0.0.1` only**, with a comment saying the omission is deliberate — precisely
-  because a stale Oracle IP once survived the Azure migration there and silently broke CORS. A third
-  page ([04-DNS-HTTPS §5](05-Deployment/04-DNS-HTTPS-and-Play-Release.md)) already described it
-  correctly, so the docs contradicted themselves two-to-one **in favour of the wrong answer**.
-- **The Azure runbook's "repoint the clients" checklist contradicted its own STEP 0.** It told a
-  rebuilding operator that debug mobile builds "hard-code the raw IP" and that the web UI is
-  **"Required … talks to the raw IP"** with a `sed` to run — while line 79 of the same file already
-  said the UI is same-origin behind the domain. Both claims are false and both are actively harmful
-  during a rebuild: verified `axiosClient.ts:9` resolves the domain in *both* `__DEV__` branches and
-  `ChatScreen.tsx` uses `wss://umatter-apcs.duckdns.org/ws`. Rewritten as three rows — release,
-  debug, deployed UI — all **"None"**, with the laptop-only `.env.development` split out.
-- **The academic chapter still told the council the system has no TLS.**
-  [07-Academic §4](07-Academic/01-Thesis-Context-and-Future-Work.md) listed "**HTTP, not HTTPS** —
-  no TLS yet (top hardening item)" and "**IP hard-coding** — no domain/DNS" as *current* known
-  limitations, and §5 listed adding TLS as *future* work — all of it shipped in July 2026 and
-  described as done in five other documents. This was the most consequential staleness found: it
-  understates the delivered system to its examiners.
-- **therapist-api's test suite compiles and runs; three docs said it does not.** The
-  `BookingServiceTest` / `Limit` compile break was repaired by **`1c1a3cc`** — the *same* commit the
-  fourth pass documented for the `COMPLETED` status split, without noticing it also fixed the tests.
-  Re-measured 2026-07-30: `compileTestJava` **exits 0**, and `./gradlew test` gives **43 tests,
-  38 pass / 5 fail**. All 5 failures are the two `@SpringBootTest` classes hitting a **pre-existing
-  H2 array-column DDL flake** (`varchar[]` columns generate DDL `MODE=PostgreSQL` rejects; `create-drop`
-  logs a WARN and continues, so an unrelated table later reports `Table "THERAPISTS" not found`) —
-  confirmed in the JUnit XML. So the coverage was never "aspirational": it was mostly green, and
-  "does not compile" had been sending readers to fix the wrong thing. Corrected in
-  [06-Development/03 §5](06-Development/03-Testing-and-Accounts.md) and [09-Testing](09-Testing/README.md).
-  **thesis_social re-measured and unchanged** — 45 tests, the same 2 deterministic `ChatServiceTest`
-  failures, 2 skipped; the `FriendServiceTest` flake did not fire this run, consistent with ~50%.
-- **`thesis-mobile` again carries uncommitted work:** `android/app/build.gradle` is bumped to
-  **`versionCode 5`** (from the committed `4`). Deliberately **not** folded into
-  [04-DNS-HTTPS §8](05-Deployment/04-DNS-HTTPS-and-Play-Release.md), which still documents
-  `versionCode 4 / 1.1` as committed — same rule the fourth pass applied. It will need updating the
-  moment that lands, and Play reserves codes permanently, so the number is not free to change back.
-
-*Confirmed accurate and left unchanged:* the **per-service** port map and the 20-container count
-(re-counted on the VM 2026-07-30: 20 running + `minio-init` exited 0 — its *public-ingress* section
-was wrong and is fixed in the seventh pass below), all four compose
-stacks, Spring Boot/Java/React/RN versions, Gemini 2.5 Flash, the gateway route table, the grant model
-(per-category `AccessScopes` enforcement + the AI companion as a seeded grantee), the inert
-token-blacklist analysis, the dormant-retry analysis in the Notification consumers, the watermark
-replication design, and the nightly reconciliation schedule.*
+**Not documented on purpose:** `thesis-mobile` carries an uncommitted `versionCode 5`. Unlanded work
+stays out of the docs, so [04-DNS-HTTPS §8](05-Deployment/04-DNS-HTTPS-and-Play-Release.md) still
+records `versionCode 4 / 1.1` — update it the moment that lands, as Play reserves codes permanently.
