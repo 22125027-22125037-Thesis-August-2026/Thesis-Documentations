@@ -230,11 +230,10 @@ Two safeguards run on every message before and around this grounding, and both a
 
 The Therapist service is the only feature area with a second client. Therapists
 work from a React web dashboard, served at the same origin as the API, covering
-appointments, availability, a patient roster and profile, clinical notes, the
+appointments, availability, a patient tracking data and profile, clinical notes, the
 video session, and their side of the chat in Section~\ref{sec:social}. 
 
-A short intake form (reasons for seeking support, prior counseling,
-communication style, an optional LGBTQ+ priority) drives matching, which ranks
+A short intake form drives matching, which ranks
 therapists by the overlap between the user's reasons and the challenges each
 therapist treats, relaxing the style filter and then the exclusion of past
 therapists rather than returning nothing. Confirming a match writes an
@@ -245,9 +244,7 @@ thirty days of bookable slots.
 
 Booking then follows an explicit state machine. A request stays
 \texttt{REQUESTED} until the therapist accepts it and expires two hours before
-the start time: a sweep every minute auto-rejects stragglers, and the accept
-and reject handlers re-check that deadline so a click landing inside that
-minute is still refused. Confirmed appointments freeze an hour before the
+the start time: a sweep every minute auto-rejects stragglers. Confirmed appointments freeze an hour before the
 start, and cancellation releases the slot for re-booking. Opening the room
 moves the appointment to \texttt{IN\_PROGRESS}. Two requests for one slot must
 not both succeed; Chapter~\ref{Chapter4} describes the resolution.
@@ -257,18 +254,11 @@ as a draft and immutable once finalized. Because the review and the note arrive
 in either order, completion is two-sided: whichever lands first marks the
 appointment \texttt{PATIENT\_COMPLETE} or \texttt{PROFESSIONAL\_COMPLETE} and
 the second \texttt{OVERALL\_COMPLETE}, with 24 hours to file a note once a
-review has arrived. Ownership checks tie every endpoint to the assigned
-therapist, but an assignment buys only this professional record; tracked data
-still needs a grant (Section~\ref{sec:datasec}), and the dashboard keeps the
-patient's diary, food, sleep, and mood tabs locked until one exists.
+review has arrived. Tracked data
+still needs a grant (Section~\ref{sec:datasec}).
 
-Consultations run on Jitsi Meet~\cite{Jitsi}. The dashboard opens the room
-beside the patient's stated reason, their permitted diary entries, and a
-scratchpad that feeds the note; the mobile app embeds the same room in a
-\texttt{WebView} whose injected scripts pin the interface to Vietnamese, hide
-the Google moderator sign-in, replace the lobby with a Vietnamese waiting
-screen, and confine navigation to the room so hanging up returns the user to
-the app. Both clients name the room after the appointment's UUID, unguessable
+Consultations run on Jitsi Meet~\cite{Jitsi}. The mobile app embeds the room in a
+\texttt{WebView} whose injected scripts pin the interface. Both clients name the room after the appointment's UUID, unguessable
 and impossible to enumerate, but a capability URL rather than admission
 control: anyone holding the link can join. A self-hosted Jitsi with JWT-gated
 entry is left to Chapter~\ref{Chapter5}.
