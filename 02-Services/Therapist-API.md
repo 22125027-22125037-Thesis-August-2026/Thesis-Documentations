@@ -57,13 +57,53 @@ generated slots), **appointment booking** with **Zoom video** consultations, **c
 - Returns `VideoJoinResponseDto(meetingNumber, password, sdkJwt)` — meeting details from the snapshot,
   `sdkJwt` minted at join time by the active video provider.
 
+### Appointment status machine
+`AppointmentStatus` = `REQUESTED`, `UPCOMING`, `IN_PROGRESS`, `PATIENT_COMPLETE`,
+`PROFESSIONAL_COMPLETE`, `OVERALL_COMPLETE`, `CANCELLED`.
+
+Since **V11** (July 2026) the old single `COMPLETED` is split three ways, because a patient review and
+a therapist clinical note used to *each* independently flip the appointment straight to `COMPLETED` —
+so "completed" could not tell you whether the note existed:
+
+| Status | Meaning |
+|---|---|
+| `PATIENT_COMPLETE` | Patient submitted a review; therapist has **not** finalized a note yet |
+| `PROFESSIONAL_COMPLETE` | Therapist finalized a note; patient has **not** reviewed yet |
+| `OVERALL_COMPLETE` | Both sides are done |
+
+`AppointmentStatus.isCompletionVariant()` is the canonical "is this finished?" test — never compare
+against one literal. Both clients mirror it (`isCompletedAppointmentStatus()` /
+`COMPLETED_APPOINTMENT_STATUSES` in `therapistApi.ts` and `lib/api/therapist.ts`).
+`V11__split_completed_appointment_status.sql` backfills existing rows by looking up whether a review
+and/or a `FINALIZED` clinical note exists (`appointments.status` is a plain `VARCHAR(50)` with no
+CHECK constraint, so no DDL change was needed).
+
+Everything that used to key off `COMPLETED` now spans all three: `…/appointments/history` returns the
+three variants + `CANCELLED`, the dashboard's `completedThisMonth` counts all three, and cancellation
+is refused once **any** completion variant is reached.
+
+> ⚠️ **`NO_SHOW` has never been a value in this enum.** Spring fails the *whole* multi-value
+> `@RequestParam` conversion if any one token doesn't match, so a client sending
+> `status=OVERALL_COMPLETE,NO_SHOW` gets a `500` and loses **every** result, not just the no-shows.
+> The therapist web UI's "Past" tab hit exactly this and silently showed no completed appointments.
+
 ### Clinical notes (`POST /api/v1/notes`)
-- Therapist/admin-only; only the **assigned** therapist; appointment must be `IN_PROGRESS`; one note
-  per appointment. On success → appointment `IN_PROGRESS → COMPLETED`.
+- Therapist/admin-only; only the **assigned** therapist; one note per appointment.
+- A `FINALIZED` note requires the appointment to be `IN_PROGRESS`, **or** `PATIENT_COMPLETE` within a
+  **24-hour grace window** after the patient's review (`ClinicalNoteService.NOTE_GRACE_WINDOW_AFTER_PATIENT_COMPLETE`).
+  Past that window → `ClinicalNoteNotAllowedException`; any other status →
+  `InvalidAppointmentStateException`.
+- On finalize: `IN_PROGRESS → PROFESSIONAL_COMPLETE`, or `PATIENT_COMPLETE → OVERALL_COMPLETE`.
+- `DRAFT` notes bypass the state guard and do **not** move the appointment; they are rejected only
+  once the therapist is locked out (`PROFESSIONAL_COMPLETE`, `OVERALL_COMPLETE`, `CANCELLED`).
 
 ### Reviews (`POST /api/v1/reviews`)
-- Patient-only; own appointment; appointment must be `COMPLETED`; one review per appointment.
+- Patient-only; own appointment; one review per appointment; at least **1 minute** after
+  `start_datetime`; rejected for `UPCOMING` or `CANCELLED`.
+- On success: `IN_PROGRESS → PATIENT_COMPLETE`, or `PROFESSIONAL_COMPLETE → OVERALL_COMPLETE`.
   Recomputes `therapists.rating_avg` (avg of all reviews, 2 dp).
+- `GET …/appointments/unreviewed` lists **`PROFESSIONAL_COMPLETE`** appointments — that status *is*
+  "note finalized, not yet reviewed"; the other two variants already carry a review.
 
 ### Matching
 - `POST /api/v1/matching/preferences` upserts `profiles_preferences`, computes matches, and

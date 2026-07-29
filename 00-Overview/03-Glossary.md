@@ -6,7 +6,8 @@
 | Term | Meaning |
 |---|---|
 | **AMQP** | Advanced Message Queuing Protocol — the protocol RabbitMQ speaks (port 5672). |
-| **Appointment** **[domain]** | A booked therapy session between a patient and a therapist, tied to one availability slot. Status flows `UPCOMING → IN_PROGRESS → COMPLETED` (or `CANCELLED`). |
+| **Appointment** **[domain]** | A booked therapy session between a patient and a therapist, tied to one availability slot. Status flows `UPCOMING → IN_PROGRESS →` one of the three completion states (or `CANCELLED`). |
+| **Completion state** **[domain]** | Since July 2026 a finished appointment has three possible statuses instead of one `COMPLETED`: `PATIENT_COMPLETE` (patient reviewed only), `PROFESSIONAL_COMPLETE` (therapist finalized a clinical note only), `OVERALL_COMPLETE` (both). |
 | **Assignment** **[domain]** | The active pairing of a patient (`profile_id`) with a therapist, created by the matching flow. One patient has at most one `ACTIVE` assignment. |
 | **BFF** | Backend-for-Frontend — a service (here, **Dashboard**) that aggregates several backend services into one client-friendly response. |
 | **Bounded Context** | A DDD term: an independent domain with its own model and database. Each uMatter microservice is a bounded context. |
@@ -50,7 +51,9 @@
 - `THERAPIST` → `ROLE_THERAPIST`
 - `ADMIN` → `ROLE_ADMIN`
 
-**Appointment status:** `UPCOMING` → `IN_PROGRESS` → `COMPLETED`; also `CANCELLED`.
+**Appointment status:** `REQUESTED`, `UPCOMING` → `IN_PROGRESS` → `PATIENT_COMPLETE` / `PROFESSIONAL_COMPLETE` / `OVERALL_COMPLETE`; also `CANCELLED`.
+There is **no single `COMPLETED` value** (split in July 2026) and **no `NO_SHOW` value** — a client that
+sends either one fails the backend's enum conversion.
 
 **Assignment status:** `ACTIVE`, `INACTIVE`, `CHANGED_BY_REQUEST`.
 

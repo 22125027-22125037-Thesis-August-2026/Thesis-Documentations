@@ -92,6 +92,13 @@ thesis-mobile/
 - **Chat:** opens a STOMP-over-WebSocket connection to the Social service for live messaging.
 - **Video:** on `GET /api/v1/therapist/.../bookings/{id}/join` it receives the Zoom meeting number,
   password, and SDK JWT, then joins the call.
+- **Appointment statuses:** the backend has **no single `COMPLETED`** value — it splits into
+  `PATIENT_COMPLETE` / `PROFESSIONAL_COMPLETE` / `OVERALL_COMPLETE` (see
+  [Therapist-API §3](../02-Services/Therapist-API.md)). `src/api/therapistApi.ts` exposes
+  `isCompletedAppointmentStatus()` / `COMPLETED_APPOINTMENT_STATUSES`; the history screen's
+  "Đã hoàn thành" tab and the waiting room's join/completed checks go through those rather than
+  comparing a literal. Unlike the therapist web UI, the patient-facing badge maps all three to the
+  same "completed" chip — the split is a therapist-workflow concern, not a patient-facing one.
 - **Media:** uploads (avatar/diary/treasure) go through the gateway; downloads use presigned
   `/mhsa-media/` URLs — now served over **HTTPS** (`S3_PUBLIC_ENDPOINT = https://umatter-apcs.duckdns.org`).
 

@@ -73,8 +73,11 @@ At session time: GET /api/v1/bookings/{id}/join → returns Zoom meeting number 
 ```
 Therapist Web UI → Gateway → Therapist API: join the video call (Zoom SDK on the client)
 After the call → POST /api/v1/notes (diagnosis + recommendations)
-   • Appointment transitions IN_PROGRESS → COMPLETED
-Later, the patient → POST /api/v1/reviews → therapist's average rating is recalculated
+   • Appointment transitions IN_PROGRESS → PROFESSIONAL_COMPLETE
+Later, the patient → POST /api/v1/reviews → PROFESSIONAL_COMPLETE → OVERALL_COMPLETE
+   • the therapist's average rating is recalculated
+   (If the patient reviews first the order flips: IN_PROGRESS → PATIENT_COMPLETE → OVERALL_COMPLETE,
+    and the therapist has 24h after the review to still file the note.)
 ```
 
 ---

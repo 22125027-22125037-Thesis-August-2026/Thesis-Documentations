@@ -82,7 +82,7 @@ curl -s http://localhost:8080/api/v1/dashboard/summary -H "Authorization: Bearer
 |---|---|
 | **Self-care loop** | login → log mood/sleep/diary → view streaks → AI chat (Auth, Tracking, AI) |
 | **Matching + booking** | submit matching intake → get matches → auto-assign → list slots → book → receive confirmation email/inbox (Therapist, Notification) |
-| **Video session** | join within the 10-min window → `IN_PROGRESS` → therapist writes note → `COMPLETED` → patient leaves a review → therapist rating updates (Therapist) |
+| **Video session** | join within the 10-min window → `IN_PROGRESS` → therapist writes note → `PROFESSIONAL_COMPLETE` → patient leaves a review → `OVERALL_COMPLETE` + therapist rating updates (Therapist). Reviewing first flips the order (`PATIENT_COMPLETE`, then the therapist has 24h to still file the note) |
 | **Consent + therapist view** | patient grants access → therapist reads patient tracking context; revoke → access denied (Auth, Tracking) |
 | **Social chat** | friend request → accept → real-time STOMP chat, both clients online (Social). ⚠️ **Stop there** — there is no "recipient offline → push" step. Social never published `message.missed`, and the consumer that suggested otherwise was removed in July 2026. |
 | **Notifications** | register device token → **book an appointment** (the only live producer) → inbox row appears + confirmation email **and** push sent → mark read (Therapist, Notification) |

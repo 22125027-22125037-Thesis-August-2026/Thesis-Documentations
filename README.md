@@ -143,6 +143,9 @@ system, update the matching doc here. The most important invariants to keep accu
 
 *Last assembled: 2026-06-16. Deployment docs rewritten 2026-07-11 for the Oracle → Azure migration.*
 
+> **Last verified against all six code repositories: 2026-07-29 13:11 ICT.** See the fourth-pass notes
+> at the end of this section for what changed since the previous checkpoint (2026-07-20 19:24 ICT).
+
 *Verified against source code 2026-07-20 (first pass): V6 users→profiles merge, HTTPS/same-origin web
 UI, grant model details (scope/expiry, enforcement caveats, the AI-service grant bypass), and the real
 event topology (two dormant notification flows) folded in.*
@@ -216,6 +219,43 @@ down as gaps:
   queues, DLQs, DTOs and consumers in `notification-api`, and no producer anywhere. Live queues with
   no publisher are what caused a service doc and a manual test script to describe features that did
   not exist, so the consumer side was removed rather than left as bait.
+
+*Fourth pass — **sync checkpoint 2026-07-29 13:11 ICT**, covering every commit in all six code repos
+since the previous checkpoint of **2026-07-20 19:24 ICT**.* Five commits landed in that window, all of
+them one change and its client follow-ups; `uMatter-Backend_Auth_Tracking_AI`, `thesis_social` and
+`notification-api` had **zero** commits. Method: `git fetch --all` on each repo, then
+`git log --all --since=…` across every local *and* remote ref (all six are level with `origin/main`,
+no unmerged branches, no post-checkpoint stashes).
+
+- **`COMPLETED` was split three ways** (therapist-api `1c1a3cc`, Flyway `V11`): `PATIENT_COMPLETE`
+  (reviewed, no note), `PROFESSIONAL_COMPLETE` (note, no review), `OVERALL_COMPLETE` (both). A review
+  and a clinical note used to *each* flip an appointment straight to `COMPLETED`, so the status could
+  not tell you whether the note existed. The therapist also gained a **24-hour grace window** to file
+  a note after a patient-first review. Folded into [Therapist-API §3](02-Services/Therapist-API.md)
+  (new status-machine section), the [glossary](00-Overview/03-Glossary.md), the
+  [system overview](00-Overview/02-System-Overview.md) flow, both
+  [front-end docs](03-Frontend/Mobile-App.md), the [manual test flows](06-Development/03-Testing-and-Accounts.md),
+  and [E2E-M08](09-Testing/E2E-Mobile/E2E-M08-Therapist-Matching-and-Booking.md) / [M09](09-Testing/E2E-Mobile/E2E-M09-Consultation-Session-and-Aftercare.md).
+- **`NO_SHOW` never existed in the backend enum** (therapist-web-ui `cdf99f0`). Spring fails the
+  *whole* multi-value `@RequestParam` conversion on one bad token, so the web UI's "Past" tab was
+  `500`ing and silently hiding **every** completed appointment. Documented as a standing warning in
+  the service doc, the glossary and M08 — this is a trap any client can fall into again.
+- **E2E-M09 was documenting behaviour the system does not have.** M09-06 claimed ending a call moves
+  the appointment out of `IN_PROGRESS` and treated a stuck `IN_PROGRESS` as a defect. Nothing does
+  that — there is no scheduled job, and status advances *only* on a finalized note or a review. A
+  tester following the old script would have filed a false bug. Inverted: `IN_PROGRESS` after hangup
+  is now the expected result. M09-10 likewise claimed reviews require a completed session; the backend
+  only rejects `UPCOMING`/`CANCELLED` plus a 1-minute-after-start rule.
+- **Known drift, deliberately not fixed here:** the docs contradict themselves on the video provider —
+  [Therapist-API](02-Services/Therapist-API.md) and [Mobile-App](03-Frontend/Mobile-App.md) describe
+  Zoom (meeting number + SDK JWT), while [E2E-M09](09-Testing/E2E-Mobile/E2E-M09-Consultation-Session-and-Aftercare.md)
+  describes a Jitsi WebView on `meet.jit.si`. The code supports both readings: therapist-api defaults
+  `VIDEO_PROVIDER=zoom`, but `VideoConsultationScreen.tsx` is entirely Jitsi. **This predates the
+  2026-07-20 checkpoint** and needs a decision, not a doc edit.
+- **`thesis-mobile` carries uncommitted work** (chat screens, `versionCode 4`, and an `axiosClient.ts`
+  change pointing dev builds at HTTPS instead of `http://85.211.241.204:8080`). Not documented on
+  purpose — it has not landed, and the last item will contradict
+  [Mobile-App.md](03-Frontend/Mobile-App.md) once it does.
 
 *Confirmed accurate and left unchanged:* the full port map and 20-container count, all four compose
 stacks, Spring Boot/Java/React/RN versions, Gemini 2.5 Flash, the gateway route table, the grant model

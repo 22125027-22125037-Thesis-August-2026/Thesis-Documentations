@@ -37,8 +37,14 @@
 | `REQUESTED` | Booked by the patient, awaiting therapist action |
 | `UPCOMING` | Confirmed / scheduled |
 | `IN_PROGRESS` | Session under way |
-| `COMPLETED` | Session finished |
+| `PATIENT_COMPLETE` | Finished; patient reviewed, therapist's note still outstanding |
+| `PROFESSIONAL_COMPLETE` | Finished; therapist filed the note, patient hasn't reviewed |
+| `OVERALL_COMPLETE` | Finished; both the review and the note are in |
 | `CANCELLED` | Cancelled by either side |
+
+⚠️ **There is no single `COMPLETED` status** — it was split three ways in July 2026 — and **no
+`NO_SHOW`**. Expected results must name one of the three variants, and any status filter you send by
+hand must use only the values above: one bad token makes the backend `500` the whole request.
 
 ⚠️ **The `appointment.booked` event fires at booking time**, from `BookingService`, right after the
 row is saved — **not** when the therapist confirms. The therapist's `confirm`/`reject`/`cancel`
@@ -222,7 +228,7 @@ appointments appear, that is **S2** and will happen on stage.
 | 2 | Check the status badge | Matches the API's status (`REQUESTED`/`UPCOMING`) and is human-readable in Vietnamese |
 | 3 | Open the detail | Therapist name, specialisation, date/time, mode and reason all match the booking |
 | 4 | Check the displayed time | Local ICT time matching the slot's `startDatetime` — **check the timezone conversion explicitly**, a UTC/ICT slip shows as a 7-hour error |
-| 5 | Open the appointment history | Past `COMPLETED`/`CANCELLED` appointments appear separately from upcoming ones |
+| 5 | Open the appointment history | Past appointments (any completion variant, or `CANCELLED`) appear separately from upcoming ones |
 | 6 | Cold restart and re-check | Everything still correct — read from the server |
 
 **Pass criteria** — The appointment appears with correct details and a **correct local time**.

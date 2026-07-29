@@ -40,6 +40,12 @@
   window, and the server is asked `GET /api/v1/therapist/bookings/{id}/join` before entering.
 - **Text consultation** rides the Social chat channel of type `THERAPIST_CONSULT`, so it shares the
   STOMP path tested in [M10](E2E-M10-Social-Friends-and-Realtime-Chat.md).
+- **Completion is two-sided, and there is no `COMPLETED` status.** Aftercare drives the appointment
+  status, not hanging up: the therapist's finalized note and the patient's review each advance it one
+  step, in whichever order they happen — `IN_PROGRESS → PROFESSIONAL_COMPLETE`/`PATIENT_COMPLETE →
+  OVERALL_COMPLETE`. So **the order you run M09-07 and M09-08 in changes the statuses you should
+  expect**; record which one you did first. If the patient reviews first, the therapist has a
+  **24-hour grace window** from the review to still file the note — after that the backend refuses it.
 
 ---
 
@@ -160,15 +166,16 @@ months. See [01 §8](../01-Test-Environment-Builds-and-Data.md#8-diagnosing-not-
 |---|---|---|
 | 1 | End the call from the phone | The app leaves the room and navigates onward (toward feedback), not to a blank screen |
 | 2 | Confirm media is released | Camera indicator off, microphone off, no audio still playing |
-| 3 | Check the appointment status | Moves toward `COMPLETED` (recording which side drives the transition — patient leaving, therapist ending, or a server rule) |
+| 3 | Check the appointment status | Still `IN_PROGRESS` — leaving the call alone does **not** complete an appointment. It only leaves `IN_PROGRESS` when the therapist finalizes a note (→ `PROFESSIONAL_COMPLETE`) or the patient submits a review (→ `PATIENT_COMPLETE`) |
 | 4 | Repeat, ending from the **therapist** side instead | The phone is informed — it does not sit in an empty room indefinitely |
-| 5 | Repeat, killing the app mid-call | On relaunch the state is sane; the appointment is not stuck in `IN_PROGRESS` forever |
+| 5 | Repeat, killing the app mid-call | On relaunch the state is sane and the appointment is still reachable — the user can re-enter or move on to the review, not be stranded on a dead call screen |
 
-**Pass criteria** — Ending from either side releases media and moves the appointment out of
-`IN_PROGRESS`.
+**Pass criteria** — Ending from either side releases media and navigates onward cleanly.
 
-**Note** — Step 5's outcome matters for the demo: a session stuck in `IN_PROGRESS` can block a rerun
-of the whole workflow on the same account. Record the recovery path.
+**Note** — An appointment sitting in `IN_PROGRESS` after the call is **expected**, not a defect: the
+status is driven by the aftercare steps (note / review), not by hanging up. What step 5 checks is that
+the *app* recovers — it must not strand the user in a dead call screen. Record the recovery path,
+since a session the user cannot leave blocks a rerun of the workflow on the same account.
 
 ---
 
@@ -177,7 +184,7 @@ of the whole workflow on the same account. Record the recovery path.
 
 | # | Action | Expected result |
 |---|---|---|
-| 1 | On the **web UI**, have THERAPIST-T write a clinical note for the completed appointment (diagnosis + recommendations) and save | Saved confirmation on the web side |
+| 1 | On the **web UI**, have THERAPIST-T write a clinical note for the finished appointment (diagnosis + recommendations) and save | Saved confirmation on the web side; the appointment moves to `PROFESSIONAL_COMPLETE`, or `OVERALL_COMPLETE` if the patient already reviewed |
 | 2 | On the phone, open the consultation's feedback/detail screen | The note loads (`GET …/clinical-notes/appointment/{id}` equivalent) |
 | 3 | Compare content | Diagnosis and recommendations match **exactly** what the therapist wrote — no truncation, no lost line breaks, no mangled Vietnamese diacritics |
 | 4 | Check the note's timestamp | Displayed in local ICT and consistent with when it was written |
@@ -198,7 +205,7 @@ a Vietnamese-speaking examiner.
 
 | # | Action | Expected result |
 |---|---|---|
-| 1 | After a `COMPLETED` session, open the feedback screen | A star rating control and a comment field are shown, alongside the session summary |
+| 1 | After the session (`IN_PROGRESS` or `PROFESSIONAL_COMPLETE`), open the feedback screen | A star rating control and a comment field are shown, alongside the session summary |
 | 2 | Try to submit with **no** rating | Blocked with an explanation — a review without a rating is meaningless |
 | 3 | Select 5 stars and write `QA M09 — buổi tư vấn rất hữu ích.` | Both accepted |
 | 4 | Submit | Success confirmation; the screen switches to a read-only/submitted state |
@@ -206,7 +213,9 @@ a Vietnamese-speaking examiner.
 | 6 | Verify on the therapist's public profile | The review appears in `GET …/therapists/{id}/reviews` and in the app's review list |
 
 **Backend verification** — `POST /api/v1/therapist/reviews` returned success; the review is present in
-the therapist's review list with the correct rating and comment.
+the therapist's review list with the correct rating and comment. The appointment's status advanced by
+exactly one step: `IN_PROGRESS → PATIENT_COMPLETE`, or `PROFESSIONAL_COMPLETE → OVERALL_COMPLETE` if
+the therapist's note was already in.
 
 **Pass criteria** — A rating + comment is stored once per appointment and becomes visible on the
 therapist's profile.
@@ -228,19 +237,21 @@ therapist's profile.
 
 ---
 
-### `E2E-M09-10` — Reviewing is only possible for completed sessions
+### `E2E-M09-10` — Reviewing is only possible for sessions that actually happened
 **Priority** P2 · **Type** Negative · **Est.** 5 min
 
 | # | Action | Expected result |
 |---|---|---|
 | 1 | Try to review an **upcoming** appointment | Not offered / rejected |
 | 2 | Try to review a **cancelled** appointment | Not offered / rejected |
-| 3 | Check the unreviewed-appointments list | It contains only `COMPLETED` appointments without a review |
+| 2b | Try to review **within 1 minute** of the start time | Rejected — the backend requires ≥ 1 min after `start_datetime`, regardless of status |
+| 3 | Check the unreviewed-appointments list | It contains only `PROFESSIONAL_COMPLETE` appointments — i.e. the therapist filed a note and no review exists yet |
 | 4 | After reviewing, check the list again | The appointment has dropped off it |
 | 5 | Open a previously reviewed appointment | It opens in a read-only state showing the submitted review |
 
-**Pass criteria** — Only completed, unreviewed appointments can be reviewed, and the unreviewed list
-stays accurate.
+**Pass criteria** — `UPCOMING` and `CANCELLED` appointments cannot be reviewed, a session that has
+started can be (it does **not** have to be in a completion state first), and the unreviewed list stays
+accurate.
 
 ---
 

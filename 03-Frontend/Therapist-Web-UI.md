@@ -86,6 +86,15 @@ therapist-web-ui/src/
 therapist only sees patient data they've been granted, and some actions unlock only after the
 therapist's license is verified by an admin.
 
+**Appointment status badges.** The backend's three completion states (see
+[Therapist-API §3](../02-Services/Therapist-API.md)) are deliberately *not* collapsed back into one
+"Completed" chip — `StatusBadge` gives the therapist-actionable ones their own labels:
+`PATIENT_COMPLETE` → **"Needs your note"**, `PROFESSIONAL_COMPLETE` → **"Awaiting patient review"**.
+Filtering and "is this finished?" checks go through `isCompletedAppointmentStatus()` /
+`COMPLETED_APPOINTMENT_STATUSES` in `src/lib/api/therapist.ts`, never a literal comparison, and
+`AppointmentStatusServer` must mirror the backend enum **exactly** — a value the enum lacks (there is
+no `NO_SHOW`) fails the entire multi-value `@RequestParam` conversion with a `500`.
+
 ---
 
 ## 5. Configuration
