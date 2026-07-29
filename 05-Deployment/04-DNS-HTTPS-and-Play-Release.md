@@ -177,7 +177,7 @@ The teen mobile app is being published to **Google Play** for **Vietnam + South 
 
 | Item | Value |
 |---|---|
-| Package | `com.thesisapp` (versionCode 1 / versionName 1.0) |
+| Package | `com.apcsthesisteam.umatter` — **versionCode 4 / versionName 1.1** (as of 2026-07-29). `2` is live on closed testing and `3` was consumed by an upload; **Play reserves a code permanently, so every upload must increment.** Debug builds carry an `applicationIdSuffix ".dev"` so a local build installs side-by-side with the tester build instead of replacing it |
 | Signing | Play App Signing; upload key = `umatter-upload` keystore (`D:\…\umatter-upload.keystore`) |
 | Privacy policy | `https://umatter-apcs.duckdns.org/legal/privacy.html` |
 | Category / audience | Health & Fitness · target **13+** (no under‑13) |
@@ -187,3 +187,11 @@ The teen mobile app is being published to **Google Play** for **Vietnam + South 
 
 > The signed, HTTPS‑built `.aab` is at
 > `thesis-mobile/android/app/build/outputs/bundle/release/app-release.aab`.
+
+> 🔴 **Release blocker — Health Connect declaration.** Since the step back-fill feature (July 2026) the
+> app requests `android.permission.health.READ_STEPS`. The `android.permission.health.*` family is
+> **restricted**: Play rejects the release unless the **Health apps declaration form** is submitted and
+> approved *first*. Answers to give: data type **Steps**, access **read-only**, justification = the
+> hardware sensor reports only a cumulative since-boot value and cannot recover a day the app was never
+> opened, **no third-party sharing**. Budget approval time — this gates the upload, not just the review.
+> Full answers are in `thesis-mobile/PLAY_STORE_RELEASE.md` §6.

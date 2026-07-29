@@ -9,7 +9,7 @@
 
 | | |
 |---|---|
-| **Scope** | `ACTIVITY_RECOGNITION` permission, hardware sensor availability, live step updates, the daily-baseline algorithm, midnight rollover, reboot handling, backend upsert, goal/distance/calorie display, 7-day chart |
+| **Scope** | `ACTIVITY_RECOGNITION` permission, hardware sensor availability, live step updates, the daily-baseline algorithm, midnight rollover, reboot handling, backend upsert, goal/distance/calorie display, 7-day chart, **Health Connect back-fill of skipped days** (`READ_STEPS`) |
 | **Out of scope** | Other tracking screens (→ [M04](E2E-M04-Sleep-and-Nutrition-Tracking.md)), trophy credit (→ [M11](E2E-M11-Daily-Trophy-and-Streaks.md)) |
 | **Services** | Tracking (`/api/v1/tracking/steps`), Dashboard, device step-counter sensor |
 | **Screens** | `StepMainScreen`, home mini-dashboard |
@@ -27,6 +27,9 @@
 3. TEEN-A logged in.
 4. A pedometer or a second phone to walk alongside for `M05-03` cross-checking.
 5. Device timezone ICT; clock automatic (the baseline keys off the **local** calendar date).
+6. **Health Connect installed**, with some step history already in it, if the back-fill behaviour is
+   to be tested at all. Grant `READ_STEPS` when the system sheet appears — it is asked **once**, so a
+   decline cannot be undone by simply reopening the steps screen.
 
 ## Reference values baked into the build
 
@@ -35,7 +38,8 @@
 | Daily goal | **6 000** steps | Progress ring, "remaining" text, goal-reached state |
 | Distance per step | **0.0008 km** (0.8 m) | `distanceKm = steps × 0.0008`, shown to 2 dp |
 | Calories per step | **0.04 kcal** | `calories = steps × 0.04` |
-| Source tag | `DEVICE_SENSOR` | Sent on every upsert |
+| Source tag | `DEVICE_SENSOR` (today) / `HEALTH_CONNECT` (back-filled days) | Sent on every upsert; a free-text `VARCHAR(50)` server-side, so the second value needed no backend change |
+| Back-fill window | trailing **7 days** (`RECENT_SYNC_DAYS`) | `syncRecentDays()` |
 
 ## How the counting actually works — read this before interpreting results
 
@@ -54,6 +58,29 @@ screen. Two consequences worth holding in mind while testing:
   first foreground loses the pre-reboot portion (see `M05-05`).
 - There is **no background service**. "Automatically counts in the background" means *the sensor
   counts*; the app reconciles when it next runs.
+
+### Health Connect back-fill (added July 2026) — the second data source
+
+The sensor's single cumulative value cannot reconstruct **a day the user skipped entirely**: reopen
+the app two days later and the whole delta lands on the current day, leaving a zero in the week chart
+that nothing could repair. **Health Connect** is the only on-device source of historical per-day
+totals, so `syncRecentDays()` reconciles the trailing **7 days** — today from the live sensor, prior
+days from Health Connect. It runs on app open, on every foreground, and on the steps screen's mount
+and pull-to-refresh.
+
+Rules that shape what you should expect:
+
+| Rule | Consequence for testing |
+|---|---|
+| **Never regress.** Existing backend totals are fetched first; a day is written **only if the new total is higher** | A correct day cannot be overwritten by a lower or empty Health Connect reading. Seeing "no change" is often the *correct* result |
+| **Today prefers the live sensor** — `max(healthConnect, sensor)` | Today's figure never drops when Health Connect lags |
+| **The goal is sent on back-filled days too** | The backend rewrites an *omitted* goal to its own default, which would silently change the goal on past days |
+| **Degrades safely** | Every wrapper method returns `false`/`[]` when Health Connect is absent, so a device without it behaves exactly as before — this is **not** a failure |
+| **Permission is asked once** | Health Connect exposes no "don't ask again" signal, so a decline is remembered rather than re-prompting on every steps-screen mount. Only an explicit user action re-asks (`{ force: true }`) |
+
+⚠️ **A device without Health Connect installed cannot exercise any of this** — the app will look
+identical to its pre-July behaviour. Record whether the test device has it, or back-fill cases are
+Blocked rather than Passed.
 
 ---
 

@@ -29,6 +29,7 @@ attending video sessions, peer social chat, and notifications.
 | Charts | `react-native-chart-kit` (mood/sleep trends) |
 | Calendars | `react-native-calendars` (booking slots) |
 | Media | `react-native-image-picker` (diary/treasure/avatar uploads) |
+| Step counting | Two **custom Kotlin native modules**: `StepCounterModule` (hardware sensor, live count) and `HealthConnectModule` (**Health Connect**, historical per-day totals for back-fill) |
 | i18n | `i18next` + `react-i18next` (locales in `src/locales`) |
 | JWT/crypto | `react-native-pure-jwt`, `crypto-js` |
 | Storage | `@react-native-async-storage/async-storage` (token persistence) |
@@ -82,9 +83,13 @@ thesis-mobile/
 
 ## 5. How the app talks to the backend
 
-- **Base URL:** switches on `__DEV__` — **release** builds use `https://umatter-apcs.duckdns.org`
-  (HTTPS via Caddy → gateway, cleartext forbidden), **dev** builds use `http://<PUBLIC_IP>:8080`.
-  See [05-Deployment/04-DNS-HTTPS-and-Play-Release](../05-Deployment/04-DNS-HTTPS-and-Play-Release.md).
+- **Base URL:** `https://umatter-apcs.duckdns.org` in **every** build. `axiosClient.ts` still has a
+  `__DEV__` ternary but both branches are the same domain — it is vestigial. Dev builds used to point
+  at the VM's raw IP over plain HTTP (`:8080` REST, `:8086` chat WS); that was removed in July 2026 so
+  the debug app exercises the same TLS path users get, and any certificate or proxy fault surfaces
+  during development rather than after a Play upload. Chat likewise defaults to
+  `wss://umatter-apcs.duckdns.org/ws`. See
+  [05-Deployment/04-DNS-HTTPS-and-Play-Release](../05-Deployment/04-DNS-HTTPS-and-Play-Release.md).
 - **Auth:** stores the JWT in AsyncStorage; an axios interceptor attaches
   `Authorization: Bearer <token>` and handles 401 (re-login / refresh).
 - **Push:** on login it registers its FCM token via `POST /api/v1/notification/api/v1/devices`

@@ -39,6 +39,13 @@
 > then parses them back on read. So a backend payload showing `content: "Tags: học tập, gia đình\n\n…"`
 > is **correct**, not corruption. Round-tripping this is what `M02-05` tests.
 
+> **Second implementation note (July 2026):** the title, tags and quick note are all optional **in the
+> UI**, but the API rejects blank content and a blank title on update — so a **mood-only entry used to
+> fail to save**. The app now falls back to the **emotion label** as the content (matching the home
+> mood card) and omits an untouched title from the payload. A mood-only entry is therefore expected to
+> save, and its `content` will read as the emotion label rather than being empty. Worth one explicit
+> case: create an entry with **nothing but a mood** and confirm it persists.
+
 ---
 
 ## Test cases

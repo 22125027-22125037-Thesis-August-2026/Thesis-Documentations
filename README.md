@@ -143,8 +143,9 @@ system, update the matching doc here. The most important invariants to keep accu
 
 *Last assembled: 2026-06-16. Deployment docs rewritten 2026-07-11 for the Oracle → Azure migration.*
 
-> **Last verified against all six code repositories: 2026-07-29 13:11 ICT.** See the fourth-pass notes
-> at the end of this section for what changed since the previous checkpoint (2026-07-20 19:24 ICT).
+> **Last verified against all six code repositories: 2026-07-29 22:34 ICT.** See the fourth- and
+> fifth-pass notes at the end of this section for what changed since the previous checkpoint
+> (2026-07-20 19:24 ICT).
 
 *Verified against source code 2026-07-20 (first pass): V6 users→profiles merge, HTTPS/same-origin web
 UI, grant model details (scope/expiry, enforcement caveats, the AI-service grant bypass), and the real
@@ -256,6 +257,39 @@ no unmerged branches, no post-checkpoint stashes).
   change pointing dev builds at HTTPS instead of `http://85.211.241.204:8080`). Not documented on
   purpose — it has not landed, and the last item will contradict
   [Mobile-App.md](03-Frontend/Mobile-App.md) once it does.
+
+*Fifth pass — **sync checkpoint 2026-07-29 22:34 ICT**, covering 8 commits pushed to `thesis-mobile`
+that evening (22:07–22:22).* The other five repos were unchanged since the fourth pass. Most of this
+is the work flagged as "uncommitted" above, now landed — plus one genuinely new feature.
+
+- **Health Connect step back-fill** (`a903a11`) — the one feature. The hardware sensor reports a single
+  cumulative since-boot value, so **a day the user never opened the app was lost** and nothing could
+  recover it. Two Kotlin native modules now exist (`StepCounterModule` + `HealthConnectModule`), and
+  `syncRecentDays()` reconciles the trailing 7 days: today from the live sensor, prior days from
+  Health Connect. Documented in [Mobile-App.md](03-Frontend/Mobile-App.md) and, in detail, in
+  [E2E-M05](09-Testing/E2E-Mobile/E2E-M05-Automatic-Step-Counting.md) — the never-regress rule, the
+  ask-once permission, the new `HEALTH_CONNECT` source tag, and the fact that a device **without**
+  Health Connect behaves exactly as before (Blocked, not Failed).
+  - The new `source` value needed **no backend change**: `step_logs.source` is a free
+    `VARCHAR(50) NOT NULL DEFAULT 'DEVICE_SENSOR'` with no CHECK constraint. Verified, because this is
+    the same shape as the `NO_SHOW` bug and was worth ruling out rather than assuming.
+- **🔴 It also created a Play release blocker.** `android.permission.health.*` is a **restricted**
+  permission — Play rejects the upload unless the Health apps declaration form is approved first.
+  Recorded in [04-DNS-HTTPS-and-Play-Release](05-Deployment/04-DNS-HTTPS-and-Play-Release.md) §8.
+- **Dev builds now use HTTPS** (`43c3d76`), so `axiosClient.ts`'s `__DEV__` ternary has two identical
+  branches. [05-Security §6](01-Architecture/05-Security-and-Authentication.md) already described it
+  this way and is now correct; [Mobile-App.md](03-Frontend/Mobile-App.md) still claimed dev builds hit
+  `http://<PUBLIC_IP>:8080` and was fixed. The two docs had contradicted each other.
+- **Release identity was stale in two ways** (`7c46759`, `3eeccb4`): the Play section said
+  `com.thesisapp` / versionCode 1, when the real id is `com.apcsthesisteam.umatter` and the next upload
+  must be **versionCode 4 / 1.1** (Play reserves codes permanently). Debug builds now install
+  side-by-side via an `.dev` suffix — added to [09-Testing/01](09-Testing/01-Test-Environment-Builds-and-Data.md)
+  because opening the wrong icon is now a real way to invalidate a test run.
+- **Mood-only diary entries used to fail to save** (`2005bd0`) — the UI treats title/tags/note as
+  optional but the API rejects blank content. Noted in [E2E-M02](09-Testing/E2E-Mobile/E2E-M02-Emotional-Journal.md),
+  since the fallback makes `content` read as the emotion label rather than being empty.
+- *No doc impact:* `a4a49b0` (chat composer above the Android 16 IME — no doc states keyboard
+  behaviour or `targetSdk`) and `b53a361` (lockfile marker refresh, no version changes).
 
 *Confirmed accurate and left unchanged:* the full port map and 20-container count, all four compose
 stacks, Spring Boot/Java/React/RN versions, Gemini 2.5 Flash, the gateway route table, the grant model

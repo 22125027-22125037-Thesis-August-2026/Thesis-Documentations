@@ -60,6 +60,10 @@ Record these for every run — a result without a build identity is not reusable
    `null`, login still succeeds, and [M14](E2E-Mobile/E2E-M14-Notifications-End-to-End.md) will fail
    for an uninteresting reason.
 3. **Release build, not debug**, for any notification, permission or performance case.
+4. **Debug and release now install side-by-side.** Debug builds carry an `applicationIdSuffix ".dev"`
+   (`com.apcsthesisteam.umatter.dev`, distinct `app_name`, its own entry in `google-services.json`), so
+   a local build no longer replaces a closed-testing install. Check *which* icon you opened — running a
+   case against the wrong one is now possible in a way it previously was not.
 
 ---
 
