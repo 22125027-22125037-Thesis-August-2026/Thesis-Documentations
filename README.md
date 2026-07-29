@@ -143,9 +143,9 @@ system, update the matching doc here. The most important invariants to keep accu
 
 *Last assembled: 2026-06-16. Deployment docs rewritten 2026-07-11 for the Oracle → Azure migration.*
 
-> **Last verified against all six code repositories: 2026-07-29 23:22 ICT.** See the fourth-, fifth-
-> and sixth-pass notes at the end of this section for what changed since the previous checkpoint
-> (2026-07-20 19:24 ICT).
+> **Last verified against all six code repositories: 2026-07-30.** See the fourth- through
+> seventh-pass notes at the end of this section for what changed since the checkpoint of
+> 2026-07-20 19:24 ICT.
 
 *Verified against source code 2026-07-20 (first pass): V6 users→profiles merge, HTTPS/same-origin web
 UI, grant model details (scope/expiry, enforcement caveats, the AI-service grant bypass), and the real
@@ -329,7 +329,66 @@ product decision from the author that resolved the long-standing video-provider 
   - `therapist_zoom_credentials` and the `404`-if-no-credential rule are now flagged as **dead weight
     under Jitsi** rather than presented as live booking behaviour.
 
-*Confirmed accurate and left unchanged:* the full port map and 20-container count, all four compose
+*Seventh pass — **sync checkpoint 2026-07-30**.* **No new commits in any of the six repos** since the
+sixth pass, so nothing here is code drift. This pass instead audited the docs *against each other* and
+against the live VM, on the theory that a claim two documents disagree about is a claim at least one of
+them has stopped checking. Six of the seven findings are **older than the sixth pass** — they were
+never caused by recent commits, which is exactly why six passes of commit-following missed them.
+
+- **The port map's public-ingress list was wrong, and it is the declared source of truth for ports.**
+  [02-Service-Catalog-and-Ports](01-Architecture/02-Service-Catalog-and-Ports.md) still listed
+  `22, 8080, 8086, 5173` "verified 2026-06-07" — omitting **`80` and `443`**, without which Let's
+  Encrypt cannot answer the HTTP-01 challenge and the Play Store app cannot reach the API at all, and
+  still opening the retired `5173`. The Azure runbook's NSG rule (`80 443 8080 8086`) had been right
+  since the migration; the two pages had simply disagreed for six weeks. **Re-verified on the VM**
+  (`ss -ltnp`): Caddy on `80`/`443`, docker-proxy on `8080`/`8086`, **nothing on `5173`**, and
+  `umatter-web.service` reports `disabled`. The page now also lists Caddy as the host process it is.
+- **The sixth pass fixed a header row and missed the paragraph under it.**
+  [Therapist-Web-UI.md §1](03-Frontend/Therapist-Web-UI.md) still opened with "It deliberately runs as
+  a lightweight Vite dev server rather than a container" — contradicting the header table the sixth
+  pass had just corrected, three lines above it.
+- **The CORS allow-list was documented as permitting the VM's public IP. It does not.**
+  [01-System-Architecture §4](01-Architecture/01-System-Architecture.md) and
+  [05-Security §gateway](01-Architecture/05-Security-and-Authentication.md) both claimed "VM IP any
+  port, localhost/127.0.0.1 any port". `nginx.conf`'s `map $http_origin $cors_origin` contains
+  **`localhost` and `127.0.0.1` only**, with a comment saying the omission is deliberate — precisely
+  because a stale Oracle IP once survived the Azure migration there and silently broke CORS. A third
+  page ([04-DNS-HTTPS §5](05-Deployment/04-DNS-HTTPS-and-Play-Release.md)) already described it
+  correctly, so the docs contradicted themselves two-to-one **in favour of the wrong answer**.
+- **The Azure runbook's "repoint the clients" checklist contradicted its own STEP 0.** It told a
+  rebuilding operator that debug mobile builds "hard-code the raw IP" and that the web UI is
+  **"Required … talks to the raw IP"** with a `sed` to run — while line 79 of the same file already
+  said the UI is same-origin behind the domain. Both claims are false and both are actively harmful
+  during a rebuild: verified `axiosClient.ts:9` resolves the domain in *both* `__DEV__` branches and
+  `ChatScreen.tsx` uses `wss://umatter-apcs.duckdns.org/ws`. Rewritten as three rows — release,
+  debug, deployed UI — all **"None"**, with the laptop-only `.env.development` split out.
+- **The academic chapter still told the council the system has no TLS.**
+  [07-Academic §4](07-Academic/01-Thesis-Context-and-Future-Work.md) listed "**HTTP, not HTTPS** —
+  no TLS yet (top hardening item)" and "**IP hard-coding** — no domain/DNS" as *current* known
+  limitations, and §5 listed adding TLS as *future* work — all of it shipped in July 2026 and
+  described as done in five other documents. This was the most consequential staleness found: it
+  understates the delivered system to its examiners.
+- **therapist-api's test suite compiles and runs; three docs said it does not.** The
+  `BookingServiceTest` / `Limit` compile break was repaired by **`1c1a3cc`** — the *same* commit the
+  fourth pass documented for the `COMPLETED` status split, without noticing it also fixed the tests.
+  Re-measured 2026-07-30: `compileTestJava` **exits 0**, and `./gradlew test` gives **43 tests,
+  38 pass / 5 fail**. All 5 failures are the two `@SpringBootTest` classes hitting a **pre-existing
+  H2 array-column DDL flake** (`varchar[]` columns generate DDL `MODE=PostgreSQL` rejects; `create-drop`
+  logs a WARN and continues, so an unrelated table later reports `Table "THERAPISTS" not found`) —
+  confirmed in the JUnit XML. So the coverage was never "aspirational": it was mostly green, and
+  "does not compile" had been sending readers to fix the wrong thing. Corrected in
+  [06-Development/03 §5](06-Development/03-Testing-and-Accounts.md) and [09-Testing](09-Testing/README.md).
+  **thesis_social re-measured and unchanged** — 45 tests, the same 2 deterministic `ChatServiceTest`
+  failures, 2 skipped; the `FriendServiceTest` flake did not fire this run, consistent with ~50%.
+- **`thesis-mobile` again carries uncommitted work:** `android/app/build.gradle` is bumped to
+  **`versionCode 5`** (from the committed `4`). Deliberately **not** folded into
+  [04-DNS-HTTPS §8](05-Deployment/04-DNS-HTTPS-and-Play-Release.md), which still documents
+  `versionCode 4 / 1.1` as committed — same rule the fourth pass applied. It will need updating the
+  moment that lands, and Play reserves codes permanently, so the number is not free to change back.
+
+*Confirmed accurate and left unchanged:* the **per-service** port map and the 20-container count
+(re-counted on the VM 2026-07-30: 20 running + `minio-init` exited 0 — its *public-ingress* section
+was wrong and is fixed in the seventh pass below), all four compose
 stacks, Spring Boot/Java/React/RN versions, Gemini 2.5 Flash, the gateway route table, the grant model
 (per-category `AccessScopes` enforcement + the AI companion as a seeded grantee), the inert
 token-blacklist analysis, the dormant-retry analysis in the Notification consumers, the watermark

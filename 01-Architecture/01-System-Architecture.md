@@ -32,8 +32,8 @@ The guiding principles, and where each is realised:
    │                          │                            │
 ┌──┴───────────┐      ┌───────┴────────┐          ┌────────┴─────────┐
 │ Mobile app   │      │ Therapist Web  │          │ Jitsi / Firebase │
-│ React Native │      │ React + Vite   │          │ Gemini (external)│
-│ (teens)      │      │ :5173 (teens?) │          └──────────────────┘
+│ React Native │      │ static Vite    │          │ Gemini (external)│
+│ (teens)      │      │ build (Caddy)  │          └──────────────────┘
 └──────┬───────┘      └───────┬────────┘
        │  REST + WS           │ REST + WS
        └──────────┬───────────┘
@@ -107,8 +107,12 @@ Nginx routes purely by **URL path prefix**. Public routes strip/forward to the r
 | `/health` | — | returns `healthy` (gateway liveness) |
 
 CORS is applied centrally at the gateway and **stripped from upstream** responses to avoid
-duplicate headers. Allowed origins: the VM's public IP on any port, and `localhost`/`127.0.0.1`
-on any port (covers the Vite dev server on `:5173`). Body size is raised to **30 MB** for media
+duplicate headers. Allowed origins are **`localhost`/`127.0.0.1` on any port and nothing else** —
+the `map $http_origin $cors_origin` block names **no public host**, deliberately, so an IP or domain
+change never requires editing `nginx.conf` (a stale Oracle IP once survived the Azure migration there
+and silently broke CORS). Both deployed clients are unaffected: the web UI is served same-origin with
+the API, and the mobile app is not a browser. The allow-list exists for exactly one caller — a laptop
+`npm run dev` on `:5173`. Body size is raised to **30 MB** for media
 uploads. See [05-Security-and-Authentication](05-Security-and-Authentication.md) and the gateway
 section of [02-Service-Catalog-and-Ports](02-Service-Catalog-and-Ports.md).
 

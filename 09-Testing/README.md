@@ -142,9 +142,11 @@ defects wastes a run.
 4. **A released build older than 2026-07-20 has no AI consent toggle**, so its AI companion is
    permanently ungrounded (`[USER CONTEXT - NOT SHARED]`). Check the build under test before failing
    M07.
-5. **JVM test suites are partly broken** (therapist-api does not compile its tests; thesis_social has
-   2 deterministic failures and a ~50% flake). Irrelevant to Phase 1, but do not treat a red
-   `./gradlew test` as a regression you caused.
+5. **JVM test suites are partly red** (therapist-api: 38/43 pass, the 5 failures being an H2
+   array-column schema flake in its two `@SpringBootTest` classes; thesis_social: 2 deterministic
+   failures and a ~50% flake). Irrelevant to Phase 1, but do not treat a red `./gradlew test` as a
+   regression you caused — see
+   [06-Development/03 §5](../06-Development/03-Testing-and-Accounts.md).
 
 ---
 

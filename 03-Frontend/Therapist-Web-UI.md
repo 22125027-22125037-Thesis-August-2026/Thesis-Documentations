@@ -16,8 +16,8 @@ The web UI is the **therapist's workspace**. Therapists manage their availabilit
 patients (and a consenting patient's shared tracking summary), run video consultations, write clinical
 notes, message patients, and review their dashboard.
 
-It deliberately runs as a lightweight Vite dev server rather than a container — see the deployment
-note below.
+It deliberately ships as **static files served by Caddy** rather than as a container — there is no
+Node process for it on the VM at all. See the deployment note below.
 
 ---
 

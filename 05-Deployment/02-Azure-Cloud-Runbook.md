@@ -338,8 +338,9 @@ curl -s https://umatter-apcs.duckdns.org/health        # healthy
 | Client | Change needed |
 |---|---|
 | **Mobile — release build** (the Play Store `.aab`) | **None.** It resolves `https://umatter-apcs.duckdns.org`, which follows the VM. **No rebuild, no resubmission.** |
-| **Mobile — debug build** | `__DEV__` branches in `src/api/axiosClient.ts` and `src/screens/social/ChatScreen.tsx` hard-code the raw IP. Metro-only; does not affect the shipped app. |
-| **Therapist web UI** | **Required.** It talks to the **raw IP**, not the domain (Caddy only fronts `8080` and `/ws`), so the domain cannot carry it across. See the STEP 4 `sed`. |
+| **Mobile — debug build** | **None**, since `43c3d76` (2026-07-29). `axiosClient.ts` resolves `https://umatter-apcs.duckdns.org` in **both** `__DEV__` branches and `ChatScreen.tsx` uses `wss://umatter-apcs.duckdns.org/ws`; no raw IP survives in `thesis-mobile/src`. |
+| **Therapist web UI — deployed** | **None.** The static build reads its API and chat URLs from `window.location` (`src/lib/api/config.ts`), so it is same-origin with the gateway behind Caddy and follows the domain automatically. No host is baked into the bundle and no `sed` is needed. |
+| **Therapist web UI — laptop `npm run dev`** | Only if you use it. `therapist-web-ui/.env.development` still names the raw IP (`http://85.211.241.204:8080`, `ws://…:8086/ws`). It affects a developer's machine only — never the deployed UI. |
 
 ---
 

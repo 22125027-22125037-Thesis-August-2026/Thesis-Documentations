@@ -46,7 +46,7 @@ to end (this folder).
 | **React Native + React/Vite** | one stack family for two clients; large talent pool; fast iteration | RN native build complexity |
 | **Jitsi (pluggable provider)** | zero-cost, no per-therapist accounts, no SDK credentials to ship; backend stays a thin authz gatekeeper handing back a room name | depends on the public `meet.jit.si`, whose UI changes between releases — the client injects CSS/JS to skip the pre-join page, which is a real external failure mode. A Zoom implementation behind the same interface is retained but not enabled |
 | **Single cloud VM, IaaS not PaaS** (Oracle free tier → **Azure**, 2026-07-11) | a real cloud VM at low cost; owning the orchestration is the point (a managed PaaS would have hidden it) | credit expiry → the 🔴 source-of-truth rule + runbook, which the Azure migration then **proved** by rebuilding the whole system from the laptop in one afternoon |
-| **Domain + TLS edge (DuckDNS + Caddy)** rather than raw IPs | decouples clients from the host: the Oracle→Azure move needed **no mobile rebuild and no Play resubmission** | one more host service; the web UI still uses raw IPs and *did* need repointing |
+| **Domain + TLS edge (DuckDNS + Caddy)** rather than raw IPs | decouples clients from the host: the Oracle→Azure move needed **no mobile rebuild and no Play resubmission** | one more host service. The web UI *did* need repointing on every move while it ran as a raw-IP dev server; since it became a same-origin static build behind Caddy (July 2026) it follows the domain too, and nothing needs repointing |
 
 ---
 
@@ -75,11 +75,11 @@ to end (this folder).
 
 | Limitation | Status |
 |---|---|
-| **HTTP, not HTTPS** | clients hard-code `http://<IP>:8080`; no TLS yet (top hardening item) |
-| **IP hard-coding** | no domain/DNS; a VM rebuild requires repointing clients |
+| ~~**HTTP, not HTTPS**~~ | ✅ **Resolved (July 2026).** A Caddy edge terminates TLS at `https://umatter-apcs.duckdns.org` with an auto-renewed Let's Encrypt certificate; both clients speak HTTPS/WSS in **every** build, release and debug alike |
+| ~~**IP hard-coding**~~ | ✅ **Resolved (July 2026).** DuckDNS + a systemd timer republish the VM's IP every 5 min, so the domain self-heals across a rebuild. The Oracle→Azure move needed no mobile rebuild and no Play resubmission. The one raw IP left is `therapist-web-ui/.env.development`, read only by a laptop `npm run dev` |
 | **Booking policies pending** | 12h lead-time and 24h cancellation rules are specified but not yet enforced in code |
 | **Refresh-token rotation partial** | implemented in Auth; not yet wired into every downstream service |
-| **Test coverage** | meaningful integration tests exist (esp. Therapist API) but coverage is uneven |
+| **Test coverage** | uneven, and partly red: therapist-api runs 43 tests (38 green) but its two `@SpringBootTest` classes fail on an H2 array-column schema flake, and thesis_social has 2 deterministic failures plus a ~50% Mockito flake. No CI runs any of it — see [06-Development/03 §5](../06-Development/03-Testing-and-Accounts.md) |
 | **No live data backup** | recovery is a fresh-seed rebuild; real data needs manual `pg_dump`/MinIO copy |
 | **Single VM** | no horizontal scaling/HA yet (services are stateless and ready for it) |
 
@@ -88,8 +88,9 @@ to end (this folder).
 ## 5. Future work / roadmap
 
 **Near-term hardening**
-- Add a domain + **TLS/HTTPS** in front of the gateway; stop hard-coding a raw IP. (New cert/key
-  become source-of-truth secrets per the 🔴 rule.)
+- ✅ *Done (July 2026):* a domain + **TLS/HTTPS** in front of the gateway (DuckDNS + Caddy), and no
+  raw IP in any shipped client. Certificates are obtained and renewed by Caddy automatically, so
+  they are **not** hand-managed source-of-truth secrets.
 - Enforce the **booking lead-time (12h)** and **cancellation (24h)** policies in code.
 - Complete the **hybrid security** model (Redis refresh tokens everywhere; revocation).
 - Broaden **automated test** coverage and add CI.

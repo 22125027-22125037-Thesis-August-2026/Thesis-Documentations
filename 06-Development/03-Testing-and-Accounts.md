@@ -103,10 +103,10 @@ curl -X POST http://localhost:8085/api/v1/test/trigger-cleanup      # delete sta
 
 ## 5. Automated tests
 
-| Service | Coverage (representative) | State (verified 2026-07-20) |
+| Service | Coverage (representative) | State (re-measured 2026-07-29) |
 |---|---|---|
-| **Therapist API** | `ScheduleGenerationServiceIntegrationTest` (TZ conversion, idempotent generation), `ReviewServiceIntegrationTest` (creation, duplicate prevention, non-completed rejection, rating recompute), context-startup test | 🔴 **the test suite does not compile**, so none of these run — see below |
-| **Social** | 45 tests incl. `JwtTokenServiceTest` (14, green), `ChatServiceTest`, `FriendServiceTest` | 🟡 2 deterministic failures + 1 flake — see below |
+| **Therapist API** | `BookingServiceTest`, `ClinicalNoteServiceTest` (Mockito, no DB); `ScheduleGenerationServiceIntegrationTest` (TZ conversion, idempotent generation), `ReviewServiceIntegrationTest` (creation, duplicate prevention, non-completed rejection, rating recompute), context-startup test | 🟡 **compiles and runs** — 43 tests, **38 pass / 5 fail**. All 5 failures are the two `@SpringBootTest` integration classes hitting the H2 array-column flake below; every Mockito unit test is green |
+| **Social** | 45 tests incl. `JwtTokenServiceTest` (14, green), `ChatServiceTest`, `FriendServiceTest` | 🟡 2 deterministic failures + 1 flake (2 skipped) — see below |
 | **Notification** | consumer + dispatcher tests | 🟢 green |
 | Others | Spring context-load tests; mobile app has Jest config (`jest.config.js`) | — |
 
@@ -116,11 +116,24 @@ Use a system Maven (`mvn test`) until the wrapper is restored.
 
 ### Known test-suite problems (don't mistake these for your own breakage)
 
-1. **therapist-api's tests do not compile on `main`.** `BookingServiceTest` calls
-   `AppointmentRepository.findClosestUpcomingOrRecentInProgress(...)` with arguments that no longer
-   match the interface, so `compileTestJava` fails and **the whole suite is skipped**. The coverage
-   claimed above is therefore aspirational, not running. Fixing the call signature is the first step
-   to getting any therapist-api test signal back.
+1. **therapist-api's integration tests hit a pre-existing H2 schema-generation flake.**
+   *(The older "the tests do not compile" problem is **fixed**: `BookingServiceTest` called
+   `AppointmentRepository.findClosestUpcomingOrRecentInProgress(...)` without the `Limit` parameter
+   the interface takes. The appointment-status-split commit `1c1a3cc` added `any(Limit.class)` and
+   the `org.springframework.data.domain.Limit` import, so `compileTestJava` is clean and the suite
+   runs again.)*
+
+   What remains is a **schema-generation flake, not a code defect**. Entities with Postgres
+   array-typed columns (`therapists.treated_challenges`, `patient_tags.tags`,
+   `profiles_preferences.reasons` — all `varchar[]`) generate DDL that H2's `MODE=PostgreSQL`
+   rejects (`Syntax error … expected "(, ARRAY"`). Hibernate's `ddl-auto=create-drop` logs each
+   failed `CREATE TABLE` as a WARN and **keeps going**, so which *other* tables end up missing
+   depends on generation ordering that varies run to run. The symptom is misleading:
+   `Table "THERAPISTS" not found` on an INSERT that has nothing to do with the array column.
+   > **Before blaming a change for this, stash it and run the same test 2–3 times on clean `main`.**
+   > Compare failure *rates*, not single runs. The Mockito-only unit tests (`BookingServiceTest`,
+   > `ClinicalNoteServiceTest`) never touch a DB and are unaffected — trust those for fast, reliable
+   > signal on service-layer logic.
 2. **thesis_social has 2 deterministic failures**, both pre-existing and both consistent with the
    dormant-event finding: `ChatServiceTest.sendMessageShouldPersistNotifyAndPublishEvent` expects the
    `message_sent` publish that is commented out, and

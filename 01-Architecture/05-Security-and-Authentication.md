@@ -130,7 +130,7 @@ services.
 | Concern | How |
 |---|---|
 | **Single entry point** | only `:8080` is public; service ports aren't exposed via ingress |
-| **CORS** | applied centrally; reflects allowed origins (VM IP any port, localhost/127.0.0.1 any port); upstream CORS headers stripped to avoid duplicates; `OPTIONS` short-circuited with 204 |
+| **CORS** | applied centrally; reflects allowed origins — **`localhost`/`127.0.0.1` on any port only, no public host by design**; upstream CORS headers stripped to avoid duplicates; `OPTIONS` short-circuited with 204 |
 | **Internal blocking** | `location /internal/ { return 403; }` |
 | **Upload limits** | `client_max_body_size 30m` for media |
 | **Forwarded headers** | `X-Real-IP`, `X-Forwarded-For`, `X-Forwarded-Proto` set on every proxy_pass |

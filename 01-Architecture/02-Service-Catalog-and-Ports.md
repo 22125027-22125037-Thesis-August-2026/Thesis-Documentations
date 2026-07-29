@@ -7,9 +7,11 @@
 
 ## 1. The unified port map (`host : container`)
 
-Clients talk **only** to the gateway: in production via the Caddy HTTPS edge
-(`https://umatter-apcs.duckdns.org` → Nginx `:8080`), in dev builds directly as
-`http://<PUBLIC_IP>:8080`. Everything else is direct/admin. As of the 2026-05-25 alignment, every Spring service binds the **same port
+Clients talk **only** to the gateway, and always via the Caddy HTTPS edge
+(`https://umatter-apcs.duckdns.org` → Nginx `:8080`) — **including dev builds** of the mobile app
+since `43c3d76` (2026-07-29). No client addresses the VM by raw IP any more; the sole surviving
+raw-IP reference is `therapist-web-ui/.env.development`, which only a laptop `npm run dev` reads.
+Everything else is direct/admin. As of the 2026-05-25 alignment, every Spring service binds the **same port
 inside and outside** its container (host == container), so `curl :8084/…` behaves identically on the
 VM host and inside the container.
 
@@ -25,12 +27,23 @@ VM host and inside the container.
 | 7 | **AI Service** | 8087:8087 | 5437:5432 | – | – | – | – | shares Auth's Redis/RabbitMQ |
 
 - **MinIO:** `9000:9000` (S3 API) and `9001:9001` (console).
-- **Therapist Web UI:** `5173` (Vite dev server — **not** Docker; a host process).
+- **Caddy (HTTPS edge):** `80` + `443` — **not** Docker; a host process (systemd `caddy.service`).
+  It terminates TLS, proxies `/api/*`, `/ws*`, `/mhsa-media/*` to the gateway, and serves the
+  therapist web UI as static files from `/var/www/umatter-web`.
+- **Therapist Web UI:** **no port of its own.** It is a static Vite build behind Caddy at the domain
+  root. The old `umatter-web.service` Vite dev server on `:5173` is **retired and disabled**;
+  `5173` now appears only in local development (`npm run dev` on a laptop).
 
 ### Public ingress actually open on the VM
-Only **`22, 8080, 8086, 5173`** are exposed to the internet (verified 2026-06-07):
-- `22` SSH · `8080` gateway (everything the mobile app needs) · `8086` Social direct/STOMP-WS ·
-  `5173` therapist web UI. Optionally `5051` for pgAdmin (otherwise SSH-tunnel it).
+Only **`22, 80, 443, 8080, 8086`** are exposed to the internet (re-verified on the VM
+**2026-07-30** — `ss -ltnp` shows Caddy on `80`/`443`, docker-proxy on `8080`/`8086`, and
+**nothing listening on `5173`**):
+- `22` SSH · `80` Let's Encrypt HTTP-01 challenge + HTTP→HTTPS redirect · `443` the Caddy edge
+  (everything both clients need) · `8086` Social direct/STOMP-WS · `8080` the gateway, still
+  reachable directly. Optionally `5051` for pgAdmin (otherwise SSH-tunnel it).
+- **`5173` is no longer opened.** It was in the NSG rule while the web UI ran as a dev server; the
+  Azure runbook's rule (`80 443 8080 8086`) is the current one — see
+  [05-Deployment/02-Azure-Cloud-Runbook STEP 1](../05-Deployment/02-Azure-Cloud-Runbook.md).
 
 ---
 
