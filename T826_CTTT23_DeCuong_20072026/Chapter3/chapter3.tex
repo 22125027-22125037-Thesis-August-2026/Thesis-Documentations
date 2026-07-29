@@ -226,8 +226,52 @@ The AI companion is implemented in the AI service, and Figure~\ref{fig:ch3-ai-gr
 Two safeguards run on every message before and around this grounding, and both are deliberately narrow. First, user messages pass a lightweight keyword guardrail: a message matching a small list of Vietnamese self-harm or violence phrases short-circuits the model entirely and returns a fixed response directing the user to emergency hotlines, rather than being sent to Gemini. Second, personally identifying details (emails, phone numbers, and self-introduced names) are scrubbed from the message, history, and context before they leave the platform, and chat contents are encrypted at rest. What the AI service deliberately does not do is any form of clinical risk assessment or automated escalation to a third party (no scoring, no alerting a therapist or family member), since such feature would require the clinical collaboration as discussed in Chapter~\ref{Chapter5}. The keyword guardrail is a within-conversation safety redirect, not a diagnostic claim.
 
 \section{Professional Workflows}
+\label{sec:professional}
 
-The Therapist service implements the professional-facing half of the platform: it matches users to therapists based on stated preferences and availability, handles appointment booking, manages Jitsi Meet video consultation sessions~\cite{Jitsi} for the appointment, and stores clinical notes that a therapist records after a session. Appointment booking is a point of particular concern for data integrity, since two concurrent booking requests for the same therapist and time slot must not both succeed; the resolution of this issue is described in Chapter~\ref{Chapter4}.
+The Therapist service is the only feature area with a second client. Therapists
+work from a React web dashboard, served at the same origin as the API, covering
+appointments, availability, a patient roster and profile, clinical notes, the
+video session, and their side of the chat in Section~\ref{sec:social}. 
+
+A short intake form (reasons for seeking support, prior counseling,
+communication style, an optional LGBTQ+ priority) drives matching, which ranks
+therapists by the overlap between the user's reasons and the challenges each
+therapist treats, relaxing the style filter and then the exclusion of past
+therapists rather than returning nothing. Confirming a match writes an
+\texttt{ACTIVE} assignment and emits the event that provisions the
+patient--therapist chat channel (Section~\ref{sec:events}). Availability is
+published as weekly templates, which a scheduled job expands idempotently into
+thirty days of bookable slots.
+
+Booking then follows an explicit state machine. A request stays
+\texttt{REQUESTED} until the therapist accepts it and expires two hours before
+the start time: a sweep every minute auto-rejects stragglers, and the accept
+and reject handlers re-check that deadline so a click landing inside that
+minute is still refused. Confirmed appointments freeze an hour before the
+start, and cancellation releases the slot for re-booking. Opening the room
+moves the appointment to \texttt{IN\_PROGRESS}. Two requests for one slot must
+not both succeed; Chapter~\ref{Chapter4} describes the resolution.
+
+Afterwards the therapist files a SOAP-structured note with risk flags, editable
+as a draft and immutable once finalized. Because the review and the note arrive
+in either order, completion is two-sided: whichever lands first marks the
+appointment \texttt{PATIENT\_COMPLETE} or \texttt{PROFESSIONAL\_COMPLETE} and
+the second \texttt{OVERALL\_COMPLETE}, with 24 hours to file a note once a
+review has arrived. Ownership checks tie every endpoint to the assigned
+therapist, but an assignment buys only this professional record; tracked data
+still needs a grant (Section~\ref{sec:datasec}), and the dashboard keeps the
+patient's diary, food, sleep, and mood tabs locked until one exists.
+
+Consultations run on Jitsi Meet~\cite{Jitsi}. The dashboard opens the room
+beside the patient's stated reason, their permitted diary entries, and a
+scratchpad that feeds the note; the mobile app embeds the same room in a
+\texttt{WebView} whose injected scripts pin the interface to Vietnamese, hide
+the Google moderator sign-in, replace the lobby with a Vietnamese waiting
+screen, and confine navigation to the room so hanging up returns the user to
+the app. Both clients name the room after the appointment's UUID, unguessable
+and impossible to enumerate, but a capability URL rather than admission
+control: anyone holding the link can join. A self-hosted Jitsi with JWT-gated
+entry is left to Chapter~\ref{Chapter5}.
 
 \section{Peer and Family Connection}
 \label{sec:social}
