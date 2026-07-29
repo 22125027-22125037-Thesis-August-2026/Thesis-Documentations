@@ -291,6 +291,24 @@ is the work flagged as "uncommitted" above, now landed — plus one genuinely ne
 - *No doc impact:* `a4a49b0` (chat composer above the Android 16 IME — no doc states keyboard
   behaviour or `targetSdk`) and `b53a361` (lockfile marker refresh, no version changes).
 
+*Laptop ↔ VM reconciliation, 2026-07-29 22:34 ICT.* All five deployed repos on the Azure VM sit at the
+**same commit as the laptop**, on `main` only, level with `origin`, with clean working trees. Ignored
+runtime config was compared by SHA-256, not by eye: the four `.env` files and
+`notification-api/secrets/firebase-credentials.json` matched exactly.
+
+- **One mismatch: `therapist-web-ui/.env`.** The VM held the correct comment-only file; the **laptop**
+  held the five dead wrong-port vars. The laptop was brought into line with the VM — the one case where
+  the "laptop is source of truth" rule pointed the wrong way, since copying laptop→VM would have
+  regressed production. [Therapist-Web-UI.md §5](03-Frontend/Therapist-Web-UI.md) is updated to match,
+  and the stale `VITE_API_URL` claim in its header table is gone.
+- A superseded `thesis_social/.env.bak-20260720082240` was removed from the VM (its only delta was a
+  *missing* HTTPS CORS origin — strictly older than the live file).
+- Still differing **by design**: `.env.local-bak-20260520` backups exist on the laptop only, and
+  `therapist-web-ui/tsconfig.app.tsbuildinfo` is modified on the VM because the UI is built there — a
+  tracked build artifact that arguably should not be tracked at all.
+- The web UI is served by Caddy from `/var/www/umatter-web`; the systemd unit is **`umatter-web.service`**
+  (not `therapist-web-ui.service`).
+
 *Confirmed accurate and left unchanged:* the full port map and 20-container count, all four compose
 stacks, Spring Boot/Java/React/RN versions, Gemini 2.5 Flash, the gateway route table, the grant model
 (per-category `AccessScopes` enforcement + the AI companion as a seeded grantee), the inert

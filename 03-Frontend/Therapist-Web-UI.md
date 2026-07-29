@@ -6,7 +6,7 @@
 | **Platform** | React **18**, Vite **5**, TypeScript, Tailwind CSS, Radix UI |
 | **Audience** | Therapists |
 | **Runs as** | a **Vite dev server on `:5173`** (the only non-Docker production piece) |
-| **Backend** | the gateway, via `VITE_API_URL` (hard-codes the VM IP in `.env`) |
+| **Backend** | the gateway — **same origin**, resolved from `window.location` in `src/lib/api/config.ts`; no host is baked into the bundle (see §5) |
 
 ---
 
@@ -106,7 +106,7 @@ same-origin with the API and needs no CORS and no rebuild on an IP/domain change
 | File | Holds |
 |---|---|
 | `.env.development` | `VITE_API_BASE_URL=http://85.211.241.204:8080` + `VITE_CHAT_WS_URL=ws://85.211.241.204:8086/ws` — used only by `npm run dev` on a laptop, which *is* genuinely cross-origin and relies on the gateway's CORS `localhost` allow-list |
-| `.env` | ⚠️ **dead file.** Holds five stale per-service vars (`VITE_AUTH_BASE_URL`, `VITE_THERAPIST_BASE_URL`, `VITE_SOCIAL_BASE_URL`, `VITE_NOTIFICATION_BASE_URL`, `VITE_TRACKING_BASE_URL`) left over from the pre-gateway design. **No code reads any of them**, and their ports are wrong anyway (they map therapist→8082, social→8083, notification→8084, tracking→8085; the real map is notification 8082, dashboard 8083, tracking 8084, therapist 8085). Safe to delete — don't trust it as a port reference. |
+| `.env` | **Intentionally empty of variables** — comments only, explaining that the production build is same-origin so the API and chat URLs come from `window.location`, and that setting anything here would bake a host into the bundle and re-introduce cross-origin requests. It previously held five stale per-service vars (`VITE_AUTH_BASE_URL`, `VITE_THERAPIST_BASE_URL`, `VITE_SOCIAL_BASE_URL`, `VITE_NOTIFICATION_BASE_URL`, `VITE_TRACKING_BASE_URL`) from the pre-gateway design, read by no code and carrying **wrong ports**; those were removed on 2026-07-29 so laptop and VM match. **Never use this file as a port reference.** |
 | `.env.example` | template |
 
 > The old hard-coded-IP setup (every env file naming the VM, `sed` on migration) is gone — only the
