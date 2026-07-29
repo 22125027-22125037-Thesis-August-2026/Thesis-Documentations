@@ -103,7 +103,7 @@ The internal AI-context endpoint is grant-checked against the reserved AI-compan
 |---|---|---|---|
 | Appointments | POST | `/api/v1/bookings` | patient |
 | | GET | `/api/v1/bookings/{appointmentId}` | self |
-| | GET | `/api/v1/bookings/{appointmentId}/join` | self (Zoom credentials) |
+| | GET | `/api/v1/bookings/{appointmentId}/join` | self (returns the Jitsi room; password/JWT are `null`) |
 | | POST | `/api/v1/bookings/{appointmentId}/cancel` | self |
 | | POST | `/api/v1/bookings/{appointmentId}/confirm` | therapist |
 | | POST | `/api/v1/bookings/{appointmentId}/reject` | therapist |

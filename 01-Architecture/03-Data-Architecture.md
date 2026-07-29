@@ -86,10 +86,10 @@ Within a single service, normal FKs and `@ManyToOne` are fine.
 | Table | Purpose |
 |---|---|
 | `therapists` | therapist directory (name, specialization, rating, matching attributes, license URL) |
-| `therapist_zoom_credentials` | per-therapist static Zoom Personal Meeting Room (shared-PK via `@MapsId`) |
+| `therapist_zoom_credentials` | per-therapist static Zoom Personal Meeting Room (shared-PK via `@MapsId`) — **unused under Jitsi**, kept for the dormant Zoom provider |
 | `weekly_templates` | recurring weekly availability patterns |
 | `schedule_slots` | concrete bookable slots (`is_booked` flag) |
-| `appointments` | bookings; snapshots the Zoom room at booking time; status machine |
+| `appointments` | bookings; snapshots the video room (Jitsi room UUID) at booking time; status machine |
 | `clinical_notes` | one per appointment (diagnosis, recommendations) |
 | `reviews` | one per appointment; drives `therapists.rating_avg` |
 | `profiles_preferences` | a patient's matching intake (orientation, reasons, communication style) |

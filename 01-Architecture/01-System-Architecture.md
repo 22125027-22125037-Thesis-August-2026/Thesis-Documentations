@@ -31,7 +31,7 @@ The guiding principles, and where each is realised:
    ┌──────────────────────────┼───────────────────────────┐
    │                          │                            │
 ┌──┴───────────┐      ┌───────┴────────┐          ┌────────┴─────────┐
-│ Mobile app   │      │ Therapist Web  │          │ Zoom / Firebase  │
+│ Mobile app   │      │ Therapist Web  │          │ Jitsi / Firebase │
 │ React Native │      │ React + Vite   │          │ Gemini (external)│
 │ (teens)      │      │ :5173 (teens?) │          └──────────────────┘
 └──────┬───────┘      └───────┬────────┘
@@ -127,7 +127,7 @@ section of [02-Service-Catalog-and-Ports](02-Service-Catalog-and-Ports.md).
 | **Auth** | JWT RS256 (signs with the private key), Spring Security (stateless) |
 | **Real-time** | STOMP over WebSocket (Social chat), WebSocket relay via RabbitMQ STOMP plugin |
 | **Push / email** | Firebase Admin SDK (FCM), SMTP + Thymeleaf templates |
-| **Video** | Zoom Meeting SDK (pluggable provider; Jitsi alternative implemented) |
+| **Video** | **Jitsi** (`meet.jit.si`, `VIDEO_PROVIDER=jitsi`) behind a pluggable provider interface; a Zoom implementation exists but is not enabled |
 | **AI** | Google Gemini 2.5 Flash (REST) |
 | **Gateway** | Nginx 1.25 |
 | **Mobile** | React Native 0.83.1, React 19, TypeScript, React Navigation, Axios, STOMP.js, Notifee + Firebase Messaging |

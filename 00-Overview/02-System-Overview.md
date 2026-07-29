@@ -31,7 +31,7 @@ service's database — they integrate only via REST calls and RabbitMQ events.
 | **Tracking Service** | Self-care data | `tracking_db` | Mood, sleep, food, diary, steps, breathing logs; streaks; "treasures"; media attachments; aggregated **context** for AI & therapists |
 | **AI Service** | AI companion | `ai_db` | Gemini-powered chat sessions, grounded in the user's tracking context |
 | **Dashboard Service** | Aggregation (BFF) | *(stateless)* | Fans out to other services to assemble combined summaries for the clients |
-| **Therapist API** | Booking | `booking` DB | Therapist directory, **matching**, availability slots, **appointment booking**, **Zoom video** join, clinical notes, reviews, scheduled slot generation |
+| **Therapist API** | Booking | `booking` DB | Therapist directory, **matching**, availability slots, **appointment booking**, **Jitsi video** join, clinical notes, reviews, scheduled slot generation |
 | **Social** | Peer connection | `social` DB | Friend requests, blocking, **real-time chat** over STOMP/WebSocket |
 | **Notification** | Messaging-out | `notification` DB | Consumes events from other services → **in-app inbox** + **FCM push** + **email**; device-token registry; Redis idempotency |
 
@@ -63,15 +63,16 @@ Mobile app → Gateway → Therapist API: POST /api/v1/matching/preferences  (in
 Mobile app → Gateway → Therapist API: GET /api/v1/therapists/{id}/slots   (available times)
 Mobile app → Gateway → Therapist API: POST /api/v1/bookings              (book a slot)
    • The slot is atomically locked, an Appointment is created with a snapshot of the
-     therapist's Zoom room, and an `appointment.booked` event is published
+     video room (a Jitsi room UUID), and an `appointment.booked` event is published
 Notification Service consumes `appointment.booked` → emails a confirmation + writes an inbox row
-At session time: GET /api/v1/bookings/{id}/join → returns Zoom meeting number + SDK JWT
+At session time: GET /api/v1/bookings/{id}/join → returns the Jitsi room name
+   • the client opens https://meet.jit.si/<room>  (password and SDK JWT are null under Jitsi)
 ```
 
 ### 3.3 A therapist completes a session
 
 ```
-Therapist Web UI → Gateway → Therapist API: join the video call (Zoom SDK on the client)
+Therapist Web UI → Gateway → Therapist API: join the video call (Jitsi, in the browser)
 After the call → POST /api/v1/notes (diagnosis + recommendations)
    • Appointment transitions IN_PROGRESS → PROFESSIONAL_COMPLETE
 Later, the patient → POST /api/v1/reviews → PROFESSIONAL_COMPLETE → OVERALL_COMPLETE
@@ -108,7 +109,7 @@ See [01-Architecture/04-Event-Driven-Messaging](../01-Architecture/04-Event-Driv
 | **MinIO** | Object storage (S3 API) | Avatars, diary/treasure media; served to clients via the gateway at `/mhsa-media/` using presigned URLs |
 | **Nginx** | API gateway | Single public entry point, CORS, routing, internal-endpoint blocking |
 | **Firebase Cloud Messaging** | Push notifications | Notification service holds the device-token registry |
-| **Zoom SDK** | Video consultations | Backend is an authorization gatekeeper; media is peer-to-peer client-side |
+| **Jitsi** (`meet.jit.si`) | Video consultations | Backend is an authorization gatekeeper handing back a room name; media never touches it. A Zoom provider is implemented but not enabled |
 | **Google Gemini 2.5 Flash** | AI companion | Called by the AI service with the user's context |
 
 ---

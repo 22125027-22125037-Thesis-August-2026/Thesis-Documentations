@@ -143,8 +143,8 @@ system, update the matching doc here. The most important invariants to keep accu
 
 *Last assembled: 2026-06-16. Deployment docs rewritten 2026-07-11 for the Oracle → Azure migration.*
 
-> **Last verified against all six code repositories: 2026-07-29 22:34 ICT.** See the fourth- and
-> fifth-pass notes at the end of this section for what changed since the previous checkpoint
+> **Last verified against all six code repositories: 2026-07-29 23:22 ICT.** See the fourth-, fifth-
+> and sixth-pass notes at the end of this section for what changed since the previous checkpoint
 > (2026-07-20 19:24 ICT).
 
 *Verified against source code 2026-07-20 (first pass): V6 users→profiles merge, HTTPS/same-origin web
@@ -247,12 +247,8 @@ no unmerged branches, no post-checkpoint stashes).
   tester following the old script would have filed a false bug. Inverted: `IN_PROGRESS` after hangup
   is now the expected result. M09-10 likewise claimed reviews require a completed session; the backend
   only rejects `UPCOMING`/`CANCELLED` plus a 1-minute-after-start rule.
-- **Known drift, deliberately not fixed here:** the docs contradict themselves on the video provider —
-  [Therapist-API](02-Services/Therapist-API.md) and [Mobile-App](03-Frontend/Mobile-App.md) describe
-  Zoom (meeting number + SDK JWT), while [E2E-M09](09-Testing/E2E-Mobile/E2E-M09-Consultation-Session-and-Aftercare.md)
-  describes a Jitsi WebView on `meet.jit.si`. The code supports both readings: therapist-api defaults
-  `VIDEO_PROVIDER=zoom`, but `VideoConsultationScreen.tsx` is entirely Jitsi. **This predates the
-  2026-07-20 checkpoint** and needs a decision, not a doc edit.
+- **Video-provider drift — raised here, resolved in the sixth pass below.** The docs described Zoom in
+  a dozen places while E2E-M09 described Jitsi.
 - **`thesis-mobile` carries uncommitted work** (chat screens, `versionCode 4`, and an `axiosClient.ts`
   change pointing dev builds at HTTPS instead of `http://85.211.241.204:8080`). Not documented on
   purpose — it has not landed, and the last item will contradict
@@ -262,20 +258,8 @@ no unmerged branches, no post-checkpoint stashes).
 that evening (22:07–22:22).* The other five repos were unchanged since the fourth pass. Most of this
 is the work flagged as "uncommitted" above, now landed — plus one genuinely new feature.
 
-- **Health Connect step back-fill** (`a903a11`) — the one feature. The hardware sensor reports a single
-  cumulative since-boot value, so **a day the user never opened the app was lost** and nothing could
-  recover it. Two Kotlin native modules now exist (`StepCounterModule` + `HealthConnectModule`), and
-  `syncRecentDays()` reconciles the trailing 7 days: today from the live sensor, prior days from
-  Health Connect. Documented in [Mobile-App.md](03-Frontend/Mobile-App.md) and, in detail, in
-  [E2E-M05](09-Testing/E2E-Mobile/E2E-M05-Automatic-Step-Counting.md) — the never-regress rule, the
-  ask-once permission, the new `HEALTH_CONNECT` source tag, and the fact that a device **without**
-  Health Connect behaves exactly as before (Blocked, not Failed).
-  - The new `source` value needed **no backend change**: `step_logs.source` is a free
-    `VARCHAR(50) NOT NULL DEFAULT 'DEVICE_SENSOR'` with no CHECK constraint. Verified, because this is
-    the same shape as the `NO_SHOW` bug and was worth ruling out rather than assuming.
-- **🔴 It also created a Play release blocker.** `android.permission.health.*` is a **restricted**
-  permission — Play rejects the upload unless the Health apps declaration form is approved first.
-  Recorded in [04-DNS-HTTPS-and-Play-Release](05-Deployment/04-DNS-HTTPS-and-Play-Release.md) §8.
+- **Health Connect step back-fill** (`a903a11`) — added, then **reverted the same day** (`d132a76`,
+  sixth pass below). Net effect on the docs is the *absence* of the feature, recorded deliberately.
 - **Dev builds now use HTTPS** (`43c3d76`), so `axiosClient.ts`'s `__DEV__` ternary has two identical
   branches. [05-Security §6](01-Architecture/05-Security-and-Authentication.md) already described it
   this way and is now correct; [Mobile-App.md](03-Frontend/Mobile-App.md) still claimed dev builds hit
@@ -308,6 +292,42 @@ runtime config was compared by SHA-256, not by eye: the four `.env` files and
   tracked build artifact that arguably should not be tracked at all.
 - The web UI is served by Caddy from `/var/www/umatter-web`; the systemd unit is **`umatter-web.service`**
   (not `therapist-web-ui.service`).
+
+*Sixth pass — **sync checkpoint 2026-07-29 23:22 ICT**.* One further `thesis-mobile` commit, plus a
+product decision from the author that resolved the long-standing video-provider drift.
+
+- **Health Connect was reverted** (`d132a76`), hours after it landed. Reading step history requires
+  `android.permission.health.READ_STEPS`; the whole `android.permission.health.*` family is
+  **restricted**, so Play blocks the release until the Health apps declaration is approved — which
+  would classify uMatter as a **health app**. `READ_STEPS` was the entire mechanism, so there was no
+  reduced form to keep. The native module, JS wrapper, dependency, manifest entries and
+  `syncRecentDays()` are all gone; the step tracker is the hardware counter alone
+  (`ACTIVITY_RECOGNITION`, a normal runtime permission). The fifth-pass docs were rolled back to match.
+  - **Kept from that work:** today's count is pushed on **app open and every foreground**, not only
+    when the steps screen is opened — so a day spent walking without visiting that screen still
+    reaches the backend. [E2E-M05](09-Testing/E2E-Mobile/E2E-M05-Automatic-Step-Counting.md) had
+    *already* claimed foreground sync before it was true; it is true now.
+  - **The trade-off is now documented as intended behaviour, not a bug:** a day the user never opens
+    the app cannot be recovered, because the sensor exposes only a cumulative since-boot value. A
+    tester seeing a zero for such a day should not raise a defect.
+  - [04-DNS-HTTPS-and-Play-Release](05-Deployment/04-DNS-HTTPS-and-Play-Release.md) §8 keeps a standing
+    warning so nobody reintroduces a `health.*` permission without knowing it re-opens the blocker.
+- **Video provider settled: it is Jitsi, and only Jitsi.** Confirmed by the author and in the code —
+  every deployed `.env` (laptop and VM, byte-identical) sets `VIDEO_PROVIDER=jitsi`,
+  `JitsiVideoServiceImpl` returns a random room UUID with a `null` password and `null` SDK JWT, and
+  both clients open `https://meet.jit.si/<room>`. Zoom was corrected across **eleven** documents —
+  the executive summary, system overview, glossary, architecture and data-architecture tables, the
+  service docs, both front-end docs, the API reference and the academic trade-off table.
+  - `ZoomVideoServiceImpl` still exists and is the *code* default (`matchIfMissing = true`), so the
+    remaining mentions deliberately describe it as **implemented but not enabled** — it is the
+    evidence that the pluggable-provider abstraction holds, not a description of the running system.
+  - Two related staleness bugs fell out of the same sweep: [Mobile-App.md](03-Frontend/Mobile-App.md)
+    still advertised a raw-IP dev backend in its header table, and
+    [Therapist-Web-UI.md](03-Frontend/Therapist-Web-UI.md) still called the UI "a Vite dev server on
+    `:5173`" in its header while its own §6 correctly described the retired service and the static
+    Caddy build.
+  - `therapist_zoom_credentials` and the `404`-if-no-credential rule are now flagged as **dead weight
+    under Jitsi** rather than presented as live booking behaviour.
 
 *Confirmed accurate and left unchanged:* the full port map and 20-container count, all four compose
 stacks, Spring Boot/Java/React/RN versions, Gemini 2.5 Flash, the gateway route table, the grant model

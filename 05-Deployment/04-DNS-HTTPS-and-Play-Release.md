@@ -188,10 +188,9 @@ The teen mobile app is being published to **Google Play** for **Vietnam + South 
 > The signed, HTTPS‑built `.aab` is at
 > `thesis-mobile/android/app/build/outputs/bundle/release/app-release.aab`.
 
-> 🔴 **Release blocker — Health Connect declaration.** Since the step back-fill feature (July 2026) the
-> app requests `android.permission.health.READ_STEPS`. The `android.permission.health.*` family is
-> **restricted**: Play rejects the release unless the **Health apps declaration form** is submitted and
-> approved *first*. Answers to give: data type **Steps**, access **read-only**, justification = the
-> hardware sensor reports only a cumulative since-boot value and cannot recover a day the app was never
-> opened, **no third-party sharing**. Budget approval time — this gates the upload, not just the review.
-> Full answers are in `thesis-mobile/PLAY_STORE_RELEASE.md` §6.
+> ⚠️ **Keep the app out of the `android.permission.health.*` family.** A Health Connect step back-fill
+> was built on 2026-07-29 and **reverted the same day**: reading step history needs
+> `android.permission.health.READ_STEPS`, the whole `health.*` family is **restricted**, and Play blocks
+> the release until the Health apps declaration is approved — which classifies uMatter as a health app.
+> Step counting therefore uses the hardware sensor alone (`ACTIVITY_RECOGNITION`, a normal runtime
+> permission). Anything that reintroduces a `health.*` permission re-opens this blocker.

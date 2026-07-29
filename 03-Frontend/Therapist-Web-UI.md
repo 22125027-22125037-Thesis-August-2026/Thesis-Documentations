@@ -5,7 +5,7 @@
 | **Repo** | [`therapist-web-ui`](https://github.com/22125027-22125037-Thesis-August-2026/therapist-web-ui) (public GitHub repo) |
 | **Platform** | React **18**, Vite **5**, TypeScript, Tailwind CSS, Radix UI |
 | **Audience** | Therapists |
-| **Runs as** | a **Vite dev server on `:5173`** (the only non-Docker production piece) |
+| **Runs as** | a **static Vite build served by Caddy** from `/var/www/umatter-web` at the domain root (see §6). The old systemd Vite dev server on `:5173` is retired |
 | **Backend** | the gateway — **same origin**, resolved from `window.location` in `src/lib/api/config.ts`; no host is baked into the bundle (see §5) |
 
 ---
@@ -77,7 +77,7 @@ therapist-web-ui/src/
 | Login / session | Auth service (`/api/v1/auth/login`, `/me`) |
 | Dashboard | Therapist API (`/dashboard/summary`), Dashboard BFF |
 | Availability | Therapist API availability + templates endpoints |
-| Appointments | Therapist API bookings; **video join** returns Zoom credentials |
+| Appointments | Therapist API bookings; **video join** returns a Jitsi room name, opened at `https://meet.jit.si/<room>` by `VideoSessionPage` |
 | Patients | Auth (`/api/v1/patients/{id}`) + Therapist API patients; **shared tracking context** via Tracking (gated by data-access grants) |
 | Clinical notes | Therapist API `/api/v1/notes` |
 | Messages | Social service (STOMP) |

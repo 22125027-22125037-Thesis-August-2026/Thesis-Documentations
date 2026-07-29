@@ -9,7 +9,7 @@
 
 | | |
 |---|---|
-| **Scope** | `ACTIVITY_RECOGNITION` permission, hardware sensor availability, live step updates, the daily-baseline algorithm, midnight rollover, reboot handling, backend upsert, goal/distance/calorie display, 7-day chart, **Health Connect back-fill of skipped days** (`READ_STEPS`) |
+| **Scope** | `ACTIVITY_RECOGNITION` permission, hardware sensor availability, live step updates, the daily-baseline algorithm, midnight rollover, reboot handling, backend upsert, goal/distance/calorie display, 7-day chart |
 | **Out of scope** | Other tracking screens (→ [M04](E2E-M04-Sleep-and-Nutrition-Tracking.md)), trophy credit (→ [M11](E2E-M11-Daily-Trophy-and-Streaks.md)) |
 | **Services** | Tracking (`/api/v1/tracking/steps`), Dashboard, device step-counter sensor |
 | **Screens** | `StepMainScreen`, home mini-dashboard |
@@ -27,9 +27,9 @@
 3. TEEN-A logged in.
 4. A pedometer or a second phone to walk alongside for `M05-03` cross-checking.
 5. Device timezone ICT; clock automatic (the baseline keys off the **local** calendar date).
-6. **Health Connect installed**, with some step history already in it, if the back-fill behaviour is
-   to be tested at all. Grant `READ_STEPS` when the system sheet appears — it is asked **once**, so a
-   decline cannot be undone by simply reopening the steps screen.
+6. `ACTIVITY_RECOGNITION` is the **only** permission this feature needs. If a build ever asks for a
+   Health Connect / `android.permission.health.*` permission, that is a regression — see the note at
+   the end of this section.
 
 ## Reference values baked into the build
 
@@ -38,8 +38,7 @@
 | Daily goal | **6 000** steps | Progress ring, "remaining" text, goal-reached state |
 | Distance per step | **0.0008 km** (0.8 m) | `distanceKm = steps × 0.0008`, shown to 2 dp |
 | Calories per step | **0.04 kcal** | `calories = steps × 0.04` |
-| Source tag | `DEVICE_SENSOR` (today) / `HEALTH_CONNECT` (back-filled days) | Sent on every upsert; a free-text `VARCHAR(50)` server-side, so the second value needed no backend change |
-| Back-fill window | trailing **7 days** (`RECENT_SYNC_DAYS`) | `syncRecentDays()` |
+| Source tag | `DEVICE_SENSOR` | Sent on every upsert |
 
 ## How the counting actually works — read this before interpreting results
 
@@ -59,28 +58,24 @@ screen. Two consequences worth holding in mind while testing:
 - There is **no background service**. "Automatically counts in the background" means *the sensor
   counts*; the app reconciles when it next runs.
 
-### Health Connect back-fill (added July 2026) — the second data source
+### A skipped day is unrecoverable — by design, and it was a deliberate decision
 
-The sensor's single cumulative value cannot reconstruct **a day the user skipped entirely**: reopen
-the app two days later and the whole delta lands on the current day, leaving a zero in the week chart
-that nothing could repair. **Health Connect** is the only on-device source of historical per-day
-totals, so `syncRecentDays()` reconciles the trailing **7 days** — today from the live sensor, prior
-days from Health Connect. It runs on app open, on every foreground, and on the steps screen's mount
-and pull-to-refresh.
+If the user does not open the app for a day, that day's count **cannot be reconstructed**. The sensor
+exposes only a cumulative since-boot value, so the next foreground attributes the whole delta to the
+current day and the skipped day stays at zero in the week chart. **Expect this; it is not a bug to
+file.**
 
-Rules that shape what you should expect:
+A Health Connect integration that back-filled the trailing 7 days was built and then **reverted on
+2026-07-29**, deliberately. Reading step history requires `android.permission.health.READ_STEPS`, and
+any `android.permission.health.*` permission is **restricted** — Google Play blocks the release until
+the Health apps declaration is approved, which would classify uMatter as a health app. `READ_STEPS`
+was the entire mechanism, so the integration could not be kept in a reduced form.
 
-| Rule | Consequence for testing |
-|---|---|
-| **Never regress.** Existing backend totals are fetched first; a day is written **only if the new total is higher** | A correct day cannot be overwritten by a lower or empty Health Connect reading. Seeing "no change" is often the *correct* result |
-| **Today prefers the live sensor** — `max(healthConnect, sensor)` | Today's figure never drops when Health Connect lags |
-| **The goal is sent on back-filled days too** | The backend rewrites an *omitted* goal to its own default, which would silently change the goal on past days |
-| **Degrades safely** | Every wrapper method returns `false`/`[]` when Health Connect is absent, so a device without it behaves exactly as before — this is **not** a failure |
-| **Permission is asked once** | Health Connect exposes no "don't ask again" signal, so a decline is remembered rather than re-prompting on every steps-screen mount. Only an explicit user action re-asks (`{ force: true }`) |
-
-⚠️ **A device without Health Connect installed cannot exercise any of this** — the app will look
-identical to its pre-July behaviour. Record whether the test device has it, or back-fill cases are
-Blocked rather than Passed.
+**What was kept:** today's count is now pushed on **app open and on every return to the foreground**,
+not only when the steps screen is opened — so a day spent walking without visiting that screen still
+reaches the backend. That needs no extra permission. Worth testing explicitly: walk, background the
+app without ever opening the steps screen, return to the foreground, and confirm the backend has the
+count.
 
 ---
 

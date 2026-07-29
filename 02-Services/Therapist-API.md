@@ -15,7 +15,7 @@
 
 The Therapist API is the **Booking bounded context** — the most business-logic-heavy service. It owns
 the therapist directory, **patient↔therapist matching**, therapist **availability** (templates +
-generated slots), **appointment booking** with **Zoom video** consultations, **clinical notes**, and
+generated slots), **appointment booking** with **Jitsi video** consultations, **clinical notes**, and
 **reviews/ratings**. It also runs scheduled jobs and publishes booking events.
 
 ---
@@ -25,10 +25,10 @@ generated slots), **appointment booking** with **Zoom video** consultations, **c
 | Table | Notes |
 |---|---|
 | `therapists` | directory: name, specialization, country, experience, `rating_avg`, `license_url`, matching attrs (`gender`, `is_lgbtq_allied`, `communication_style`, `treated_challenges[]`); `account_id` is an Auth-domain UUID |
-| `therapist_zoom_credentials` | per-therapist **static Zoom Personal Meeting Room** (shared PK via `@MapsId`) |
+| `therapist_zoom_credentials` | per-therapist static Zoom Personal Meeting Room (shared PK via `@MapsId`). **Unused under Jitsi** — kept for the dormant Zoom provider |
 | `weekly_templates` | recurring weekly availability patterns |
 | `schedule_slots` | concrete bookable slots; `is_booked` flag |
-| `appointments` | bookings; **snapshots** the Zoom meeting number/password at booking time; status machine |
+| `appointments` | bookings; **snapshots** the video room (a Jitsi room UUID) at booking time; status machine |
 | `clinical_notes` | one per appointment (`appt_id` unique): diagnosis, recommendations |
 | `reviews` | one per appointment; recalculates `therapists.rating_avg` |
 | `profiles_preferences` | patient matching intake (orientation, reasons[], communication style) |
@@ -46,16 +46,19 @@ generated slots), **appointment booking** with **Zoom video** consultations, **c
 - **Atomically** locks the slot:
   `UPDATE schedule_slots SET is_booked=true WHERE slot_id=:id AND is_booked=false` — 1 row = success,
   0 rows = `409 Conflict` (someone else got it first).
-- Creates an `Appointment` (default mode `VIDEO`, status `UPCOMING`), **snapshot-copies** the
-  therapist's Zoom room onto the appointment for historical immutability.
-- If `video.provider=zoom` and the therapist has no Zoom credential → `404`.
+- Creates an `Appointment` (default mode `VIDEO`, status `UPCOMING`), **snapshot-copies** the video
+  room onto the appointment for historical immutability — under Jitsi that is a freshly generated room
+  UUID, unique per booking.
+- Only on the dormant Zoom path: no Zoom credential for the therapist → `404`. Not reachable under
+  `VIDEO_PROVIDER=jitsi`.
 - Publishes `appointment.booked` to `booking.exchange`.
 
 ### Video join (`GET /api/v1/bookings/{id}/join`)
 - Rejects if now < `start_datetime − 10 min` (`403`).
 - Transitions `UPCOMING → IN_PROGRESS`.
-- Returns `VideoJoinResponseDto(meetingNumber, password, sdkJwt)` — meeting details from the snapshot,
-  `sdkJwt` minted at join time by the active video provider.
+- Returns `VideoJoinResponseDto(meetingNumber, password, sdkJwt)` — `meetingNumber` is the room
+  snapshotted at booking time. **Under Jitsi `password` and `sdkJwt` are both `null`**; the fields
+  exist for the dormant Zoom path, where `sdkJwt` would be minted at join time.
 
 ### Appointment status machine
 `AppointmentStatus` = `REQUESTED`, `UPCOMING`, `IN_PROGRESS`, `PATIENT_COMPLETE`,
@@ -146,14 +149,25 @@ is refused once **any** completion variant is reached.
 
 ## 5. Video provider architecture (pluggable)
 
-- Abstracted behind `VideoConsultationProvider` (`VideoRoomDetailsDto getVideoRoomDetails(Therapist)`).
-- Active provider via `video.provider` / `VIDEO_PROVIDER` (default `zoom`).
-- **Zoom** (`ZoomVideoServiceImpl`): reads the therapist's static Personal Meeting Room from
-  `therapist_zoom_credentials` and mints a Zoom SDK JWT. **Multi-account**: each therapist has a
-  dedicated Zoom Basic account to dodge concurrent-meeting limits.
-- **Jitsi** (`JitsiVideoServiceImpl`): returns a random room UUID, no password/JWT.
+- Abstracted behind `VideoConsultationProvider` (`VideoRoomDetailsDto getVideoRoomDetails(Therapist)`),
+  selected by `video.provider` / `VIDEO_PROVIDER` via `@ConditionalOnProperty`.
+- ✅ **Jitsi is the provider in use** — every deployed `.env` sets **`VIDEO_PROVIDER=jitsi`**.
+  `JitsiVideoServiceImpl` returns a **random room UUID** with a `null` password and a `null` SDK JWT.
+  The room is snapshotted onto the appointment at booking time, and **both clients** open
+  `https://meet.jit.si/<room>` — the mobile app in a WebView (`VideoConsultationScreen`), the therapist
+  web UI in `VideoSessionPage`. Nothing is self-hosted; `meet.jit.si` is a third-party service.
+- ⚪ **Zoom (`ZoomVideoServiceImpl`) is implemented but not used.** It is the *code* default
+  (`matchIfMissing = true`), so it runs only if `VIDEO_PROVIDER` is unset — which no deployment does.
+  It would read the therapist's static Personal Meeting Room from `therapist_zoom_credentials` and mint
+  a Zoom SDK JWT, one Zoom Basic account per therapist to dodge concurrent-meeting limits. Treat this
+  as the demonstration that the abstraction holds, **not** as a description of the running system.
 - Swapping providers = a new `@Service`; `BookingService` is unaffected (Dependency Inversion).
-- The backend is only an **authorization gatekeeper** — media is peer-to-peer in the client Zoom SDK.
+- The backend is only an **authorization gatekeeper** — it decides *whether* you may join and hands
+  back a room; media never touches it.
+
+> ⚠️ **`therapist_zoom_credentials` is dead weight under Jitsi.** The table and its `404`-if-missing
+> rule only matter on the Zoom path. Under Jitsi the room is generated per booking and no therapist
+> credential is consulted.
 
 ---
 

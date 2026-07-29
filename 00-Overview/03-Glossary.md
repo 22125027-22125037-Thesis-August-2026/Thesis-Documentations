@@ -40,7 +40,7 @@
 | **uMatter** | The product name for the whole platform. See also *MHSA*. |
 | **umatter-shared** | The **external Docker network** every Compose stack joins so containers across stacks can reach each other by name. Must be created before `compose up`. |
 | **Weekly Template** **[domain]** | A therapist's recurring weekly availability pattern; a scheduled job materialises it into concrete `schedule_slots`. |
-| **Zoom SDK JWT** | A short-lived token the Therapist API mints so the client Zoom SDK can join the appointment's meeting room. |
+| **Video room** **[domain]** | The `meet.jit.si` room for an appointment — a random UUID generated and snapshotted at booking time. Under Jitsi there is no password and no SDK JWT (both are `null`); the Zoom provider that would mint one is implemented but not enabled. |
 
 ---
 

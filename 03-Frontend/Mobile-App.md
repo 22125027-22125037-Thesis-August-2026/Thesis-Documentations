@@ -5,7 +5,7 @@
 | **Repo** | [`thesis-mobile`](https://github.com/22125027-22125037-Thesis-August-2026/thesis-mobile) (GitHub; local working copy: `D:\Y4-Sem 2 Thesis\thesis-mobile`) |
 | **Platform** | React Native **0.83.1**, React **19**, TypeScript |
 | **Audience** | Teens / patients |
-| **Backend** | release: `BASE_URL = https://umatter-apcs.duckdns.org` (Caddy → gateway); dev: `http://<PUBLIC_IP>:8080` |
+| **Backend** | `BASE_URL = https://umatter-apcs.duckdns.org` (Caddy → gateway) in **every** build — dev included, since July 2026 |
 
 ---
 
@@ -25,11 +25,11 @@ attending video sessions, peer social chat, and notifications.
 | HTTP | `axios` |
 | Real-time chat | `@stomp/stompjs` + `text-encoding` (STOMP over WebSocket to Social `:8086`) |
 | Push notifications | `@react-native-firebase/messaging` + `@notifee/react-native` |
-| Video consultations | `react-native-webview` / `react-native-video` (Zoom join) |
+| Video consultations | `react-native-webview` — **Jitsi** (`meet.jit.si`) rendered in a WebView |
 | Charts | `react-native-chart-kit` (mood/sleep trends) |
 | Calendars | `react-native-calendars` (booking slots) |
 | Media | `react-native-image-picker` (diary/treasure/avatar uploads) |
-| Step counting | Two **custom Kotlin native modules**: `StepCounterModule` (hardware sensor, live count) and `HealthConnectModule` (**Health Connect**, historical per-day totals for back-fill) |
+| Step counting | `StepCounterModule` — a **custom Kotlin native module** over the hardware step sensor. Needs only `ACTIVITY_RECOGNITION`; a Health Connect integration was built and reverted (see [E2E-M05](../09-Testing/E2E-Mobile/E2E-M05-Automatic-Step-Counting.md)) |
 | i18n | `i18next` + `react-i18next` (locales in `src/locales`) |
 | JWT/crypto | `react-native-pure-jwt`, `crypto-js` |
 | Storage | `@react-native-async-storage/async-storage` (token persistence) |
@@ -95,8 +95,10 @@ thesis-mobile/
 - **Push:** on login it registers its FCM token via `POST /api/v1/notification/api/v1/devices`
   (`{ profileId, deviceToken, platform: "ANDROID" }`); Notifee renders foreground notifications.
 - **Chat:** opens a STOMP-over-WebSocket connection to the Social service for live messaging.
-- **Video:** on `GET /api/v1/therapist/.../bookings/{id}/join` it receives the Zoom meeting number,
-  password, and SDK JWT, then joins the call.
+- **Video:** on `GET /api/v1/therapist/.../bookings/{id}/join` it receives the **Jitsi room name**
+  (`password` and `sdkJwt` come back `null` under Jitsi) and opens `https://meet.jit.si/<room>` in a
+  WebView. `VideoConsultationScreen` injects CSS/JS to skip the pre-join page and dismiss Jitsi's auth
+  prompts — those selectors track a **third-party UI that changes between releases**.
 - **Appointment statuses:** the backend has **no single `COMPLETED`** value — it splits into
   `PATIENT_COMPLETE` / `PROFESSIONAL_COMPLETE` / `OVERALL_COMPLETE` (see
   [Therapist-API §3](../02-Services/Therapist-API.md)). `src/api/therapistApi.ts` exposes

@@ -40,7 +40,7 @@ A **production-grade, cloud-deployed** distributed system, not a prototype:
 | **Data** | **Database-per-service** (7 PostgreSQL instances), **Redis** for caching & idempotency, **MinIO** S3-compatible object storage for media, all schema-versioned with **Flyway**. |
 | **Clients** | A **React Native** mobile app for teens/patients and a **React/Vite** web dashboard for therapists. |
 | **AI** | A context-grounded mental-health chatbot built on **Google Gemini 2.5 Flash**, fed the user's own tracking summary. |
-| **Real-time** | **STOMP-over-WebSocket** chat; **Firebase Cloud Messaging** push notifications; **Zoom SDK** video consultations. |
+| **Real-time** | **STOMP-over-WebSocket** chat; **Firebase Cloud Messaging** push notifications; **Jitsi** video consultations. |
 | **Deployment** | Fully containerised with **Docker Compose**, deployed to a **Microsoft Azure** VM as **4 stacks / 20 containers** behind an HTTPS edge, with a documented, repeatable rebuild runbook — exercised in a live Oracle→Azure migration on 2026-07-11. |
 
 ## 4. Why it is academically significant
@@ -85,7 +85,7 @@ The project is a working demonstration of **modern distributed-systems engineeri
                  │  RabbitMQ   │ ────────────────►│ Notification :8082
                  │ (events)    │                  │ (push + email + inbox)
                  └─────────────┘
-   Infra: PostgreSQL ×7 · Redis · MinIO (S3) · Firebase · Zoom · Gemini
+   Infra: PostgreSQL ×7 · Redis · MinIO (S3) · Firebase · Jitsi · Gemini
 ```
 
 ## 6. Key numbers
