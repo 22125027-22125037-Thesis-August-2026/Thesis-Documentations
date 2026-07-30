@@ -128,6 +128,35 @@ registry.enableStompBrokerRelay("/queue", "/topic")
 > (`curl --http1.1`), because HTTP/2 forbids `Upgrade` headers and a plain `curl` will report a
 > misleading `400`.
 
+### ⚠️ A second, unrelated `virtualHost` bug broke every domain-event publish (fixed 2026-07-30)
+
+Same word, different connection — do not conflate the two. The section above is the **STOMP relay**'s
+vhost. This one is the service's **AMQP publisher**, and it made every endpoint that publishes a
+domain event return `500 {"detail":"Unexpected error"}`. Most visibly `POST /api/v1/friends/requests`:
+**friend requests could not be sent at all.**
+
+```
+java.lang.IllegalStateException: Invalid configuration: 'virtualHost' must be non-null.
+```
+
+`TherapistAssignmentMessagingConfig.rabbitConnectionFactory(...)` re-creates Boot's connection factory
+by hand — it has to, because declaring any `ConnectionFactory` bean makes the auto-configuration back
+off — and passed `RabbitProperties.determineVirtualHost()` straight into the setter. That returns
+**null** whenever `spring.rabbitmq.virtual-host` is unset, which it was: compose supplies only
+`SOCIAL_RABBIT_HOST` / `_USER` / `_PASSWORD`. Passing `null` does not mean "keep the default" — it
+**overwrites** the driver's `/`, so every AMQP connection attempt failed. Boot's own auto-configuration
+guards the identical assignment with `.whenNonNull()`; the hand-rolled stand-in did not.
+
+The fix guards the setter and declares the property explicitly (`SOCIAL_RABBIT_VHOST`, default `/`).
+
+Blast radius while it was broken: friend-request create, friend-request accept, and read receipts.
+Chat **send** escaped only because its `message_sent` publish is commented out — which is precisely
+why chat looked healthy while friend requests were dead, and why nobody suspected the broker.
+
+> **Diagnosing:** `GlobalExceptionHandler` returns a contentless `"Unexpected error"` and logs the real
+> stack trace, so a 500 from this service is only diagnosable from `docker logs social-api`. Never
+> conclude anything about a social 500 from the response body.
+
 ---
 
 ## 6. Events
@@ -136,8 +165,11 @@ registry.enableStompBrokerRelay("/queue", "/topic")
   publish (via `RabbitDomainEventPublisher`, to its own `social.domain.events` exchange on the
   **social-stack** broker, consumed by **nobody**): `social.friend_request_created`,
   `social.friend_request_accepted`, `social.message_read`. The `message_sent` publish is commented out
-  in `ChatService`. Wiring offline push means building the producer here **and** restoring a consumer
-  in Notification — publishing on the **core-stack** broker, since that is where Notification listens.
+  in `ChatService`. ⚠️ Unconsumed is **not** the same as harmless: until 2026-07-30 these publishes
+  *threw*, taking the whole request down with them (§5, the null-`virtualHost` bug). An unconsumed
+  event still has to reach the broker. Wiring offline push means building the producer here **and**
+  restoring a consumer in Notification — publishing on the **core-stack** broker, since that is where
+  Notification listens.
 - **Consumes:** `therapist.assignment.changed` ← `booking.exchange` (the **core-stack** broker, via a
   second AMQP connection — see [04-Event-Driven-Messaging §4](../01-Architecture/04-Event-Driven-Messaging.md)).
   On every newly **ACTIVE** therapist↔patient match, `TherapistRelationshipService` creates their

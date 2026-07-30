@@ -23,11 +23,15 @@ predictable data:
 | `PARENT` | 30 | `parent001.dev@mhsa.local` … `parent030.dev@mhsa.local` |
 | `THERAPIST` | 30 | `therapist0NN.dev@mhsa.local` |
 
-- ⚠️ **The seeded accounts cannot currently log in.** The seed's comment documents the plaintext as
-  `password`, but the BCrypt hash it inserts does **not** verify against that (or any known)
-  plaintext — confirmed during the 2026-07-17 V6 deploy verification, on prod too. Until the seed
-  hash is regenerated, **register fresh accounts for manual testing** (or reset a seeded account's
-  password hash by hand in the DB).
+- ✅ **The seeded accounts log in — the password is `developer`, not `password`.** Verified against
+  prod 2026-07-30 (`teen001`, `teen008`, `teen021`, `parent001` all returned 200; `password` returns
+  401). The seed file's own comment (`-- Plaintext password: password`) is what misled three earlier
+  documentation passes into recording these accounts as unusable: the BCrypt hash is perfectly
+  valid — `$2a$10$r0BNJBQr0qlwm…`, byte-identical in prod to what V2 inserts — it just encodes
+  `developer`.
+  > ⚠️ **Do not "correct" the comment in `V2__seed_development_testing_accounts.sql`.** Flyway
+  > checksums migration files, so editing an already-applied migration makes auth-service fail
+  > validation and crash-loop on its next boot. The real password is documented here instead.
 - `profile_id`s are **deterministic** (md5-derived) — the same across rebuilds — so flows that need
   a known `profile_id` (grants, assignments, bookings) are reproducible. (Since the V6
   users→profiles merge, `profile_id` is the only id; seeded `user_id`s are gone.)
@@ -46,14 +50,11 @@ predictable data:
 
 ## 2. Quick smoke test (through the gateway)
 
-> ⚠️ Step 1 fails against the broken seed hash (§1) — register a fresh account first and log in
-> with that instead.
-
 ```bash
-# 1. login → grab the access token (see warning above re: seeded credentials)
+# 1. login → grab the access token (seeded password is `developer`, see §1)
 curl -s -X POST http://localhost:8080/api/v1/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"teen001.dev@mhsa.local","password":"password"}'
+  -d '{"email":"teen001.dev@mhsa.local","password":"developer"}'
 
 TOKEN=<accessToken from above>
 

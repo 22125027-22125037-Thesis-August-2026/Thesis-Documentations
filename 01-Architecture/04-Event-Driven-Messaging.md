@@ -53,7 +53,10 @@ table now, and it used to have three rows.
 > - **Social's** `RabbitDomainEventPublisher` emits `social.friend_request_created`,
 >   `social.friend_request_accepted` and `social.message_read` envelopes (routing key = `social`
 >   prefix + `_`-separated event type) to its **own** `social.domain.events` exchange on the
->   social-stack broker, which **no service consumes** either; its `message_sent` publish is
+>   social-stack broker, which **no service consumes** either — though note that having no consumer
+>   did **not** make these publishes free: until 2026-07-30 a null `spring.rabbitmq.virtual-host` made
+>   every one of them throw and 500 its caller, which is what stopped friend requests from being sent
+>   at all (see [Social-API §5](../02-Services/Social-API.md)); its `message_sent` publish is
 >   commented out in `ChatService`.
 >
 > Reinstating either notification means building the producer first, then restoring the consumer to

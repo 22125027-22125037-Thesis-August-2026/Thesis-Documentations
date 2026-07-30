@@ -100,7 +100,7 @@ The one auth case this folder keeps — not as field validation, but as the gate
 | 4 | Confirm logout | You return to the auth screen; tokens are cleared |
 | 5 | Log back in with the same credentials | Succeeds; your data (mood, journal, treasures) is all still there |
 | 6 | Try logging in with a **wrong** password | A clear error; no partial-auth state where the app looks logged in |
-| 7 | Try a seeded `*.dev@mhsa.local` account | ⚠️ Expected to **fail** — the seed's BCrypt hash does not verify. This is known, not a defect |
+| 7 | Log in as a seeded account, e.g. `teen008.dev@mhsa.local` / `developer` | Succeeds. (Corrected 2026-07-30 — this step previously said to expect a failure) |
 
 **Pass criteria** — Register, login and logout all work, data survives a logout/login cycle, and bad
 credentials fail cleanly.
@@ -260,7 +260,7 @@ present.
 
 | Observation | Status |
 |---|---|
-| Seeded `*.dev@mhsa.local` accounts cannot log in | ⚠️ Known — the seed's BCrypt hash does not verify |
+| Seeded `*.dev@mhsa.local` accounts log in with `developer` | ✅ Verified 2026-07-30 — the seed file's `Plaintext password: password` comment is wrong, the hash itself is fine |
 | No in-app language switcher (`setAppLanguage` is uncalled) | ⚠️ Confirm in `M15-04`; reconcile with showcase §10 |
 | No dark theme or theme switcher | ⚠️ Confirm in `M15-06`; reconcile with showcase §10 |
 | Some strings are hard-coded in Vietnamese outside i18n | ⚠️ Record in `M15-04` |

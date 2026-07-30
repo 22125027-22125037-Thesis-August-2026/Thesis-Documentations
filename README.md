@@ -162,6 +162,7 @@ go stale.
 | 2026-07-29 22:34 | 8 mobile commits + laptop↔VM reconciliation | All five deployed repos level with the laptop, `.env` files compared by SHA-256; `therapist-web-ui/.env` was the one case where the **VM** was right and the laptop stale |
 | 2026-07-29 23:22 | 1 commit + a product decision | Health Connect reverted (`health.*` is restricted and would classify uMatter as a health app); video settled as **Jitsi, and only Jitsi** |
 | 2026-07-30 | no new commits | Cross-document audit: seven stale claims, six older than the three preceding sweeps — public ingress, the CORS allow-list, the runbook's repoint checklist, the academic chapter's TLS limitations, and therapist-api's test state |
+| 2026-07-30 (later) | 2 bug fixes, prod-verified | Friend requests and chat both fixed at the source, and the seeded-account password corrected across six docs — the "cannot log in" claim was false, it is `developer` |
 
 **The one finding that changed code, not docs.** Ten files claimed Auth published a JWKS endpoint and
 that Dashboard consumed it. None of it was true, so the gap was closed instead of written down: Auth

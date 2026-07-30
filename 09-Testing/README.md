@@ -129,9 +129,12 @@ tackle them once the mobile E2E suite is green:
 These are **pre-existing, documented conditions**, not bugs to re-discover. Raising them again as new
 defects wastes a run.
 
-1. **Seeded `*.dev@mhsa.local` accounts cannot log in.** The BCrypt hash in
-   `V2__seed_development_testing_accounts.sql` does not verify against `password`. **Register fresh
-   accounts** for every test run — see [01-Test-Environment](01-Test-Environment-Builds-and-Data.md).
+1. **Seeded `*.dev@mhsa.local` accounts log in with the password `developer`.** Corrected 2026-07-30:
+   previous revisions of this list said they could not log in at all, because the seed file's own
+   comment documents the plaintext as `password`. The hash is valid; it encodes `developer`. Use the
+   seeded accounts — they carry the deterministic `profile_id`s the rest of the seed data references.
+   Register fresh accounts only for cases that verify a real email (M14) — see
+   [01-Test-Environment](01-Test-Environment-Builds-and-Data.md).
 2. **Only `appointment.booked` produces a notification.** Therapist `confirm` / `reject` / `cancel`
    publish no event, so they generate no inbox row, email or push. `streak.milestone` and
    `message.missed` consumers were deleted in July 2026 — those flows do not exist. Do not write

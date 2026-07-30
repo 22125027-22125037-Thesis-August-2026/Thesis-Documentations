@@ -96,20 +96,25 @@ Minimum for Phase 1: **one physical Android device**. The emulator cannot do the
 
 ## 4. Test accounts
 
-### ⚠️ Do not use the seeded accounts
+### ✅ The seeded accounts are usable — password `developer`
 
-`V2__seed_development_testing_accounts.sql` creates 90 accounts (`teen001.dev@mhsa.local`, etc.) whose
-BCrypt hash does not verify against `password` or any known plaintext. **They cannot log in.** Their
-only remaining use is as *deterministic profile IDs* referenced by other seed data.
+`V2__seed_development_testing_accounts.sql` creates 90 accounts (`teen001.dev@mhsa.local`, etc.) and
+they **do log in**, with the password `developer`. Verified against prod 2026-07-30. Earlier revisions
+of this page said they could not log in; that came from trusting the seed file's own
+`-- Plaintext password: password` comment, which is simply wrong about the plaintext. Prefer them for
+manual runs: they carry the deterministic `profile_id`s the rest of the seed data references, so
+friend, grant and assignment flows are reproducible.
 
-Likewise the **43 seeded data-access grants exist only in `auth_db`** — the seed INSERTs bypass the
-event pipeline, so Tracking's replica does not have them until the nightly reconcile (23:30 ICT).
-Never build a test (or a demo) on a seeded grant. Create grants through the app.
+One seeded artefact you still **cannot** trust: the **43 seeded data-access grants exist only in
+`auth_db`** — those INSERTs bypass the event pipeline, so Tracking's replica does not have them until
+the nightly reconcile (23:30 ICT). Never build a test (or a demo) on a seeded grant. Create grants
+through the app.
 
 ### Accounts to create for each run
 
-Register fresh through the app or `POST /api/v1/auth/register`. Use `+qa` addressing on a mailbox you
-control so [M14](E2E-Mobile/E2E-M14-Notifications-End-to-End.md) can verify the confirmation email.
+Seeded accounts cover most cases now (§ above), but any case that verifies an **email** needs an
+address you control. Register those fresh through the app or `POST /api/v1/auth/register`, using `+qa`
+addressing so [M14](E2E-Mobile/E2E-M14-Notifications-End-to-End.md) can verify the confirmation email.
 
 | Alias | Role | Purpose | Suggested email |
 |---|---|---|---|

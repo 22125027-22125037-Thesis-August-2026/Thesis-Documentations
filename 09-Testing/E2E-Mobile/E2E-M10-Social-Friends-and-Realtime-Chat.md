@@ -40,13 +40,23 @@ Phone (@stomp/stompjs, wss://umatter-apcs.duckdns.org/ws)
 Destinations: subscribe `/user/queue/messages`, publish `/app/chat.send`. The JWT is sent in the
 STOMP `CONNECT` headers, not just the HTTP handshake.
 
-### ⚠️ Two things that will mislead you
+### ⚠️ Three things that will mislead you
 
 1. **A successful WebSocket upgrade proves nothing.** The historical bug failed *after* a clean 101.
    The signal to trust is the app's own log line — `STOMP connected successfully` — and, server-side,
    `WebSocketMessageBrokerStats` reporting a non-zero session count.
 2. **Curling `/ws` over HTTPS returns a misleading 400** unless you force HTTP/1.1 (`curl --http1.1`),
    because HTTP/2 forbids `Upgrade` headers. A 400 there is not evidence of a broken endpoint.
+3. **"Connecting…" that never clears is usually the clock, not the build.** The historical version of
+   this (fixed 2026-07-30) presented as *"chat works over `run-android` but not in the `.aab`, and
+   stops when I unplug the cable"* — all three observations were coincidence. The access token lives
+   15 minutes; a session older than that could never connect. Before investigating transport, **log
+   out and back in**, then retry. If it works for ~15 minutes and dies again, you are on a build
+   older than the fix.
+   Also note: RN only *guarantees* console wiring under `__DEV__` (its log forwarding sits inside a
+   `__DEV__` guard), so a **missing** `STOMP connected successfully` line in a release build's logcat is
+   inconclusive — never read it as proof the connection failed. To get release behaviour *and* reliable
+   logs, install with `npx react-native run-android --mode=release` over USB.
 
 ### ⚠️ There is no offline push for chat
 
@@ -261,7 +271,9 @@ being tested here is **recovery**, not notification.
 | No push notification when messaging an offline friend | ⚠️ **Known** — `message_sent` publish is commented out and the `message.missed` consumer was deleted. Do not file |
 | `/ws` bypasses the Nginx gateway (Caddy routes it directly) | ✅ By design — REST health does not imply chat health |
 | STOMP relay virtual host is pinned to `/` | ✅ Fixed 2026-07-20 — this is what makes chat work at all |
-| Social publishes `social.*` domain events nobody consumes | ✅ Known dormant plumbing; invisible from the app |
+| Social publishes `social.*` domain events nobody consumes | ✅ Dormant plumbing — but **not** invisible from the app, see the row below |
+| Sending a friend request returned `500 "Unexpected error"` | ✅ Fixed 2026-07-30 — a *second*, unrelated null-`virtualHost` bug (the AMQP publisher, not the STOMP relay) made every domain-event publish throw, so `M10-01` and `M10-03` could not pass on any build before that date. Also affected friend-request accept and read receipts |
+| Chat wedged on "Connecting…" in any session older than ~15 min | ✅ Fixed 2026-07-30 (mobile `1d2bf88`) — the access token expires in 15 min and the STOMP `CONNECT` frame replayed the login-time one forever. On an **older build** this looks like a release-only or USB-only fault; it is neither, it is the clock. Re-login resets the window |
 
 ## Run log
 

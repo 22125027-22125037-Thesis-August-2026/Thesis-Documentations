@@ -132,8 +132,9 @@ Where a case can be verified by relaunch alone, it says so.
 1. The build under test is installed on the target device and its version/commit is recorded.
 2. All backend services are up: `GET /api/v1/auth/health` (or the equivalent smoke in
    [06-Development/03-Testing-and-Accounts §2](../06-Development/03-Testing-and-Accounts.md)) returns 200.
-3. Fresh test accounts exist per [01-Test-Environment](01-Test-Environment-Builds-and-Data.md) — never
-   the seeded `*.dev@mhsa.local` ones.
+3. Test accounts exist per [01-Test-Environment](01-Test-Environment-Builds-and-Data.md) — the seeded
+   `*.dev@mhsa.local` ones are fine (password `developer`); register fresh only where a case needs a
+   real mailbox.
 4. The device has network, notification permission granted, and (for M05) physical-activity permission.
 5. The known-issues list in the [README](README.md#️-known-issues-every-tester-must-read-first) has been read.
 

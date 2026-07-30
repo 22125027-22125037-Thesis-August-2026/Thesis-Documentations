@@ -94,7 +94,10 @@ thesis-mobile/
   `Authorization: Bearer <token>` and handles 401 (re-login / refresh).
 - **Push:** on login it registers its FCM token via `POST /api/v1/notification/api/v1/devices`
   (`{ profileId, deviceToken, platform: "ANDROID" }`); Notifee renders foreground notifications.
-- **Chat:** opens a STOMP-over-WebSocket connection to the Social service for live messaging.
+- **Chat:** opens a STOMP-over-WebSocket connection to the Social service for live messaging. The JWT
+  travels in the STOMP `CONNECT` frame, and since access tokens expire in 15 minutes the client
+  re-reads the current token from AsyncStorage on **every** connect attempt (stompjs `beforeConnect`)
+  — a socket that captured its header once replayed an expired token forever and never reconnected.
 - **Video:** on `GET /api/v1/therapist/.../bookings/{id}/join` it receives the **Jitsi room name**
   (`password` and `sdkJwt` come back `null` under Jitsi) and opens `https://meet.jit.si/<room>` in a
   WebView. `VideoConsultationScreen` injects CSS/JS to skip the pre-join page and dismiss Jitsi's auth
