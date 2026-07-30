@@ -145,10 +145,10 @@ defects wastes a run.
 4. **A released build older than 2026-07-20 has no AI consent toggle**, so its AI companion is
    permanently ungrounded (`[USER CONTEXT - NOT SHARED]`). Check the build under test before failing
    M07.
-5. **JVM test suites are partly red** (therapist-api: 38/43 pass, the 5 failures being an H2
-   array-column schema flake in its two `@SpringBootTest` classes; thesis_social: 2 deterministic
-   failures and a ~50% flake). Irrelevant to Phase 1, but do not treat a red `./gradlew test` as a
-   regression you caused — see
+5. **JVM test suites are nearly green as of 2026-07-30** — therapist-api is **46/46** (its
+   integration tests moved to a PostgreSQL Testcontainer, so they now need a running Docker daemon),
+   and thesis_social is **44/47** with 2 skipped. The only remaining failure is the `FriendServiceTest`
+   strict-stubbing flake (~50%), so a single red run there is not a regression you caused. See
    [06-Development/03 §5](../06-Development/03-Testing-and-Accounts.md).
 
 ---

@@ -184,18 +184,25 @@ scp -i "$AZKEY" "D:\Y4-Sem 2 Thesis\therapist-web-ui\.env"                "${AZ}
 scp -i "$AZKEY" "D:\Y4-Sem 2 Thesis\notification-api\secrets\firebase-credentials.json" "${AZ}:~/notification_api/secrets/firebase-credentials.json"
 ```
 
-Three files hard-code the IP. If the IP ever changes, re-run this on the VM:
+Two files hard-code the IP. If the IP ever changes, re-run this on the VM:
 
 ```bash
 OLD=<PREVIOUS_IP>; NEW=85.211.241.204
-sed -i "s/$OLD/$NEW/g" ~/thesis_social/.env ~/therapist-web-ui/.env ~/therapist-web-ui/.env.development
+sed -i "s/$OLD/$NEW/g" ~/thesis_social/.env ~/therapist-web-ui/.env.development
 ```
 
 - `thesis_social/.env` → `SOCIAL_CORS_ALLOWED_ORIGINS`
-- `therapist-web-ui/.env` → the 5 `VITE_*_BASE_URL`s
 - `therapist-web-ui/.env.development` → **git-tracked**, so a local `sed` will conflict with the next
   `git pull`. Prefer committing the change; if you have already `sed`-ed it, run
-  `git checkout -- .env.development` before pulling.
+  `git checkout -- .env.development` before pulling. It is read **only** by a laptop `npm run dev`,
+  so on the VM this file changes nothing — the deployed UI is same-origin.
+- `therapist-web-ui/.env` is **not** in the list: since 2026-07-29 it is comment-only. It used to hold
+  five `VITE_*_BASE_URL` vars with wrong ports that no code read. Do not reintroduce them.
+
+> ⚠️ **Check `VIDEO_PROVIDER=jitsi` is present in `therapist-api/.env`.** Since 2026-07-30 an unset
+> value defaults to **Jitsi**, so a missing line is no longer fatal — but before that it silently
+> selected the dormant Zoom provider, which `404`s every booking. Keep the line explicit so the
+> intent is visible in the file, and never set it to `zoom` unless you are actually testing Zoom.
 
 > `S3_PUBLIC_ENDPOINT` needs **no** edit — it is the **domain**, not an IP, and is committed.
 

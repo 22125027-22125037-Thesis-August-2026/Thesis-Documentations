@@ -79,7 +79,7 @@ to end (this folder).
 | ~~**IP hard-coding**~~ | ✅ **Resolved (July 2026).** DuckDNS + a systemd timer republish the VM's IP every 5 min, so the domain self-heals across a rebuild. The Oracle→Azure move needed no mobile rebuild and no Play resubmission. The one raw IP left is `therapist-web-ui/.env.development`, read only by a laptop `npm run dev` |
 | **Booking policies pending** | 12h lead-time and 24h cancellation rules are specified but not yet enforced in code |
 | **Refresh-token rotation partial** | implemented in Auth; not yet wired into every downstream service |
-| **Test coverage** | uneven, and partly red: therapist-api runs 43 tests (38 green) but its two `@SpringBootTest` classes fail on an H2 array-column schema flake, and thesis_social has 2 deterministic failures plus a ~50% Mockito flake. No CI runs any of it — see [06-Development/03 §5](../06-Development/03-Testing-and-Accounts.md) |
+| **Test coverage** | uneven but green as of 2026-07-30: therapist-api is 46/46 (integration tests run the real Flyway schema on a PostgreSQL Testcontainer) and thesis_social is 44/47 + 2 skipped, the one failure being a strict-stubbing flake. Breadth is still the gap, and **no CI runs any of it** — see [06-Development/03 §5](../06-Development/03-Testing-and-Accounts.md) |
 | **No live data backup** | recovery is a fresh-seed rebuild; real data needs manual `pg_dump`/MinIO copy |
 | **Single VM** | no horizontal scaling/HA yet (services are stateless and ready for it) |
 

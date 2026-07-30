@@ -151,13 +151,19 @@ is refused once **any** completion variant is reached.
 
 - Abstracted behind `VideoConsultationProvider` (`VideoRoomDetailsDto getVideoRoomDetails(Therapist)`),
   selected by `video.provider` / `VIDEO_PROVIDER` via `@ConditionalOnProperty`.
+- 🟢 **Jitsi is the default in both places, as of 2026-07-30.** `application.yml` reads
+  `${VIDEO_PROVIDER:jitsi}` and `JitsiVideoServiceImpl` carries `matchIfMissing = true`, so an unset
+  variable selects the live provider. Previously **both** defaults pointed at Zoom, meaning one
+  missing line in a rebuilt VM's `.env` would silently boot the dormant Zoom path and `404` every
+  booking — presenting as bad therapist data rather than bad config.
+  `VideoProviderSelectionTest` pins all three cases (absent → Jitsi, `jitsi` → Jitsi, `zoom` → Zoom).
 - ✅ **Jitsi is the provider in use** — every deployed `.env` sets **`VIDEO_PROVIDER=jitsi`**.
   `JitsiVideoServiceImpl` returns a **random room UUID** with a `null` password and a `null` SDK JWT.
   The room is snapshotted onto the appointment at booking time, and **both clients** open
   `https://meet.jit.si/<room>` — the mobile app in a WebView (`VideoConsultationScreen`), the therapist
   web UI in `VideoSessionPage`. Nothing is self-hosted; `meet.jit.si` is a third-party service.
-- ⚪ **Zoom (`ZoomVideoServiceImpl`) is implemented but not used.** It is the *code* default
-  (`matchIfMissing = true`), so it runs only if `VIDEO_PROVIDER` is unset — which no deployment does.
+- ⚪ **Zoom (`ZoomVideoServiceImpl`) is implemented but not used, and is now explicit opt-in.** It
+  loads *only* for `VIDEO_PROVIDER=zoom`.
   It would read the therapist's static Personal Meeting Room from `therapist_zoom_credentials` and mint
   a Zoom SDK JWT, one Zoom Basic account per therapist to dodge concurrent-meeting limits. Treat this
   as the demonstration that the abstraction holds, **not** as a description of the running system.

@@ -104,41 +104,46 @@ curl -X POST http://localhost:8085/api/v1/test/trigger-cleanup      # delete sta
 
 ## 5. Automated tests
 
-| Service | Coverage (representative) | State (re-measured 2026-07-29) |
+| Service | Coverage (representative) | State (re-measured 2026-07-30) |
 |---|---|---|
-| **Therapist API** | `BookingServiceTest`, `ClinicalNoteServiceTest` (Mockito, no DB); `ScheduleGenerationServiceIntegrationTest` (TZ conversion, idempotent generation), `ReviewServiceIntegrationTest` (creation, duplicate prevention, non-completed rejection, rating recompute), context-startup test | 🟡 **compiles and runs** — 43 tests, **38 pass / 5 fail**. All 5 failures are the two `@SpringBootTest` integration classes hitting the H2 array-column flake below; every Mockito unit test is green |
-| **Social** | 45 tests incl. `JwtTokenServiceTest` (14, green), `ChatServiceTest`, `FriendServiceTest` | 🟡 2 deterministic failures + 1 flake (2 skipped) — see below |
+| **Therapist API** | `BookingServiceTest`, `ClinicalNoteServiceTest`, `VideoProviderSelectionTest` (Mockito / context-runner, no DB); `ScheduleGenerationServiceIntegrationTest` (TZ conversion, idempotent generation), `ReviewServiceIntegrationTest` (creation, duplicate prevention, non-completed rejection, rating recompute), context-startup test | 🟢 **46 / 46 green**, stable across three consecutive `--rerun-tasks` runs. The integration tests moved from H2 to a **PostgreSQL Testcontainer** running the real Flyway migrations (`ddl-auto: validate`), which removed the array-column flake entirely |
+| **Social** | 47 tests incl. `JwtTokenServiceTest` (14, green), `ChatServiceTest`, `FriendServiceTest` | 🟡 **44 pass / 1 fail / 2 skipped** — the single failure is the `FriendServiceTest` strict-stubbing flake below |
 | **Notification** | consumer + dispatcher tests | 🟢 green |
 | Others | Spring context-load tests; mobile app has Jest config (`jest.config.js`) | — |
 
-Run the Gradle repos' tests with `./gradlew test`. ⚠️ The Maven monorepo's `./mvnw` is broken —
-`.mvn/wrapper/maven-wrapper.properties` is missing, so the wrapper cannot resolve a distribution.
-Use a system Maven (`mvn test`) until the wrapper is restored.
+Run the Gradle repos' tests with `./gradlew test`. The Maven monorepo's wrapper was **repaired on
+2026-07-30** (`.mvn/wrapper/maven-wrapper.properties` had never been committed, so `./mvnw` could not
+resolve a distribution); `mvnw.cmd -v` and a real goal both succeed now. On this laptop use
+`mvnw.cmd` from PowerShell — under Git Bash the wrapper's `wget` hits an msys2/cygwin DLL clash that
+has nothing to do with Maven.
+
+> ⚠️ **therapist-api's integration tests now need a running Docker daemon**, because they start a
+> PostgreSQL Testcontainer. Without Docker they fail at startup rather than falling back to H2.
 
 ### Known test-suite problems (don't mistake these for your own breakage)
 
-1. **therapist-api's integration tests hit a pre-existing H2 schema-generation flake.**
-   *(The older "the tests do not compile" problem is **fixed**: `BookingServiceTest` called
-   `AppointmentRepository.findClosestUpcomingOrRecentInProgress(...)` without the `Limit` parameter
-   the interface takes. The appointment-status-split commit `1c1a3cc` added `any(Limit.class)` and
-   the `org.springframework.data.domain.Limit` import, so `compileTestJava` is clean and the suite
-   runs again.)*
-
-   What remains is a **schema-generation flake, not a code defect**. Entities with Postgres
-   array-typed columns (`therapists.treated_challenges`, `patient_tags.tags`,
-   `profiles_preferences.reasons` — all `varchar[]`) generate DDL that H2's `MODE=PostgreSQL`
-   rejects (`Syntax error … expected "(, ARRAY"`). Hibernate's `ddl-auto=create-drop` logs each
-   failed `CREATE TABLE` as a WARN and **keeps going**, so which *other* tables end up missing
-   depends on generation ordering that varies run to run. The symptom is misleading:
-   `Table "THERAPISTS" not found` on an INSERT that has nothing to do with the array column.
-   > **Before blaming a change for this, stash it and run the same test 2–3 times on clean `main`.**
-   > Compare failure *rates*, not single runs. The Mockito-only unit tests (`BookingServiceTest`,
-   > `ClinicalNoteServiceTest`) never touch a DB and are unaffected — trust those for fast, reliable
-   > signal on service-layer logic.
-2. **thesis_social has 2 deterministic failures**, both pre-existing and both consistent with the
-   dormant-event finding: `ChatServiceTest.sendMessageShouldPersistNotifyAndPublishEvent` expects the
-   `message_sent` publish that is commented out, and
-   `ChatServiceTest.listChannelsShouldIncludeCounterpartLastMessageAndUnreadCount` asserts on it.
+1. ~~**therapist-api's H2 array-column flake**~~ — **fixed 2026-07-30.** History, because the failure
+   mode is worth recognising elsewhere: entities with `varchar[]` columns
+   (`therapists.treated_challenges`, `patient_tags.tags`, `profiles_preferences.reasons`) generated
+   DDL that H2's `MODE=PostgreSQL` rejects. Hibernate's `create-drop` logged each failed
+   `CREATE TABLE` as a WARN and **kept going**, so which *other* tables ended up missing varied run
+   to run and the symptom was a misleading `Table "THERAPISTS" not found` on an unrelated INSERT.
+   The two `@SpringBootTest` classes now extend `AbstractPostgresIntegrationTest`, which starts a
+   single shared **PostgreSQL Testcontainer** and runs the **real Flyway migrations** against it, so
+   they exercise the deployed schema under `ddl-auto: validate` exactly as production does.
+   *(The older "the tests do not compile" problem was fixed earlier, by `1c1a3cc`.)*
+   > If you reuse this base class: it deliberately avoids `@Testcontainers`/`@Container`, whose
+   > extension stops the container **per test class** — the first class passes and every later one
+   > fails with `Connection to localhost:<port> refused`. A static singleton started once is correct.
+2. ~~**thesis_social's 2 deterministic `ChatServiceTest` failures**~~ — **fixed 2026-07-30**, and they
+   did *not* share a cause, though this page previously said they did:
+   - `sendMessageShouldPersistNotifyAndPublishEvent` verified a `message_sent` publish that is
+     commented out in `ChatService` and whose consumer was deleted in July 2026. The assertion was
+     **dropped** — there is no such event anywhere in the system to assert on.
+   - `listChannelsShouldIncludeCounterpartLastMessageAndUnreadCount` was **a defect in the test, not
+     a dormant feature**: `listChannels` resolves names through the batch
+     `resolveProfileNames(Set<UUID>)`, which the test never stubbed, so `counterpartUsername` came
+     back `null`. Fixed by adding the missing stub, keeping the assertion and its coverage.
 3. **`FriendServiceTest.unfriendShouldDeleteFriendshipAndDirectChannel` is flaky (~50%)**, failing
    with Mockito's `PotentialStubbingProblem` only in a full-suite run and passing in isolation —
    a strict-stubbing order dependence. Measured at 2/4 on both `main` and a feature branch, so a
