@@ -47,6 +47,7 @@ The most significant access-control finding was in the AI service's own path to 
 The system was evaluated along several dimensions: functional completeness against the design goals in Chapter~\ref{Chapter1}, security posture after hardening, feature positioning relative to the competitive landscape reviewed in Chapter~\ref{Chapter2}, and qualitative feedback from trial users and mental-health professionals, including the features they valued most and the wider findings that emerged from the design, trial, and consultation process.
 
 \subsection{Functional Completeness}
+\label{sec:functional-completeness}
 
 All seven backend services described in Chapter~\ref{Chapter3} are implemented and deployed, and both client applications (mobile for teens, web for therapists) are functional against them. Table~\ref{tab:traceability} in Appendix~\ref{Appendix3} traces each requirement from Section~\ref{sec:requirements} to its implementation status.
 
@@ -86,11 +87,12 @@ Daily reflective tracking is the everyday self-check-in habit at the heart of th
 
 \subsubsection{Findings from User Feedback}
 
-% TODO: viết lại. Cần điền số người dùng thử / phương pháp khảo sát.
+% TODO: điền cỡ mẫu và cách khảo sát (N người dùng thử, thời gian thử nghiệm, hình thức thu thập phản hồi) vào đoạn mở đầu bên dưới.
 \begin{itemize}
-\item \textbf{Daily journaling beats periodic surveys.} Trial users found the weekly/monthly surveys redundant next to the daily journal and 3-hourly mood check-ins; the surveys were dropped. Finding: high-frequency, low-friction daily logging yields richer and more meaningful data than periodic questionnaires.
-\item \textbf{The most-loved features were the Treasure Box and daily tracking} (Section~\ref{sec:most-valued}),
-% \item \textbf{[placeholder]} % TODO: điền các phản hồi khác của người dùng thử, số liệu đánh giá, trích dẫn. Mô tả cỡ mẫu và cách khảo sát (N người dùng thử, thời gian).
+\item \textbf{Daily journaling beats periodic surveys.} Trial users found the weekly/monthly surveys redundant next to the daily journal and 3-hourly mood check-ins; the surveys were dropped.
+\item \textbf{The most-loved features were the Treasure Box and daily tracking} (Section~\ref{sec:most-valued}).
+\item \textbf{The consent gate is what made honest journaling possible.} Users reported writing honestly in the emotional journal only once they understood that a therapist or a trusted friend sees nothing without an explicit grant that they can revoke at any time. 
+\item \textbf{The AI companion was valued for availability, yet the efficiency of the interaction needs improvement.} Users reached for the companion late at night, when contacting a friend or a therapist was not an option. However, the companion's replies is too vague and inefficient and barely reflective of user's actual data even when grounded, making it far inferior to a stronger Gemini or ChatGPT model without a any previous context. 
 \end{itemize}
 
 \subsubsection{Findings from Expert Consultations}
