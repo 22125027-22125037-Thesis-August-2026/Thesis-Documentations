@@ -1,0 +1,58 @@
+\chapter{Technology Selection Rationale}
+\label{Appendix5}
+
+Chapter~\ref{Chapter4} reports what the system is built from. This appendix records why those components were preferred to the alternatives considered in January 2026, and where the delivered system departed from that comparison.
+
+\section{Language Model}
+
+The AI companion (\textit{Bạn Tâm Giao}) needed to sustain an empathetic conversation in Vietnamese, carry context from the user's own record, and run at a cost a student project could absorb.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Language models compared, as assessed in January 2026}
+  \label{tab:llm-comparison}
+  \begin{tabular}{|L{3.1cm}|L{3.3cm}|L{3.3cm}|L{3.6cm}|}
+    \hline
+    \textbf{Criterion} & \textbf{Gemini Flash} & \textbf{GPT-4o mini} & \textbf{Claude 3 Haiku} \\
+    \hline
+    Context window & 1,000,000 tokens & 128,000 tokens & 200,000 tokens \\
+    \hline
+    Multimodal input & Native & Billed separately & Text-first \\
+    \hline
+    Vietnamese vernacular & Strongest of the three & Correct, less natural & Natural \\
+    \hline
+    Cost at prototype scale & Free tier sufficient & Low, prepaid credits & Payment friction in Vietnam \\
+    \hline
+    Latency & Low & Low & Medium \\
+    \hline
+  \end{tabular}
+\end{table}
+
+Gemini Flash was selected on three grounds: a context window large enough that no token budget had to be designed around while the grounding mechanism was still taking shape; the strongest handling of Vietnamese slang and emotionally weighted pronoun forms, treated as a correctness requirement because misreading that register means misreading the user's mood; and a free tier adequate for development and trial use.
+
+Two expectations did not survive implementation. The context window is not fully exercised, since the model receives an aggregate summary of recent tracking data rather than a raw history (Chapter~\ref{Chapter4}), and multimodal input went unused, since meal photographs are stored with the user's logs but never sent to the model. The implemented service calls \texttt{gemini-2.5-flash}~\cite{2024-Gemini-TechReport}, the current model of the same family and tier by the time the AI service was built.
+
+A hosted API was preferred to the two self-managed alternatives. Models small enough to run on a mid-range Android phone carry context windows one to two orders of magnitude smaller and would make the companion's behaviour depend on the user's handset, while self-hosting an open-weights model requires datacentre-class accelerators kept continuously available. The privacy cost of that choice is mitigated inside the platform instead: nothing reaches the provider unless the user holds an active grant, identifying details are scrubbed before the request leaves, and chat contents are encrypted at rest (Section~\ref{sec:datasec}).
+
+\section{Client and Backend Platform}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Platform choices, alternatives considered, and the deciding factor}
+  \label{tab:stack-selection}
+  \begin{tabular}{|L{2.4cm}|L{2.9cm}|L{2.5cm}|L{5.6cm}|}
+    \hline
+    \textbf{Component} & \textbf{Selected} & \textbf{Also considered} & \textbf{Deciding factor} \\
+    \hline
+    Mobile client & React Native & Flutter & The team was already fluent in React, with no new language to absorb before the first feature \\
+    \hline
+    Backend services & Spring Boot~\cite{SpringBoot} & FastAPI, Node.js & Static typing in a codebase holding clinical notes, and Spring Security as the enforcement point for the grant checks of Section~\ref{sec:datasec} \\
+    \hline
+    Database & PostgreSQL & MySQL, MongoDB & The transactional guarantee behind the atomic slot claim of Chapter~\ref{Chapter4}, plus JSONB for the varied shapes of the tracking logs \\
+    \hline
+    Video sessions & Jitsi Meet~\cite{Jitsi} & Proprietary SDKs & Open source, with no commercial video vendor's quota or pricing in the therapy workflow \\
+    \hline
+  \end{tabular}
+\end{table}

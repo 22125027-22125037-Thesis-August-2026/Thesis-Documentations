@@ -1,0 +1,78 @@
+\chapter{Baseline Platform Evaluation}
+\label{Appendix4}
+
+This appendix documents the baseline study summarized in Chapter~\ref{Chapter1}, carried out in December 2025 before implementation began. Quotations are reproduced from the study workbook with spelling normalized.
+
+\section{Study Design}
+
+Two senior students outside the development team evaluated the ten platforms in Table~\ref{tab:baseline-platforms}, answering the same ten questions about each: Bảo Châu (21, Psychology, Ho Chi Minh City University of Education) and Gia Phát (21, Business, RMIT University Vietnam), chosen so that the assessment came from someone with domain knowledge and someone without. Both answered in role, against two personas drawn from the target population: \emph{Minh}, 20, a university student diagnosed with mild-to-moderate depression who rejects anything resembling clinical paperwork (\emph{Case~1} below), and \emph{An}, 16, a tenth-grader under academic pressure whose family does not believe anything is wrong (\emph{Case~2}). The questions covered the ``black box'' between sessions, data disconnect, journaling privacy, trust in AI, social-media risk, crisis alerts, homework adherence, input fatigue, willingness to pay, and a feature wishlist.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Platforms evaluated, with each evaluator's overall usefulness rating}
+  \label{tab:baseline-platforms}
+  \begin{tabular}{|L{3.6cm}|L{4.4cm}|C{1.9cm}|C{1.9cm}|}
+    \hline
+    \textbf{Platform} & \textbf{Category} & \textbf{Ev.~1} & \textbf{Ev.~2} \\
+    \hline
+    Wysa / Woebot & AI chatbot & 6 / 10 & 5 / 10 \\
+    \hline
+    Bearable & Symptom tracker & 7 / 10 & 7 / 10 \\
+    \hline
+    Reddit / Facebook & Social community & 2 / 10 & 6.5 / 10 \\
+    \hline
+    Blueprint & Clinical assessment & --- & --- \\
+    \hline
+    BetterHelp & Telehealth platform & 4 / 10 & --- \\
+    \hline
+    Daylio & Micro-journaling & 5 / 10 & 6 / 10 \\
+    \hline
+    Greenspace & Measurement-based care & --- & --- \\
+    \hline
+    Talkspace & Asynchronous messaging & 7.5 / 10 & --- \\
+    \hline
+    SimplePractice & Practice management & 7 / 10 & --- \\
+    \hline
+    7 Cups & Peer support & --- & --- \\
+    \hline
+  \end{tabular}
+\end{table}
+
+A dash indicates that no overall rating was recorded. Blueprint and Greenspace are clinician-facing products, judged for what a therapist receives rather than for what a teenager experiences.
+
+\section{Findings}
+
+\textbf{The week between sessions is a black box.} For Minh, what the patient meant to raise is gone by the appointment (``maybe forgot the thoughts happened''); for An, the thoughts instead ``prolong throughout weeks and months''. Sharing a record was judged to help ``because the patient is too exhausted to re-express their emotions and thoughts''.
+
+\textbf{Input fatigue ends app use.} Both evaluators named effort first: ``too much typing, too much general advice''; ``too many steps to do, complex, time consuming''. Two other reasons appeared that less friction does not solve --- leaked ``sensitive information to third parties when I'm vulnerable'', and ``toxic strangers'' on peer platforms.
+
+\textbf{Tracking alone produces no progress.} The trackers scored highest in Table~\ref{tab:baseline-platforms} and still changed nothing (``only helps to track, but no progress was made''), while the chatbots were ``enough to improve the current condition, but not enough to completely resolve the problem'' and ``cannot replace a real human therapist''.
+
+\textbf{Consent is never absolute.} The evaluator who shared a journal with a therapist refused close friends and group sessions: ``only me and my therapist can read it, no one else; even the app's admin cannot read it.'' Automatic crisis alerts to family drew the strongest reaction in the study, rejected outright by both evaluators for both personas (``I would feel pressured to keep my mood up''; ``absolutely not''), while alerting a clinician remained tolerable.
+
+Table~\ref{tab:baseline-traceability} records what each finding produced, using the requirement identifiers of Section~\ref{sec:requirements}. Its last row follows from a split answer: the evaluators disagreed on willingness to pay, and the team resolved the split by audience, recording that the application targets ``non-payers such as high school students and undergraduates''.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Baseline-study findings traced to the features and decisions they produced}
+  \label{tab:baseline-traceability}
+  \begin{tabular}{|L{4.4cm}|L{9.4cm}|}
+    \hline
+    \textbf{Finding} & \textbf{Consequence for the design} \\
+    \hline
+    The week between sessions is a black box & A continuous record rather than a per-session one: mood check-in and journal (FR1), with Focus Mode bringing the prompt to the user (FR3) \\
+    \hline
+    Input fatigue ends app use & Capture reduced to a single tap, expanded only on request (FR1); step count collected automatically (FR2) \\
+    \hline
+    Tracking alone produces no progress & Responses built on the record, not charts alone: the grounded companion (FR4), breathing and the Treasure Box (FR5), the path to a therapist (FR6) \\
+    \hline
+    Consent is audience-specific & Grants that are explicit, scoped, and revocable, with nothing shared by default (NFR1; FR4, FR6, FR7) \\
+    \hline
+    Automatic crisis alerts were rejected & A user-initiated emergency path, with no automated risk inference (Section~\ref{sec:scope}) \\
+    \hline
+    Willingness to pay is split, and the users are students & Monetization excluded from scope (Section~\ref{sec:scope}) \\
+    \hline
+  \end{tabular}
+\end{table}

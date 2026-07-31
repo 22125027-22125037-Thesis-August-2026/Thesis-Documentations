@@ -7,7 +7,7 @@ This chapter describes how the design in Chapter~\ref{Chapter3} was implemented,
 
 The backend services are implemented in Java 17. The Auth, Tracking, AI, and Dashboard services are built on Spring Boot~4.0 and organized as a Maven multi-module project so that shared code (for example, JWT validation logic) is written once and reused. The Therapist service is a separate Gradle project on Spring Boot~4.0, while the Social and Notification services are Gradle projects on the slightly earlier Spring Boot~3.3, reflecting when they were added to the system. Persistence throughout uses Spring Data JPA over PostgreSQL. The Social service's real-time chat is implemented with STOMP over WebSocket, and the Notification service integrates Firebase Cloud Messaging for push delivery in addition to email and an in-app inbox.
 
-On the client side, the mobile application for teenagers is built with React Native~0.83 and React~19 in TypeScript, and the therapist-facing web dashboard is built with React~18, TypeScript, Vite, and Tailwind CSS.
+On the client side, the mobile application for teenagers is built with React Native~0.83 and React~19 in TypeScript, and the therapist-facing web dashboard is built with React~18, TypeScript, Vite, and Tailwind CSS. Appendix~\ref{Appendix5} records why these platforms, the database, and the language model behind the AI companion were preferred to the alternatives considered.
 
 \section{Deployment}
 
