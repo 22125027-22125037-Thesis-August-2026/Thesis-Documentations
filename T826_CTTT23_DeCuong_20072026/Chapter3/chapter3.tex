@@ -32,30 +32,30 @@ to the design objectives introduced in Chapter~\ref{Chapter1}.
     \textbf{ID} & \textbf{Requirement} & \textbf{Obj.} \\
     \hline
     FR1 & One-tap five-level mood check-in with optional context; journal
-          with photos, mood calendar, and streaks. & O1, O6 \\
+          with photos, mood calendar, and streaks. & O1, O5 \\
     \hline
     FR2 & Logs for sleep, nutrition and water, and breathing; step count is
-          collected automatically and is the only passive signal. & O3, O4 \\
+          collected automatically and is the only passive signal. & O1, O3 \\
     \hline
     FR3 & Focus Mode prompts a check-in roughly every 90 minutes during
           waking hours, silent during user-configured Quiet Hours. & O2 \\
     \hline
     FR4 & The AI companion grounds its replies in the user's own tracking
-          data if and only if the user has granted it access. & O5, O9 \\
+          data if and only if the user has granted it access. & O4, O8 \\
     \hline
     FR5 & Guided breathing and meditation, and a Treasure Box of saved
           positive memories, routed to by logged emotion; an emergency
-          area reachable in one tap from anywhere. & O6, O7 \\
+          area reachable in one tap from anywhere. & O5, O6 \\
     \hline
     FR6 & Therapist discovery, appointment booking, video consultation, and
           clinical notes; tracked data visible to a therapist only under an
-          explicit, scoped, revocable grant. & O8, O9 \\
+          explicit, scoped, revocable grant. & O7, O8 \\
     \hline
     FR7 & Friend and parent connections with real-time chat; a connection by
-          itself exposes no tracked data. & O9 \\
+          itself exposes no tracked data. & O8 \\
     \hline
     FR8 & Domain events produce push, email, and in-app notifications to the
-          affected parties. & O2, O8 \\
+          affected parties. & O2, O7 \\
     \hline
   \end{tabular}
 \end{table}
@@ -70,18 +70,18 @@ to the design objectives introduced in Chapter~\ref{Chapter1}.
     \hline
     NFR1 & Privacy by default. No tracked data is visible to any
            audience without an active grant, enforced server-side so a
-           compromised client cannot bypass it. & O9 \\
+           compromised client cannot bypass it. & O8 \\
     \hline
     NFR2 & Stateless security. RSA-signed JWTs validated locally by
-           every service against a published JWKS key. & O10 \\
+           every service against a published JWKS key. & O9 \\
     \hline
     NFR3 & Integrity under concurrency. Concurrent bookings of the
            same slot must not both succeed; retried requests are not applied
-           twice. & O8 \\
+           twice. & O7 \\
     \hline
     NFR4 & Independent evolvability on modest infrastructure. Each
            service develops, deploys, and migrates independently, and the
-           full platform runs on a single cloud virtual machine. & O10, O11 \\
+           full platform runs on a single cloud virtual machine. & O9, O10 \\
     \hline
   \end{tabular}
 \end{table}
