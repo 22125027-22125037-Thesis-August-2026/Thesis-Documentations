@@ -1,0 +1,107 @@
+\chapter{Development Cycle and Trial Participants}
+\label{Appendix6}
+
+This appendix records who took part in the design and testing of uMatter
+outside the two-person development team, and the weekly cycle through which
+their input reached the product. The baseline platform evaluation that opened
+the study is reported separately in Appendix~\ref{Appendix4}; the
+Acknowledgments thank the same people by name.
+
+\section{Weekly Review Cycle}
+\label{sec:weekly-cycle}
+
+Development ran in short phases, each delivering one coherent slice of the
+platform (for example, the tracking and journaling features, the grant model
+and the AI companion, or therapist booking and consultation). The requirements
+in Section~\ref{sec:requirements} were not settled once at the start and then
+implemented; they were revised phase by phase against three groups.
+
+\begin{itemize}
+  \item \textbf{The advisor.} Weekly supervision meetings with
+    \tenGVHD{} covered scope, architecture, and what was realistic to
+    deliver, and were where a proposed feature was first argued for or
+    dropped.
+
+  \item \textbf{Mental-health professionals.} The three professionals
+    introduced in Chapter~\ref{Chapter1} reviewed both the features proposed
+    for an upcoming phase and the features just completed, judging whether
+    each was clinically sound and appropriate for adolescents.
+
+  \item \textbf{Trial users.} The seven participants listed in
+    Table~\ref{tab:participants} gave the first round of user-story interviews
+    before implementation began, and were interviewed again against the
+    working build as the phases were completed.
+\end{itemize}
+
+In any given week the team met either the professionals or the trial users,
+depending on which set of proposed functions had been finished: a phase was
+treated as closed only once its features had been shown to one of the two
+groups, and the comments that came back were carried into the following phase.
+The purpose of the cadence was to keep the delivered feature set close to what
+the intended users and their clinicians actually asked for, rather than to what
+the team assumed on their behalf. Several of the outcomes are visible in the
+system: the periodic well-being surveys planned early on were dropped in favor
+of the daily journal and 3-hourly mood check-ins after trial users called them
+redundant, and the Treasure Box (Section~\ref{sec:most-valued}) exists because
+a counsellor proposed reconnecting users with their reasons for living and the
+CEO of LUMOS turned that idea into a concrete feature.
+
+\section{User-Story and Feedback Participants}
+
+Table~\ref{tab:participants} lists the trial users. All seven gave the first
+round of user-story interviews and all seven returned for the closed testing
+and feedback round, so their comments span the whole project rather than a
+single snapshot of it. Two of them, Bảo Châu and Gia Phát, had also served as the two
+evaluators of the baseline platform study in Appendix~\ref{Appendix4}.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Trial users who took part in the user-story and feedback rounds}
+  \label{tab:participants}
+  \begin{tabular}{|L{3.7cm}|L{6.3cm}|L{3.4cm}|}
+    \hline
+    \textbf{Participant} & \textbf{Status} & \textbf{Rounds} \\
+    \hline
+    Nguyễn Lê Bảo Châu & Psychology graduate, Ho Chi Minh City University of
+      Education & User stories; feedback; baseline study \\
+    \hline
+    Nguyễn Phi Hùng & Business graduate & User stories; feedback \\
+    \hline
+    Lê Gia Phát & Business student, RMIT University Vietnam & User stories;
+      feedback; baseline study \\
+    \hline
+    Trần Nhật Thanh & Student, Advanced Program in Computer Science,
+      University of Science, VNU-HCM & User stories; feedback \\
+    \hline
+    Huỳnh Hữu Hậu & Student, Advanced Program in Computer Science,
+      University of Science, VNU-HCM & User stories; feedback \\
+    \hline
+    Nguyễn Phước Ngọc Hương & Computer Science student, Ho Chi Minh City
+      University of Technology, VNU-HCM & User stories; feedback \\
+    \hline
+    Trần Vĩ Quang & Computer Science student, Ho Chi Minh City University of
+      Technology, VNU-HCM & User stories; feedback \\
+    \hline
+  \end{tabular}
+\end{table}
+
+The group is small and self-selected from the team's own circle, and it is
+weighted toward university students rather than the secondary-school half of
+the target population. It supports the qualitative findings reported in
+Section~\ref{sec:expert-findings} and nothing stronger; no statistical claim is
+made from it.
+
+\section{Closed-Testing Cohort}
+
+Publishing the Android client through Google Play required a closed test run
+with a minimum number of opted-in testers over a continuous fourteen-day
+period before the application could be promoted to production. Seventeen
+testers took part in that track, recruited externally for the fourteen-day
+window.
+
+The role of this cohort was different from that of the trial users above.
+Its members installed the published build and reported the defects they ran
+into; they were not interviewed about the design and did not contribute to the
+feature set. Their reports are the source of the fixes made during the release
+phase, and are counted as testing effort rather than as user research.
