@@ -1,0 +1,879 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global/global}
+    \entry{DanTri2017}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=10a6390cc19494743044fce952315004}{%
+           family={{Báo Thanh Niên}},
+           familyi={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{10a6390cc19494743044fce952315004}
+      \strng{fullhash}{10a6390cc19494743044fce952315004}
+      \strng{fullhashraw}{10a6390cc19494743044fce952315004}
+      \strng{bibnamehash}{10a6390cc19494743044fce952315004}
+      \strng{authorbibnamehash}{10a6390cc19494743044fce952315004}
+      \strng{authornamehash}{10a6390cc19494743044fce952315004}
+      \strng{authorfullhash}{10a6390cc19494743044fce952315004}
+      \strng{authorfullhashraw}{10a6390cc19494743044fce952315004}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Học sinh lớp 9 tại TP.HCM nhảy lầu tự tử vì điểm kém (Ninth-grader in HCMC jumps to death due to poor grades)}
+      \field{urlday}{17}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{year}{2017}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://thanhnien.vn/hoc-sinh-lop-9-tai-tphcm-nhay-lau-tu-tu-vi-diem-kem-185695396.htm
+      \endverb
+      \verb{url}
+      \verb https://thanhnien.vn/hoc-sinh-lop-9-tai-tphcm-nhay-lau-tu-tu-vi-diem-kem-185695396.htm
+      \endverb
+    \endentry
+    \entry{TuoiTre2024}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=8660bc553c28e3e59556ab0034588343}{%
+           family={{Báo Dân Trí}},
+           familyi={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{8660bc553c28e3e59556ab0034588343}
+      \strng{fullhash}{8660bc553c28e3e59556ab0034588343}
+      \strng{fullhashraw}{8660bc553c28e3e59556ab0034588343}
+      \strng{bibnamehash}{8660bc553c28e3e59556ab0034588343}
+      \strng{authorbibnamehash}{8660bc553c28e3e59556ab0034588343}
+      \strng{authornamehash}{8660bc553c28e3e59556ab0034588343}
+      \strng{authorfullhash}{8660bc553c28e3e59556ab0034588343}
+      \strng{authorfullhashraw}{8660bc553c28e3e59556ab0034588343}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Nam sinh viên tử vong dưới chân tòa nhà trường đại học (Male university student dies at the foot of university building)}
+      \field{urlday}{17}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://dantri.com.vn/thoi-su/nam-sinh-vien-tu-vong-duoi-chan-toa-nha-truong-dai-hoc-20240227201657100.htm
+      \endverb
+      \verb{url}
+      \verb https://dantri.com.vn/thoi-su/nam-sinh-vien-tu-vong-duoi-chan-toa-nha-truong-dai-hoc-20240227201657100.htm
+      \endverb
+    \endentry
+    \entry{PhamThao2019}{article}{}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{2}{}{%
+        {{hash=68c41f32e9962fe0cd88500181604ec4}{%
+           family={Pham},
+           familyi={P\bibinitperiod},
+           given={Thao},
+           giveni={T\bibinitperiod}}}%
+        {{hash=906fe54cc7fe829f7f060fde78167ddc}{%
+           family={Nguyen},
+           familyi={N\bibinitperiod},
+           given={Nhat},
+           giveni={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{91eb1c7592ff392af8c8960f3d9e1c20}
+      \strng{fullhash}{91eb1c7592ff392af8c8960f3d9e1c20}
+      \strng{fullhashraw}{91eb1c7592ff392af8c8960f3d9e1c20}
+      \strng{bibnamehash}{91eb1c7592ff392af8c8960f3d9e1c20}
+      \strng{authorbibnamehash}{91eb1c7592ff392af8c8960f3d9e1c20}
+      \strng{authornamehash}{91eb1c7592ff392af8c8960f3d9e1c20}
+      \strng{authorfullhash}{91eb1c7592ff392af8c8960f3d9e1c20}
+      \strng{authorfullhashraw}{91eb1c7592ff392af8c8960f3d9e1c20}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{International Journal of Environmental Research and Public Health}
+      \field{number}{22}
+      \field{title}{The Prevalence, Correlates and Functions of Non-Suicidal Self-Injury in Vietnamese Adolescents}
+      \field{volume}{18}
+      \field{year}{2021}
+      \field{pages}{11993}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.3390/ijerph182211993
+      \endverb
+      \verb{urlraw}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC8636691/
+      \endverb
+      \verb{url}
+      \verb https://pmc.ncbi.nlm.nih.gov/articles/PMC8636691/
+      \endverb
+    \endentry
+    \entry{WHO_AdolescentMH}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=531217507bec092b6ec36c0f78f46736}{%
+           family={{World Health Organization}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{531217507bec092b6ec36c0f78f46736}
+      \strng{fullhash}{531217507bec092b6ec36c0f78f46736}
+      \strng{fullhashraw}{531217507bec092b6ec36c0f78f46736}
+      \strng{bibnamehash}{531217507bec092b6ec36c0f78f46736}
+      \strng{authorbibnamehash}{531217507bec092b6ec36c0f78f46736}
+      \strng{authornamehash}{531217507bec092b6ec36c0f78f46736}
+      \strng{authorfullhash}{531217507bec092b6ec36c0f78f46736}
+      \strng{authorfullhashraw}{531217507bec092b6ec36c0f78f46736}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Mental health of adolescents}
+      \field{urlday}{17}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{year}{2021}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.who.int/news-room/fact-sheets/detail/adolescent-mental-health
+      \endverb
+      \verb{url}
+      \verb https://www.who.int/news-room/fact-sheets/detail/adolescent-mental-health
+      \endverb
+    \endentry
+    \entry{Daylio}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=d0d23947623e3ecaad0459dfd4babdf4}{%
+           family={{Daylio}},
+           familyi={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{d0d23947623e3ecaad0459dfd4babdf4}
+      \strng{fullhash}{d0d23947623e3ecaad0459dfd4babdf4}
+      \strng{fullhashraw}{d0d23947623e3ecaad0459dfd4babdf4}
+      \strng{bibnamehash}{d0d23947623e3ecaad0459dfd4babdf4}
+      \strng{authorbibnamehash}{d0d23947623e3ecaad0459dfd4babdf4}
+      \strng{authornamehash}{d0d23947623e3ecaad0459dfd4babdf4}
+      \strng{authorfullhash}{d0d23947623e3ecaad0459dfd4babdf4}
+      \strng{authorfullhashraw}{d0d23947623e3ecaad0459dfd4babdf4}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{Daylio} - Micro Diary and Mood Tracker}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://daylio.net
+      \endverb
+      \verb{url}
+      \verb https://daylio.net
+      \endverb
+    \endentry
+    \entry{Bearable}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=80049a7bb21a363c626a0d13f7a83271}{%
+           family={{Bearable}},
+           familyi={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{80049a7bb21a363c626a0d13f7a83271}
+      \strng{fullhash}{80049a7bb21a363c626a0d13f7a83271}
+      \strng{fullhashraw}{80049a7bb21a363c626a0d13f7a83271}
+      \strng{bibnamehash}{80049a7bb21a363c626a0d13f7a83271}
+      \strng{authorbibnamehash}{80049a7bb21a363c626a0d13f7a83271}
+      \strng{authornamehash}{80049a7bb21a363c626a0d13f7a83271}
+      \strng{authorfullhash}{80049a7bb21a363c626a0d13f7a83271}
+      \strng{authorfullhashraw}{80049a7bb21a363c626a0d13f7a83271}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{Bearable} - Symptom and Mood Tracker}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://bearable.app
+      \endverb
+      \verb{url}
+      \verb https://bearable.app
+      \endverb
+    \endentry
+    \entry{BetterHelp}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=81c3d31e060a3352ac14178c539577d6}{%
+           family={{BetterHelp}},
+           familyi={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{81c3d31e060a3352ac14178c539577d6}
+      \strng{fullhash}{81c3d31e060a3352ac14178c539577d6}
+      \strng{fullhashraw}{81c3d31e060a3352ac14178c539577d6}
+      \strng{bibnamehash}{81c3d31e060a3352ac14178c539577d6}
+      \strng{authorbibnamehash}{81c3d31e060a3352ac14178c539577d6}
+      \strng{authornamehash}{81c3d31e060a3352ac14178c539577d6}
+      \strng{authorfullhash}{81c3d31e060a3352ac14178c539577d6}
+      \strng{authorfullhashraw}{81c3d31e060a3352ac14178c539577d6}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{BetterHelp} - Online Therapy \& Counseling}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.betterhelp.com
+      \endverb
+      \verb{url}
+      \verb https://www.betterhelp.com
+      \endverb
+    \endentry
+    \entry{Talkspace}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=774f566d1cacaa9514c585ffcad92ab0}{%
+           family={{Talkspace}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{774f566d1cacaa9514c585ffcad92ab0}
+      \strng{fullhash}{774f566d1cacaa9514c585ffcad92ab0}
+      \strng{fullhashraw}{774f566d1cacaa9514c585ffcad92ab0}
+      \strng{bibnamehash}{774f566d1cacaa9514c585ffcad92ab0}
+      \strng{authorbibnamehash}{774f566d1cacaa9514c585ffcad92ab0}
+      \strng{authornamehash}{774f566d1cacaa9514c585ffcad92ab0}
+      \strng{authorfullhash}{774f566d1cacaa9514c585ffcad92ab0}
+      \strng{authorfullhashraw}{774f566d1cacaa9514c585ffcad92ab0}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{Talkspace} - Online Therapy \& Psychiatry}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.talkspace.com
+      \endverb
+      \verb{url}
+      \verb https://www.talkspace.com
+      \endverb
+    \endentry
+    \entry{Wysa}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=045d359671acd08a9ef97f3568e602bc}{%
+           family={{Wysa}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{045d359671acd08a9ef97f3568e602bc}
+      \strng{fullhash}{045d359671acd08a9ef97f3568e602bc}
+      \strng{fullhashraw}{045d359671acd08a9ef97f3568e602bc}
+      \strng{bibnamehash}{045d359671acd08a9ef97f3568e602bc}
+      \strng{authorbibnamehash}{045d359671acd08a9ef97f3568e602bc}
+      \strng{authornamehash}{045d359671acd08a9ef97f3568e602bc}
+      \strng{authorfullhash}{045d359671acd08a9ef97f3568e602bc}
+      \strng{authorfullhashraw}{045d359671acd08a9ef97f3568e602bc}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{Wysa} - AI-Powered Mental Health Support}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.wysa.com
+      \endverb
+      \verb{url}
+      \verb https://www.wysa.com
+      \endverb
+    \endentry
+    \entry{Zalo}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=a31467c472c07b9d8ae740403141b428}{%
+           family={{Zalo}},
+           familyi={Z\bibinitperiod}}}%
+      }
+      \strng{namehash}{a31467c472c07b9d8ae740403141b428}
+      \strng{fullhash}{a31467c472c07b9d8ae740403141b428}
+      \strng{fullhashraw}{a31467c472c07b9d8ae740403141b428}
+      \strng{bibnamehash}{a31467c472c07b9d8ae740403141b428}
+      \strng{authorbibnamehash}{a31467c472c07b9d8ae740403141b428}
+      \strng{authornamehash}{a31467c472c07b9d8ae740403141b428}
+      \strng{authorfullhash}{a31467c472c07b9d8ae740403141b428}
+      \strng{authorfullhashraw}{a31467c472c07b9d8ae740403141b428}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{Zalo} - Talk To Your Love}
+      \field{urlday}{20}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://vng.com.vn/news/product/vng-zalo.html
+      \endverb
+      \verb{url}
+      \verb https://vng.com.vn/news/product/vng-zalo.html
+      \endverb
+    \endentry
+    \entry{Life360}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=677b6390c6b48049392cfa4ff37732c2}{%
+           family={{Life360}},
+           familyi={L\bibinitperiod}}}%
+      }
+      \strng{namehash}{677b6390c6b48049392cfa4ff37732c2}
+      \strng{fullhash}{677b6390c6b48049392cfa4ff37732c2}
+      \strng{fullhashraw}{677b6390c6b48049392cfa4ff37732c2}
+      \strng{bibnamehash}{677b6390c6b48049392cfa4ff37732c2}
+      \strng{authorbibnamehash}{677b6390c6b48049392cfa4ff37732c2}
+      \strng{authornamehash}{677b6390c6b48049392cfa4ff37732c2}
+      \strng{authorfullhash}{677b6390c6b48049392cfa4ff37732c2}
+      \strng{authorfullhashraw}{677b6390c6b48049392cfa4ff37732c2}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{Life360} - When they're okay, you're okay}
+      \field{urlday}{20}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://intl.life360.com/
+      \endverb
+      \verb{url}
+      \verb https://intl.life360.com/
+      \endverb
+    \endentry
+    \entry{2025-McBain-GenAI}{article}{}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{1}{}{%
+        {{hash=1bc89d98101d2cb6f18fbfd019c50802}{%
+           family={McBain},
+           familyi={M\bibinitperiod},
+           given={Ryan\bibnamedelima K.},
+           giveni={R\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {American Medical Association}%
+      }
+      \strng{namehash}{1c83df5127e8197326390c7ef0222872}
+      \strng{fullhash}{1c83df5127e8197326390c7ef0222872}
+      \strng{fullhashraw}{1c83df5127e8197326390c7ef0222872}
+      \strng{bibnamehash}{1c83df5127e8197326390c7ef0222872}
+      \strng{authorbibnamehash}{1c83df5127e8197326390c7ef0222872}
+      \strng{authornamehash}{1c83df5127e8197326390c7ef0222872}
+      \strng{authorfullhash}{1c83df5127e8197326390c7ef0222872}
+      \strng{authorfullhashraw}{1c83df5127e8197326390c7ef0222872}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{JAMA Network Open}
+      \field{number}{11}
+      \field{title}{Use of Generative AI for Mental Health Advice Among US Adolescents and Young Adults}
+      \field{volume}{8}
+      \field{year}{2025}
+      \field{pages}{e2542281}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.1001/jamanetworkopen.2025.42281
+      \endverb
+    \endentry
+    \entry{2021-Newman-Microservices}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=b6be43602c2787d279f8522a7d9713db}{%
+           family={Newman},
+           familyi={N\bibinitperiod},
+           given={Sam},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {O'Reilly Media}%
+      }
+      \strng{namehash}{b6be43602c2787d279f8522a7d9713db}
+      \strng{fullhash}{b6be43602c2787d279f8522a7d9713db}
+      \strng{fullhashraw}{b6be43602c2787d279f8522a7d9713db}
+      \strng{bibnamehash}{b6be43602c2787d279f8522a7d9713db}
+      \strng{authorbibnamehash}{b6be43602c2787d279f8522a7d9713db}
+      \strng{authornamehash}{b6be43602c2787d279f8522a7d9713db}
+      \strng{authorfullhash}{b6be43602c2787d279f8522a7d9713db}
+      \strng{authorfullhashraw}{b6be43602c2787d279f8522a7d9713db}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{2nd}
+      \field{title}{Building Microservices: Designing Fine-Grained Systems}
+      \field{year}{2021}
+    \endentry
+    \entry{2000-Fielding-REST}{thesis}{}{}
+      \name{author}{1}{}{%
+        {{hash=87dbbd44b3977c28b71d826a931add3e}{%
+           family={Fielding},
+           familyi={F\bibinitperiod},
+           given={Roy\bibnamedelima Thomas},
+           giveni={R\bibinitperiod\bibinitdelim T\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {University of California, Irvine}%
+      }
+      \strng{namehash}{87dbbd44b3977c28b71d826a931add3e}
+      \strng{fullhash}{87dbbd44b3977c28b71d826a931add3e}
+      \strng{fullhashraw}{87dbbd44b3977c28b71d826a931add3e}
+      \strng{bibnamehash}{87dbbd44b3977c28b71d826a931add3e}
+      \strng{authorbibnamehash}{87dbbd44b3977c28b71d826a931add3e}
+      \strng{authornamehash}{87dbbd44b3977c28b71d826a931add3e}
+      \strng{authorfullhash}{87dbbd44b3977c28b71d826a931add3e}
+      \strng{authorfullhashraw}{87dbbd44b3977c28b71d826a931add3e}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Architectural Styles and the Design of Network-based Software Architectures}
+      \field{type}{phdthesis}
+      \field{year}{2000}
+    \endentry
+    \entry{RabbitMQ}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=6b93c7916ccad8b9180dd4c630cba73f}{%
+           family={{Broadcom Inc.}},
+           familyi={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{6b93c7916ccad8b9180dd4c630cba73f}
+      \strng{fullhash}{6b93c7916ccad8b9180dd4c630cba73f}
+      \strng{fullhashraw}{6b93c7916ccad8b9180dd4c630cba73f}
+      \strng{bibnamehash}{6b93c7916ccad8b9180dd4c630cba73f}
+      \strng{authorbibnamehash}{6b93c7916ccad8b9180dd4c630cba73f}
+      \strng{authornamehash}{6b93c7916ccad8b9180dd4c630cba73f}
+      \strng{authorfullhash}{6b93c7916ccad8b9180dd4c630cba73f}
+      \strng{authorfullhashraw}{6b93c7916ccad8b9180dd4c630cba73f}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{RabbitMQ} - Reliable Messaging with Erlang}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.rabbitmq.com
+      \endverb
+      \verb{url}
+      \verb https://www.rabbitmq.com
+      \endverb
+    \endentry
+    \entry{SpringBoot}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=7a796ff4c0184c998b95c52c307a5723}{%
+           family={{VMware Tanzu}},
+           familyi={V\bibinitperiod}}}%
+      }
+      \strng{namehash}{7a796ff4c0184c998b95c52c307a5723}
+      \strng{fullhash}{7a796ff4c0184c998b95c52c307a5723}
+      \strng{fullhashraw}{7a796ff4c0184c998b95c52c307a5723}
+      \strng{bibnamehash}{7a796ff4c0184c998b95c52c307a5723}
+      \strng{authorbibnamehash}{7a796ff4c0184c998b95c52c307a5723}
+      \strng{authornamehash}{7a796ff4c0184c998b95c52c307a5723}
+      \strng{authorfullhash}{7a796ff4c0184c998b95c52c307a5723}
+      \strng{authorfullhashraw}{7a796ff4c0184c998b95c52c307a5723}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Spring Boot Reference Documentation}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://docs.spring.io/spring-boot/index.html
+      \endverb
+      \verb{url}
+      \verb https://docs.spring.io/spring-boot/index.html
+      \endverb
+    \endentry
+    \entry{Docker}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=4bd3b392874c74fba4ed57a24eae0ac1}{%
+           family={{Docker Inc.}},
+           familyi={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{4bd3b392874c74fba4ed57a24eae0ac1}
+      \strng{fullhash}{4bd3b392874c74fba4ed57a24eae0ac1}
+      \strng{fullhashraw}{4bd3b392874c74fba4ed57a24eae0ac1}
+      \strng{bibnamehash}{4bd3b392874c74fba4ed57a24eae0ac1}
+      \strng{authorbibnamehash}{4bd3b392874c74fba4ed57a24eae0ac1}
+      \strng{authornamehash}{4bd3b392874c74fba4ed57a24eae0ac1}
+      \strng{authorfullhash}{4bd3b392874c74fba4ed57a24eae0ac1}
+      \strng{authorfullhashraw}{4bd3b392874c74fba4ed57a24eae0ac1}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{Docker} - Accelerated, Containerized Application Development}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.docker.com
+      \endverb
+      \verb{url}
+      \verb https://www.docker.com
+      \endverb
+    \endentry
+    \entry{2015-RFC7519-JWT}{misc}{}{}
+      \name{author}{3}{}{%
+        {{hash=bfa19f15a98d15831cd377b8813e6672}{%
+           family={Jones},
+           familyi={J\bibinitperiod},
+           given={Michael\bibnamedelima B.},
+           giveni={M\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+        {{hash=81e40ae87af997090fa9a9696e364c65}{%
+           family={Bradley},
+           familyi={B\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+        {{hash=34e6848475fd66697bfcb80787f2aef0}{%
+           family={Sakimura},
+           familyi={S\bibinitperiod},
+           given={Nat},
+           giveni={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{3342ab8537945087b62619afff498d22}
+      \strng{fullhash}{8456e57585316c5ad570515143f00129}
+      \strng{fullhashraw}{8456e57585316c5ad570515143f00129}
+      \strng{bibnamehash}{8456e57585316c5ad570515143f00129}
+      \strng{authorbibnamehash}{8456e57585316c5ad570515143f00129}
+      \strng{authornamehash}{3342ab8537945087b62619afff498d22}
+      \strng{authorfullhash}{8456e57585316c5ad570515143f00129}
+      \strng{authorfullhashraw}{8456e57585316c5ad570515143f00129}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{IETF RFC 7519}
+      \field{title}{{JSON} Web Token ({JWT})}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{year}{2015}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.rfc-editor.org/rfc/rfc7519
+      \endverb
+      \verb{url}
+      \verb https://www.rfc-editor.org/rfc/rfc7519
+      \endverb
+    \endentry
+    \entry{2015-RFC7517-JWK}{report}{}{}
+      \name{author}{1}{}{%
+        {{hash=5a25bc91f524ca6dfc2ecf9f4a13903c}{%
+           family={Jones},
+           familyi={J\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Internet Engineering Task Force (IETF)}%
+      }
+      \list{publisher}{1}{%
+        {RFC Editor}%
+      }
+      \strng{namehash}{5a25bc91f524ca6dfc2ecf9f4a13903c}
+      \strng{fullhash}{5a25bc91f524ca6dfc2ecf9f4a13903c}
+      \strng{fullhashraw}{5a25bc91f524ca6dfc2ecf9f4a13903c}
+      \strng{bibnamehash}{5a25bc91f524ca6dfc2ecf9f4a13903c}
+      \strng{authorbibnamehash}{5a25bc91f524ca6dfc2ecf9f4a13903c}
+      \strng{authornamehash}{5a25bc91f524ca6dfc2ecf9f4a13903c}
+      \strng{authorfullhash}{5a25bc91f524ca6dfc2ecf9f4a13903c}
+      \strng{authorfullhashraw}{5a25bc91f524ca6dfc2ecf9f4a13903c}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Internet Requests for Comments}
+      \field{month}{5}
+      \field{number}{7517}
+      \field{title}{{JSON Web Key (JWK)}}
+      \field{type}{RFC}
+      \field{year}{2015}
+      \verb{urlraw}
+      \verb https://www.rfc-editor.org/rfc/rfc7517.txt
+      \endverb
+      \verb{url}
+      \verb https://www.rfc-editor.org/rfc/rfc7517.txt
+      \endverb
+    \endentry
+    \entry{2021-OWASP-Top10}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=b0d7a4bf1a0878d4e92cdd7461e48710}{%
+           family={{OWASP Foundation}},
+           familyi={O\bibinitperiod}}}%
+      }
+      \strng{namehash}{b0d7a4bf1a0878d4e92cdd7461e48710}
+      \strng{fullhash}{b0d7a4bf1a0878d4e92cdd7461e48710}
+      \strng{fullhashraw}{b0d7a4bf1a0878d4e92cdd7461e48710}
+      \strng{bibnamehash}{b0d7a4bf1a0878d4e92cdd7461e48710}
+      \strng{authorbibnamehash}{b0d7a4bf1a0878d4e92cdd7461e48710}
+      \strng{authornamehash}{b0d7a4bf1a0878d4e92cdd7461e48710}
+      \strng{authorfullhash}{b0d7a4bf1a0878d4e92cdd7461e48710}
+      \strng{authorfullhashraw}{b0d7a4bf1a0878d4e92cdd7461e48710}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{OWASP Foundation}
+      \field{title}{{OWASP} Top 10:2021 - The Ten Most Critical Web Application Security Risks}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{year}{2021}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://owasp.org/Top10/
+      \endverb
+      \verb{url}
+      \verb https://owasp.org/Top10/
+      \endverb
+    \endentry
+    \entry{1996-Sandhu-RBAC}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=f3b7d57399ba1dbf13fcbf28b2ad7555}{%
+           family={Sandhu},
+           familyi={S\bibinitperiod},
+           given={Ravi\bibnamedelima S.},
+           giveni={R\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=095a4cce348eec9d581b278c22ab6129}{%
+           family={Coyne},
+           familyi={C\bibinitperiod},
+           given={Edward\bibnamedelima J.},
+           giveni={E\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=777d2f53710ab0c09bf75c63fafceaa1}{%
+           family={Feinstein},
+           familyi={F\bibinitperiod},
+           given={Hal\bibnamedelima L.},
+           giveni={H\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=fea1de53df3d07042f925374a93d347e}{%
+           family={Youman},
+           familyi={Y\bibinitperiod},
+           given={Charles\bibnamedelima E.},
+           giveni={C\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{52a6131784323a5e6bed6b08eea50cb3}
+      \strng{fullhash}{10d614baecb582aa4916c475ba89caef}
+      \strng{fullhashraw}{10d614baecb582aa4916c475ba89caef}
+      \strng{bibnamehash}{10d614baecb582aa4916c475ba89caef}
+      \strng{authorbibnamehash}{10d614baecb582aa4916c475ba89caef}
+      \strng{authornamehash}{52a6131784323a5e6bed6b08eea50cb3}
+      \strng{authorfullhash}{10d614baecb582aa4916c475ba89caef}
+      \strng{authorfullhashraw}{10d614baecb582aa4916c475ba89caef}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Computer}
+      \field{number}{2}
+      \field{title}{Role-Based Access Control Models}
+      \field{volume}{29}
+      \field{year}{1996}
+      \field{pages}{38\bibrangedash 47}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1109/2.485845
+      \endverb
+    \endentry
+    \entry{2014-NIST-ABAC}{report}{}{}
+      \name{author}{7}{}{%
+        {{hash=527b83b3c8c6264ec6be8ccbec467dad}{%
+           family={Hu},
+           familyi={H\bibinitperiod},
+           given={Vincent\bibnamedelima C.},
+           giveni={V\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=35aedb704edc386c5cf58726c3d2833a}{%
+           family={Ferraiolo},
+           familyi={F\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+        {{hash=fbe58cf7fa55ebb352e9db3813f42842}{%
+           family={Kuhn},
+           familyi={K\bibinitperiod},
+           given={Rick},
+           giveni={R\bibinitperiod}}}%
+        {{hash=9135ef5fec9a35160ab24b76a853f279}{%
+           family={Schnitzer},
+           familyi={S\bibinitperiod},
+           given={Adam},
+           giveni={A\bibinitperiod}}}%
+        {{hash=568b6d50a5d52d693b4747afbb4f3cfb}{%
+           family={Sandlin},
+           familyi={S\bibinitperiod},
+           given={Kenneth},
+           giveni={K\bibinitperiod}}}%
+        {{hash=6e9ebbefbdc40e0ed98cbb49db36cb59}{%
+           family={Miller},
+           familyi={M\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+        {{hash=6ea98e3682d33480471e822adaacdc41}{%
+           family={Scarfone},
+           familyi={S\bibinitperiod},
+           given={Karen},
+           giveni={K\bibinitperiod}}}%
+      }
+      \list{institution}{2}{%
+        {National Institute of Standards}%
+        {Technology}%
+      }
+      \strng{namehash}{64034bae70074c1316a85f0a3fb72019}
+      \strng{fullhash}{6a1aca66cccae99f7fd58d4a2693bd5e}
+      \strng{fullhashraw}{6a1aca66cccae99f7fd58d4a2693bd5e}
+      \strng{bibnamehash}{64034bae70074c1316a85f0a3fb72019}
+      \strng{authorbibnamehash}{64034bae70074c1316a85f0a3fb72019}
+      \strng{authornamehash}{64034bae70074c1316a85f0a3fb72019}
+      \strng{authorfullhash}{6a1aca66cccae99f7fd58d4a2693bd5e}
+      \strng{authorfullhashraw}{6a1aca66cccae99f7fd58d4a2693bd5e}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{number}{800-162}
+      \field{title}{{Guide to Attribute Based Access Control (ABAC) Definition and Considerations}}
+      \field{type}{NIST Special Publication}
+      \field{year}{2014}
+      \verb{doi}
+      \verb 10.6028/NIST.SP.800-162
+      \endverb
+    \endentry
+    \entry{1975-Saltzer-Schroeder}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=a719626d86148a18f531a22673403d68}{%
+           family={Saltzer},
+           familyi={S\bibinitperiod},
+           given={Jerome\bibnamedelima H.},
+           giveni={J\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=83b584ef97b412d31b5b98583e54ef92}{%
+           family={Schroeder},
+           familyi={S\bibinitperiod},
+           given={Michael\bibnamedelima D.},
+           giveni={M\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{12a0d2bc83e0b5a594d1d1ed37207534}
+      \strng{fullhash}{12a0d2bc83e0b5a594d1d1ed37207534}
+      \strng{fullhashraw}{12a0d2bc83e0b5a594d1d1ed37207534}
+      \strng{bibnamehash}{12a0d2bc83e0b5a594d1d1ed37207534}
+      \strng{authorbibnamehash}{12a0d2bc83e0b5a594d1d1ed37207534}
+      \strng{authornamehash}{12a0d2bc83e0b5a594d1d1ed37207534}
+      \strng{authorfullhash}{12a0d2bc83e0b5a594d1d1ed37207534}
+      \strng{authorfullhashraw}{12a0d2bc83e0b5a594d1d1ed37207534}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the IEEE}
+      \field{number}{9}
+      \field{title}{The Protection of Information in Computer Systems}
+      \field{volume}{63}
+      \field{year}{1975}
+      \field{pages}{1278\bibrangedash 1308}
+      \range{pages}{31}
+      \verb{doi}
+      \verb 10.1109/PROC.1975.9939
+      \endverb
+    \endentry
+    \entry{2024-Gemini-TechReport}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=0f98f9c132af315a916cf1272843fc7b}{%
+           family={{Google DeepMind}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{0f98f9c132af315a916cf1272843fc7b}
+      \strng{fullhash}{0f98f9c132af315a916cf1272843fc7b}
+      \strng{fullhashraw}{0f98f9c132af315a916cf1272843fc7b}
+      \strng{bibnamehash}{0f98f9c132af315a916cf1272843fc7b}
+      \strng{authorbibnamehash}{0f98f9c132af315a916cf1272843fc7b}
+      \strng{authornamehash}{0f98f9c132af315a916cf1272843fc7b}
+      \strng{authorfullhash}{0f98f9c132af315a916cf1272843fc7b}
+      \strng{authorfullhashraw}{0f98f9c132af315a916cf1272843fc7b}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Technical report}
+      \field{title}{Gemini: A Family of Highly Capable Multimodal Models}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/2312.11805
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/2312.11805
+      \endverb
+    \endentry
+    \entry{Jitsi}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=97ca4b92aa4c23d12e40a2c2d7582927}{%
+           family={{Jitsi}},
+           familyi={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{97ca4b92aa4c23d12e40a2c2d7582927}
+      \strng{fullhash}{97ca4b92aa4c23d12e40a2c2d7582927}
+      \strng{fullhashraw}{97ca4b92aa4c23d12e40a2c2d7582927}
+      \strng{bibnamehash}{97ca4b92aa4c23d12e40a2c2d7582927}
+      \strng{authorbibnamehash}{97ca4b92aa4c23d12e40a2c2d7582927}
+      \strng{authornamehash}{97ca4b92aa4c23d12e40a2c2d7582927}
+      \strng{authorfullhash}{97ca4b92aa4c23d12e40a2c2d7582927}
+      \strng{authorfullhashraw}{97ca4b92aa4c23d12e40a2c2d7582927}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{Jitsi Meet} - Secure, Simple, and Scalable Video Conferencing}
+      \field{urlday}{13}
+      \field{urlmonth}{7}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://jitsi.org
+      \endverb
+      \verb{url}
+      \verb https://jitsi.org
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

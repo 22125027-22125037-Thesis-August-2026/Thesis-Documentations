@@ -1,7 +1,107 @@
 \chapter{Implementation and Evaluation}
 \label{Chapter4}
 
-This chapter describes how the design in Chapter~\ref{Chapter3} was implemented, the cloud deployment used to run and evaluate the system, the distribution of the mobile client, the security-hardening process applied to the platform, and an evaluation of the resulting system.
+This chapter describes the product that the design in Chapter~\ref{Chapter3} became, how it was implemented, the cloud deployment used to run and evaluate it, the distribution of the mobile client, the security-hardening process applied to the platform, and an evaluation of the resulting system. It opens from the user's side, walking the journeys the delivered application actually supports, before turning to the engineering that makes them work.
+
+\section{The Product: End-to-End User Journeys}
+\label{sec:product}
+
+Chapters~\ref{Chapter1} to~\ref{Chapter3} argue a problem and specify a design. This section shows what was built, from the position of the person it was built for. The five journeys below are not a feature inventory; they are the paths our trial users actually take, in the order a teenager meets them: the ordinary day first, the hard moment second, and professional care only when the first two are not enough. Each is presented as the sequence of screens a user passes through, and each is annotated with the requirements from Section~\ref{sec:requirements} that it exercises, so that the visual walkthrough and the specification can be read against each other.
+
+Two properties are worth stating before the journeys, because they are what makes the sequences below a single product rather than five separate tools. First, every journey reads from or writes to the same record: the daily entries a user makes in the first journey are what the AI companion, the therapist, and a trusted friend later respond to. Second, no journey crosses a data boundary without the user's explicit act. The consent step is not an afterthought bolted onto the professional journey; it is a screen the user visits deliberately, and the last journey is devoted to it.
+
+\subsection{The daily loop: notice, record, understand}
+\label{sec:journey-daily}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Chapter4/images/j1-daily-loop.png}
+    \caption{The daily loop: a Focus Mode prompt, the mood check-in, the emotional journal, and the trends the entries accumulate into.}
+    \label{fig:j1-daily-loop}
+\end{figure}
+
+The habit at the centre of the product is a check-in that costs one tap. Figure~\ref{fig:j1-daily-loop} follows it. The application comes to the user rather than waiting to be opened: with Focus Mode enabled, a prompt arrives roughly every ninety minutes through the waking day and falls silent during Quiet Hours, so the recall problem identified in Section~\ref{sec:requirements} is solved without the application becoming a nag (FR3). Acting on the prompt lands the user directly on the check-in, where a mood is chosen and, optionally, a line of context added.
+
+The journal deepens the same act rather than replacing it. A user picks the emotion that fits, names what the day was about, and writes as much or as little as they want, with photographs attached if they help. What the user gets back for this is the fourth screen: a mood calendar that colours each day, per-category streaks, and weekly trends across sleep, steps, nutrition, and breathing (FR1, FR2). This is the return on the habit and the reason it survives past the first week, since the entries stop being data submitted somewhere and become a picture of the user's own month that only they can assemble.
+
+\subsection{The low moment: first aid that is routed, not generic}
+\label{sec:journey-low}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Chapter4/images/j2-low-moment.png}
+    \caption{Logging a negative emotion routes to a matched response: guided breathing for anger, the Treasure Box for sadness, and the emergency area always one tap away.}
+    \label{fig:j2-low-moment}
+\end{figure}
+
+The design decision that most distinguishes the product is what happens immediately after a negative mood is logged. The application does not return the user to a dashboard. It routes them, and it routes by which emotion was recorded, following the guidance of the professionals consulted in Section~\ref{sec:elicitation}: anger is met with a guided breathing exercise, sadness with the user's own Treasure Box (FR5).
+
+The Treasure Box, shown in the third panel of Figure~\ref{fig:j2-low-moment}, is the feature trial users valued most (Section~\ref{sec:most-valued}). Its premise is that a low mood makes good memories hard to reach, so the memories are saved in advance, on a good day, and reopened on the bad one: photographs, kind messages, small wins, and reasons to keep going, put somewhere the user can find them at the moment recall fails. Running alongside both paths, the emergency area is reachable in one tap from anywhere in the application and renders entirely from client-side content, so it stays available even when the backend is not (FR5).
+
+\subsection{Someone to talk to, at any hour}
+\label{sec:journey-companion}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Chapter4/images/j3-companion.png}
+    \caption{B\d{a}n T\^am Giao: an always-available companion whose replies draw on the user's own week when, and only when, access has been granted.}
+    \label{fig:j3-companion}
+\end{figure}
+
+Trial users reported reaching for the companion late at night, when contacting a friend or a therapist was not an option. That availability is the feature. What separates it from a general-purpose chatbot is that it can be given the user's own recent history, so a reply can respond to a week that actually happened rather than to nothing at all (FR4). The grounding is opt-in and off by default: a user who never grants access still gets a companion, just one without personal context, and the difference between the two is visible in the replies themselves.
+
+The contrast is visible directly in Figure~\ref{fig:j3-companion}: asked the same question twice, the companion first states plainly that it has no sleep data and invites the user to share it, and then, once the grant is switched on in the banner at the top of the conversation, characterizes the week from the user's actual logs. The grounding is nevertheless qualitative rather than numeric, for the reasons set out in Section~\ref{sec:expert-findings}.
+
+The safety behaviour is deliberately narrow. A message matching a small list of self-harm or violence phrases bypasses the model entirely and returns the crisis hotlines directly. This is a within-conversation redirect and not a clinical assessment; the system performs no risk scoring and raises no automated alert to any third party, for the reasons set out in Chapter~\ref{Chapter5}.
+
+\subsection{Crossing into professional care}
+\label{sec:journey-professional}
+
+% TODO: figure j4-professional.png -- awaiting therapist-side confirmation of the
+% 17/08 appointment so the video room and clinical note can be captured.
+
+When self-help is not enough, the crossing into professional care happens inside the same application. A short intake form asks what the user is going through, how they prefer to be met, and whether prior therapy has been tried, and ranks therapists by the overlap with what each one treats (FR6). Booking is a slot on the therapist's published calendar; confirmation arrives as a push notification and an email so the appointment does not slip past (FR8). The session runs as video inside the application, and afterwards the user reads the therapist's structured note and leaves a review.
+
+The therapist works the other side of the same appointment from the web dashboard described in Section~\ref{sec:professional}. This is the point at which the black box between sessions closes: a therapist who has been granted access opens the consultation already knowing how the patient's month went, instead of spending the first part of the session reconstructing it from memory.
+
+\subsection{Choosing who sees}
+\label{sec:journey-consent}
+
+% TODO: figure j5-consent.png -- friend-profile grant screen still to be captured.
+
+The final journey is the one that makes the other four safe to use, and trial users identified it as the precondition for writing honestly at all (Section~\ref{sec:expert-findings}). Nothing a user records is visible to anyone by default. To share, the user grants a scoped set of tracking categories to a named audience and can revoke it in one action (FR1, FR6, FR7, NFR1). The grant is surfaced wherever the audience appears rather than buried in a settings menu: the banner at the top of the AI conversation in Figure~\ref{fig:j3-companion} is the companion's own grant control, carrying the same meaning and the same server-side enforcement as the grant a user extends to a therapist or a friend.
+
+The point is that this screen is the only way in, for every audience. A therapist, a parent, a friend, and the AI companion are grantees of exactly the same mechanism, enforced server-side. There is deliberately no privileged parental path and no automatic alerting: our baseline study found that automatic crisis alerts to family were rejected as pressure to perform a better mood than the one being felt. A parent therefore sees precisely what their child chose to show them, which is the intended outcome rather than a limitation.
+
+\subsection{What the journeys share}
+
+Table~\ref{tab:journeys} maps each journey to the requirements it exercises. Read together, the journeys are one loop rather than five features: the daily record made in the first is what the second routes on, what the third grounds its replies in, what the fourth gives a therapist to work from, and what the fifth governs access to. This is the unification argued for in Chapter~\ref{Chapter1}, expressed as the path a user walks rather than as a component diagram, and it is the reason a single platform was worth building instead of assembling the same capabilities from four separate products.
+
+\begin{table}[htbp]
+  \centering
+  \caption{User journeys and the requirements they exercise}
+  \label{tab:journeys}
+  \begin{tabular}{|l|p{7.4cm}|l|}
+    \hline
+    \textbf{Journey} & \textbf{What the user does} & \textbf{Req.} \\
+    \hline
+    Daily loop & Responds to a Focus Mode prompt, logs a mood, writes a
+                 journal entry, reads back the week. & FR1--FR3 \\
+    \hline
+    Low moment & Logs a negative emotion and is routed to breathing, the
+                 Treasure Box, or the emergency area. & FR5 \\
+    \hline
+    Companion & Talks to the AI at any hour, optionally grounded in their
+                own record. & FR4 \\
+    \hline
+    Professional & Completes intake, books a slot, attends by video, reads
+                   the note, leaves a review. & FR6, FR8 \\
+    \hline
+    Consent & Grants scoped access to a therapist, parent, friend, or the
+              companion, and revokes it. & FR7, NFR1 \\
+    \hline
+  \end{tabular}
+\end{table}
 
 \section{Implementation Overview}
 
