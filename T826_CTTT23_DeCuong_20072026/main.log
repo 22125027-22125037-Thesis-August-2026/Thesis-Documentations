@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.7.21)  16 AUG 2026 20:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.7.21)  17 AUG 2026 14:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1588,57 +1588,83 @@ has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.52 
-      <./Chapter4/images/j3-companion.png>] [35] [36]
-Underfull \hbox (badness 10000) in paragraph at lines 88--89
+      <./Chapter4/images/j3-companion.png>]
+<Chapter4/images/j4-professional.png, id=701, 5099.05pt x 1668.2325pt>
+File: Chapter4/images/j4-professional.png Graphic file (type png)
+<use Chapter4/images/j4-professional.png>
+Package pdftex.def Info: Chapter4/images/j4-professional.png  used on input lin
+e 62.
+(pdftex.def)             Requested size: 455.24411pt x 148.93805pt.
+ [35]
+<Chapter4/images/j5-consent.png, id=709, 3063.445pt x 1668.2325pt>
+File: Chapter4/images/j5-consent.png Graphic file (type png)
+<use Chapter4/images/j5-consent.png>
+Package pdftex.def Info: Chapter4/images/j5-consent.png  used on input line 78.
+
+(pdftex.def)             Requested size: 455.24411pt x 247.90765pt.
+ [36
+pdfTeX warning (ext4): destination with the same identifier (name{figure.4.4}) 
+has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.84 
+      <./Chapter4/images/j4-professional.png>] [37
+pdfTeX warning (ext4): destination with the same identifier (name{figure.4.5}) 
+has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.86 
+      <./Chapter4/images/j5-consent.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 99--100
 []|\T5/cmr/m/n/14.4 Responds to a Fo-cus Mode
  []
 
 
-Underfull \hbox (badness 1389) in paragraph at lines 94--95
+Underfull \hbox (badness 1389) in paragraph at lines 105--106
 \T5/cmr/m/n/14.4 tion-ally grounded in their own
  []
 
-[37
+[38
 pdfTeX warning (ext4): destination with the same identifier (name{table.4.1}) h
 as been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.109 
-      ] [38]
-Overfull \hbox (0.20938pt too wide) in paragraph at lines 129--130
+l.120 
+      ] [39]
+Overfull \hbox (0.20938pt too wide) in paragraph at lines 140--141
 \T5/cmr/m/n/14.4 HTTPS on port 443, be-cause mod-ern An-droid builds block plai
 n-text HTTP
  []
 
-[39]
-Overfull \hbox (5.66086pt too wide) in paragraph at lines 136--137
+[40]
+Overfull \hbox (5.66086pt too wide) in paragraph at lines 147--148
 []\T5/cmr/bx/n/14.4 Business logic cor-rect-ness\T5/cmr/m/n/14.4 : ver-i-fy-ing
  that work-flows such as match-
  []
 
 
-Overfull \hbox (3.47499pt too wide) in paragraph at lines 137--138
+Overfull \hbox (3.47499pt too wide) in paragraph at lines 148--149
 []\T5/cmr/bx/n/14.4 Access con-trol\T5/cmr/m/n/14.4 : specif-i-cally JPQL in-je
 c-tion pat-terns in hand-written
  []
 
-[40] [41] [42] [43] [44] [45]) [46]
+[41] [42] [43] [44] [45] [46]) [47]
 \openout2 = `Chapter5/chapter5.aux'.
 
  (Chapter5/chapter5.tex
 Chapter 5.
-[47
+[48
 
 
 
 
-]) [48]
+]) [49]
 Overfull \hbox (0.45683pt too wide) in paragraph at lines 184--184
 []\T5/cmr/m/n/14.4 World Health Or-ga-ni-za-tion. ``Men-tal health of ado-les-c
 ents,'' Ac-cessed:
  []
 
-[49
+[50
 
 
 
@@ -1648,12 +1674,12 @@ Overfull \hbox (10.5404pt too wide) in paragraph at lines 184--184
  Ac-cessed: Jul. 13,
  []
 
-[50] [51]
+[51] [52]
 \openout2 = `Appendix/appendix1.aux'.
 
  (Appendix/appendix1.tex
 Appendix A.
-) [52
+) [53
 
 
 
@@ -1672,7 +1698,7 @@ Overfull \hbox (23.72578pt too wide) in paragraph at lines 1--1
 |\T5/cmr/bx/n/29.86 Deployment Con-fig-u-ra-tion Notes| 
  []
 
-) [53
+) [54
 
 
 
@@ -1687,12 +1713,12 @@ Underfull \hbox (badness 3271) in paragraph at lines 22--22
 []|\T5/cmr/m/n/14.4 Guided breath-ing and med-i-ta-tion,
  []
 
-) [54
+) [55
 
 
 
 
-] [55
+] [56
 pdfTeX warning (ext4): destination with the same identifier (name{table.C.1}) h
 as been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
@@ -1703,18 +1729,18 @@ l.189 \include{Appendix/appendix3}
 
  (Appendix/appendix4.tex
 Appendix D.
-[56
+[57
 
 
 
 
-] [57
+] [58
 pdfTeX warning (ext4): destination with the same identifier (name{table.D.1}) h
 as been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.53 
-     ]) [58
+     ]) [59
 pdfTeX warning (ext4): destination with the same identifier (name{table.D.2}) h
 as been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
@@ -1725,7 +1751,7 @@ l.190 \include{Appendix/appendix4}
 
  (Appendix/appendix5.tex
 Appendix E.
-[59
+[60
 
 
 
@@ -1736,7 +1762,7 @@ as been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.33 
-     ]) [60] [61
+     ]) [61] [62
 pdfTeX warning (ext4): destination with the same identifier (name{table.E.2}) h
 as been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
@@ -1752,18 +1778,18 @@ Overfull \hbox (34.37114pt too wide) in paragraph at lines 1--1
 |\T5/cmr/bx/n/29.86 Development Cy-cle and Trial Par-
  []
 
-[62
+[63
 
 
 
 
-] [63]) [64
+] [64]) [65
 pdfTeX warning (ext4): destination with the same identifier (name{table.F.1}) h
 as been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.192 \include{Appendix/appendix6}
-                                  ] [65] (main.aux (Appendix/commitment.aux)
+                                  ] [66] (main.aux (Appendix/commitment.aux)
 (Appendix/thanks.aux) (Appendix/summary.aux) (Chapter1/chapter1.aux)
 (Chapter2/chapter2.aux) (Chapter3/chapter3.aux) (Chapter4/chapter4.aux)
 (Chapter5/chapter5.aux) (Appendix/appendix1.aux) (Appendix/appendix2.aux)
@@ -1780,10 +1806,10 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 31559 strings out of 467871
- 602448 string characters out of 5418376
- 1431112 words of memory out of 5000000
- 59678 multiletter control sequences out of 15000+600000
+ 31578 strings out of 467871
+ 603063 string characters out of 5418376
+ 1431422 words of memory out of 5000000
+ 59694 multiletter control sequences out of 15000+600000
  647483 words of font info for 74 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  84i,10n,104p,1199b,1496s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -1795,9 +1821,9 @@ r12.pfb><C:/Users/khiem/AppData/Local/Programs/MiKTeX/fonts/type1/vntex/vnr/vnr
 17.pfb><C:/Users/khiem/AppData/Local/Programs/MiKTeX/fonts/type1/vntex/vnr/vnti
 12.pfb><C:/Users/khiem/AppData/Local/Programs/MiKTeX/fonts/type1/vntex/vnr/vntt
 12.pfb>
-Output written on main.pdf (75 pages, 3035409 bytes).
+Output written on main.pdf (76 pages, 4090774 bytes).
 PDF statistics:
- 994 PDF objects out of 1000 (max. 8388607)
- 194 named destinations out of 1000 (max. 500000)
- 602 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1006 PDF objects out of 1200 (max. 8388607)
+ 197 named destinations out of 1000 (max. 500000)
+ 612 words of extra memory for PDF output out of 10000 (max. 10000000)
 

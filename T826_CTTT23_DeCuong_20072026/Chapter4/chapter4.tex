@@ -57,19 +57,30 @@ The safety behaviour is deliberately narrow. A message matching a small list of 
 \subsection{Crossing into professional care}
 \label{sec:journey-professional}
 
-% TODO: figure j4-professional.png -- awaiting therapist-side confirmation of the
-% 17/08 appointment so the video room and clinical note can be captured.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Chapter4/images/j4-professional.png}
+    \caption{From choosing a therapist to sitting in the consultation, without leaving the application.}
+    \label{fig:j4-professional}
+\end{figure}
 
 When self-help is not enough, the crossing into professional care happens inside the same application. A short intake form asks what the user is going through, how they prefer to be met, and whether prior therapy has been tried, and ranks therapists by the overlap with what each one treats (FR6). Booking is a slot on the therapist's published calendar; confirmation arrives as a push notification and an email so the appointment does not slip past (FR8). The session runs as video inside the application, and afterwards the user reads the therapist's structured note and leaves a review.
+
+Figure~\ref{fig:j4-professional} follows one appointment through that arc. The therapist's profile states what they treat and when they work; the calendar exposes only the slots they have actually published; the appointment then waits, visibly, until the therapist accepts it. The video room opens ten minutes before the hour and no earlier, and the user who arrives first waits in a lobby rather than in an empty room --- the session cannot begin until the therapist is present. The final panel is where the loop closes: the therapist's finalized note, its diagnosis and its recommendations, is presented to the user on the same screen that asks them to rate the session, so reading what the professional concluded and giving feedback on it are a single act rather than two.
 
 The therapist works the other side of the same appointment from the web dashboard described in Section~\ref{sec:professional}. This is the point at which the black box between sessions closes: a therapist who has been granted access opens the consultation already knowing how the patient's month went, instead of spending the first part of the session reconstructing it from memory.
 
 \subsection{Choosing who sees}
 \label{sec:journey-consent}
 
-% TODO: figure j5-consent.png -- friend-profile grant screen still to be captured.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Chapter4/images/j5-consent.png}
+    \caption{One consent mechanism for every audience: nothing is shared until the user selects the categories to expose, and the grant is revocable from the same screen afterwards.}
+    \label{fig:j5-consent}
+\end{figure}
 
-The final journey is the one that makes the other four safe to use, and trial users identified it as the precondition for writing honestly at all (Section~\ref{sec:expert-findings}). Nothing a user records is visible to anyone by default. To share, the user grants a scoped set of tracking categories to a named audience and can revoke it in one action (FR1, FR6, FR7, NFR1). The grant is surfaced wherever the audience appears rather than buried in a settings menu: the banner at the top of the AI conversation in Figure~\ref{fig:j3-companion} is the companion's own grant control, carrying the same meaning and the same server-side enforcement as the grant a user extends to a therapist or a friend.
+The final journey is the one that makes the other four safe to use, and trial users identified it as the precondition for writing honestly at all (Section~\ref{sec:expert-findings}). Nothing a user records is visible to anyone by default, and Figure~\ref{fig:j5-consent} follows the grant from that default to an active, revocable share. The screen opens stating plainly that nothing has been shared; the user then chooses which categories of their record to expose, category by category, and confirms. Afterwards the same row inverts into a revoke control, so withdrawing access is exactly as easy as granting it (FR1, FR6, FR7, NFR1). The grant is surfaced wherever the audience appears rather than buried in a settings menu: the banner at the top of the AI conversation in Figure~\ref{fig:j3-companion} is the companion's own grant control, carrying the same meaning and the same server-side enforcement as the grant a user extends to a therapist or a friend.
 
 The point is that this screen is the only way in, for every audience. A therapist, a parent, a friend, and the AI companion are grantees of exactly the same mechanism, enforced server-side. There is deliberately no privileged parental path and no automatic alerting: our baseline study found that automatic crisis alerts to family were rejected as pressure to perform a better mood than the one being felt. A parent therefore sees precisely what their child chose to show them, which is the intended outcome rather than a limitation.
 

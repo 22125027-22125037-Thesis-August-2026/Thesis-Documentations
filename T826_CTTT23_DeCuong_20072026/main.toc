@@ -41,37 +41,37 @@
 \contentsline {subsection}{\numberline {4.1.3}Someone to talk to, at any hour}{34}{subsection.4.1.3}%
 \contentsline {subsection}{\numberline {4.1.4}Crossing into professional care}{35}{subsection.4.1.4}%
 \contentsline {subsection}{\numberline {4.1.5}Choosing who sees}{36}{subsection.4.1.5}%
-\contentsline {subsection}{\numberline {4.1.6}What the journeys share}{36}{subsection.4.1.6}%
-\contentsline {section}{\numberline {4.2}Implementation Overview}{37}{section.4.2}%
-\contentsline {section}{\numberline {4.3}Deployment}{38}{section.4.3}%
-\contentsline {subsection}{\numberline {4.3.1}Mobile Application Distribution}{39}{subsection.4.3.1}%
-\contentsline {section}{\numberline {4.4}Security Hardening}{39}{section.4.4}%
-\contentsline {section}{\numberline {4.5}Evaluation}{41}{section.4.5}%
-\contentsline {subsection}{\numberline {4.5.1}Functional Completeness}{41}{subsection.4.5.1}%
-\contentsline {subsection}{\numberline {4.5.2}Security Posture}{42}{subsection.4.5.2}%
-\contentsline {subsection}{\numberline {4.5.3}Comparison with Existing Platforms}{42}{subsection.4.5.3}%
-\contentsline {subsection}{\numberline {4.5.4}Most-Valued Features}{42}{subsection.4.5.4}%
-\contentsline {subsubsection}{The Treasure Box (Hộp Trân Quý)}{42}{subsection.4.5.4}%
-\contentsline {subsubsection}{Daily Reflective Tracking}{43}{subsection.4.5.4}%
-\contentsline {subsection}{\numberline {4.5.5}Key Findings}{43}{subsection.4.5.5}%
-\contentsline {subsubsection}{Findings from the Design and Development Process}{43}{subsection.4.5.5}%
-\contentsline {subsubsection}{Findings from User Feedback}{45}{subsection.4.5.5}%
-\contentsline {subsubsection}{Findings from Expert Consultations}{46}{subsection.4.5.5}%
-\contentsline {chapter}{\numberline {5}Conclusion and Future Work}{47}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Conclusion}{47}{section.5.1}%
-\contentsline {section}{\numberline {5.2}Limitations}{48}{section.5.2}%
-\contentsline {section}{\numberline {5.3}Future Work}{48}{section.5.3}%
-\contentsline {chapter}{References}{49}{Item.3}%
-\contentsline {chapter}{\numberline {A}API Endpoint Summary}{52}{appendix.A}%
-\contentsline {chapter}{\numberline {B}Deployment Configuration Notes}{53}{appendix.B}%
-\contentsline {chapter}{\numberline {C}Requirement Traceability}{54}{appendix.C}%
-\contentsline {chapter}{\numberline {D}Baseline Platform Evaluation}{56}{appendix.D}%
-\contentsline {section}{\numberline {D.1}Study Design}{56}{section.D.1}%
-\contentsline {section}{\numberline {D.2}Findings}{57}{section.D.2}%
-\contentsline {chapter}{\numberline {E}Technology Selection Rationale}{59}{appendix.E}%
-\contentsline {section}{\numberline {E.1}Language Model}{59}{section.E.1}%
-\contentsline {section}{\numberline {E.2}Client and Backend Platform}{60}{section.E.2}%
-\contentsline {chapter}{\numberline {F}Development Cycle and Trial Participants}{62}{appendix.F}%
-\contentsline {section}{\numberline {F.1}Weekly Review Cycle}{62}{section.F.1}%
-\contentsline {section}{\numberline {F.2}User-Story and Feedback Participants}{63}{section.F.2}%
-\contentsline {section}{\numberline {F.3}Closed-Testing Cohort}{64}{section.F.3}%
+\contentsline {subsection}{\numberline {4.1.6}What the journeys share}{38}{subsection.4.1.6}%
+\contentsline {section}{\numberline {4.2}Implementation Overview}{39}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Deployment}{39}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Mobile Application Distribution}{40}{subsection.4.3.1}%
+\contentsline {section}{\numberline {4.4}Security Hardening}{41}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Evaluation}{42}{section.4.5}%
+\contentsline {subsection}{\numberline {4.5.1}Functional Completeness}{43}{subsection.4.5.1}%
+\contentsline {subsection}{\numberline {4.5.2}Security Posture}{43}{subsection.4.5.2}%
+\contentsline {subsection}{\numberline {4.5.3}Comparison with Existing Platforms}{43}{subsection.4.5.3}%
+\contentsline {subsection}{\numberline {4.5.4}Most-Valued Features}{44}{subsection.4.5.4}%
+\contentsline {subsubsection}{The Treasure Box (Hộp Trân Quý)}{44}{subsection.4.5.4}%
+\contentsline {subsubsection}{Daily Reflective Tracking}{44}{subsection.4.5.4}%
+\contentsline {subsection}{\numberline {4.5.5}Key Findings}{45}{subsection.4.5.5}%
+\contentsline {subsubsection}{Findings from the Design and Development Process}{45}{subsection.4.5.5}%
+\contentsline {subsubsection}{Findings from User Feedback}{46}{subsection.4.5.5}%
+\contentsline {subsubsection}{Findings from Expert Consultations}{47}{subsection.4.5.5}%
+\contentsline {chapter}{\numberline {5}Conclusion and Future Work}{48}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Conclusion}{48}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Limitations}{49}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Future Work}{49}{section.5.3}%
+\contentsline {chapter}{References}{50}{Item.3}%
+\contentsline {chapter}{\numberline {A}API Endpoint Summary}{53}{appendix.A}%
+\contentsline {chapter}{\numberline {B}Deployment Configuration Notes}{54}{appendix.B}%
+\contentsline {chapter}{\numberline {C}Requirement Traceability}{55}{appendix.C}%
+\contentsline {chapter}{\numberline {D}Baseline Platform Evaluation}{57}{appendix.D}%
+\contentsline {section}{\numberline {D.1}Study Design}{57}{section.D.1}%
+\contentsline {section}{\numberline {D.2}Findings}{58}{section.D.2}%
+\contentsline {chapter}{\numberline {E}Technology Selection Rationale}{60}{appendix.E}%
+\contentsline {section}{\numberline {E.1}Language Model}{60}{section.E.1}%
+\contentsline {section}{\numberline {E.2}Client and Backend Platform}{61}{section.E.2}%
+\contentsline {chapter}{\numberline {F}Development Cycle and Trial Participants}{63}{appendix.F}%
+\contentsline {section}{\numberline {F.1}Weekly Review Cycle}{63}{section.F.1}%
+\contentsline {section}{\numberline {F.2}User-Story and Feedback Participants}{64}{section.F.2}%
+\contentsline {section}{\numberline {F.3}Closed-Testing Cohort}{65}{section.F.3}%
