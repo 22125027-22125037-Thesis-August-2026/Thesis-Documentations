@@ -105,6 +105,26 @@
   right=20mm,
   includefoot]{geometry}
 
+% Float placement.
+% The LaTeX defaults (textfraction=0.2, floatpagefraction=0.5) give up on
+% placing a figure alongside text very easily, which pushes figures onto
+% "float pages" of their own -- pages that hold two figures and a lot of
+% white space. These values let a page be almost entirely figure, so
+% figures stay on the page with the text that discusses them.
+\renewcommand{\topfraction}{0.92}      % max page fraction for top floats
+\renewcommand{\bottomfraction}{0.85}   % max page fraction for bottom floats
+\renewcommand{\textfraction}{0.07}     % min page fraction that must be text
+\renewcommand{\floatpagefraction}{0.85}% a float page must be this full
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+% If a float page is unavoidable, pack it from the top instead of centring
+% its contents vertically with infinite glue.
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpsep}{12pt plus 1fil}
+\makeatother
+
 % Cover page
 \usepackage{tikz}
 \usetikzlibrary{calc}

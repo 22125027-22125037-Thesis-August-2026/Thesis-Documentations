@@ -10,13 +10,18 @@ This section presents the delivered system as the five journeys trial users actu
 
 The journeys share one record and one gate. Every entry a user makes in the first journey is what the AI companion, the therapist, and a trusted friend later read; and none of them read anything until the user grants access, which the last journey covers.
 
+% Common height for all journey figures below, set by the widest panel
+% (j4-professional.png, 5080x1662) so that it still fits \textwidth exactly.
+\newlength{\journeyfigheight}
+\setlength{\journeyfigheight}{0.32717\textwidth}
+
 
 \subsection{The daily loop: notice, record, understand}
 \label{sec:journey-daily}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{Chapter4/images/j1-daily-loop.png}
+    \includegraphics[height=\journeyfigheight]{Chapter4/images/j1-daily-loop.png}
     \caption{The daily loop: a Focus Mode prompt, the mood check-in, the emotional journal, and the trends the entries accumulate into.}
     \label{fig:j1-daily-loop}
 \end{figure}
@@ -30,7 +35,7 @@ The emotional journal extends the same act. The user picks the emotion that fits
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{Chapter4/images/j2-low-moment.png}
+    \includegraphics[height=\journeyfigheight]{Chapter4/images/j2-low-moment.png}
     \caption{Logging a negative emotion routes to a matched response: guided breathing for anger, the Treasure Box for sadness, and the emergency area always one tap away.}
     \label{fig:j2-low-moment}
 \end{figure}
@@ -44,7 +49,7 @@ The Treasure Box, in the third panel of Figure~\ref{fig:j2-low-moment}, is the f
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{Chapter4/images/j3-companion.png}
+    \includegraphics[height=\journeyfigheight]{Chapter4/images/j3-companion.png}
     \caption{B\d{a}n T\^am Giao: an always-available companion whose replies draw on the user's own week when, and only when, access has been granted.}
     \label{fig:j3-companion}
 \end{figure}
@@ -56,7 +61,7 @@ What separates our AI Companion from a general-purpose chatbot is that it can be
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{Chapter4/images/j4-professional.png}
+    \includegraphics[height=\journeyfigheight]{Chapter4/images/j4-professional.png}
     \caption{From choosing a therapist to sitting in the consultation, without leaving the application.}
     \label{fig:j4-professional}
 \end{figure}
@@ -72,7 +77,7 @@ The therapist works the other side of the appointment from the web dashboard des
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{Chapter4/images/j5-consent.png}
+    \includegraphics[height=\journeyfigheight]{Chapter4/images/j5-consent.png}
     \caption{One consent mechanism for every audience}
     \label{fig:j5-consent}
 \end{figure}
