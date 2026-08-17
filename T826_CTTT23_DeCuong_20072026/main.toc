@@ -1,0 +1,75 @@
+\contentsline {chapter}{Acknowledgments}{ii}{chapter*.2}%
+\contentsline {chapter}{Table of Contents}{iv}{chapter*.3}%
+\contentsline {chapter}{List of Tables}{vii}{chapter*.4}%
+\contentsline {chapter}{Abstract}{vii}{chapter*.5}%
+\contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Background and Motivation}{1}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Problem Statement}{4}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Objectives}{6}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Scope}{7}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Contributions}{8}{section.1.5}%
+\contentsline {chapter}{\numberline {2}Related Work}{10}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Self-Care and Tracking Applications}{10}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Professional Therapy Platforms}{11}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Social and Family Connection Platforms}{11}{section.2.3}%
+\contentsline {section}{\numberline {2.4}General-Purpose AI for Mental Health Advice}{12}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Positioning of uMatter}{13}{section.2.5}%
+\contentsline {section}{\numberline {2.6}Architectural Foundations}{13}{section.2.6}%
+\contentsline {section}{\numberline {2.7}Security Foundations}{14}{section.2.7}%
+\contentsline {section}{\numberline {2.8}AI Companion And Video Consultation}{14}{section.2.8}%
+\contentsline {chapter}{\numberline {3}System Analysis and Design}{16}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Requirements Analysis}{16}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Elicitation and Iterative Validation}{17}{subsection.3.1.1}%
+\contentsline {section}{\numberline {3.2}Overall Architecture}{19}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Service Decomposition}{20}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Data Architecture}{20}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Event-Driven Messaging}{21}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Authentication, Authorization, and Data Sharing}{23}{section.3.6}%
+\contentsline {section}{\numberline {3.7}AI Companion}{25}{section.3.7}%
+\contentsline {section}{\numberline {3.8}Professional Workflows}{26}{section.3.8}%
+\contentsline {section}{\numberline {3.9}Peer and Family Connection}{27}{section.3.9}%
+\contentsline {section}{\numberline {3.10}Self-Care Features}{28}{section.3.10}%
+\contentsline {paragraph}{Focus Mode.}{28}{section.3.10}%
+\contentsline {paragraph}{Streaks and the mood calendar.}{28}{section.3.10}%
+\contentsline {paragraph}{Treasure Box.}{28}{section.3.10}%
+\contentsline {paragraph}{Emergency path}{28}{section.3.10}%
+\contentsline {section}{\numberline {3.11}Deployment Topology}{29}{section.3.11}%
+\contentsline {chapter}{\numberline {4}Implementation and Evaluation}{30}{chapter.4}%
+\contentsline {section}{\numberline {4.1}The Product: End-to-End User Journeys}{30}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}The daily loop}{31}{subsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.1.2}Someone to talk to, at any hour}{34}{subsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.1.3}Crossing into professional care}{34}{subsection.4.1.3}%
+\contentsline {subsection}{\numberline {4.1.4}Choosing who sees}{35}{subsection.4.1.4}%
+\contentsline {section}{\numberline {4.2}Implementation Overview}{36}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Deployment}{36}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Mobile Application Distribution}{37}{subsection.4.3.1}%
+\contentsline {section}{\numberline {4.4}Security Hardening}{38}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Evaluation}{39}{section.4.5}%
+\contentsline {subsection}{\numberline {4.5.1}Functional Completeness}{40}{subsection.4.5.1}%
+\contentsline {subsection}{\numberline {4.5.2}Security Posture}{40}{subsection.4.5.2}%
+\contentsline {subsection}{\numberline {4.5.3}Comparison with Existing Platforms}{40}{subsection.4.5.3}%
+\contentsline {subsection}{\numberline {4.5.4}Most-Valued Features}{41}{subsection.4.5.4}%
+\contentsline {subsubsection}{The Treasure Box (Hộp Trân Quý)}{41}{subsection.4.5.4}%
+\contentsline {subsubsection}{Daily Reflective Tracking}{41}{subsection.4.5.4}%
+\contentsline {subsection}{\numberline {4.5.5}Key Findings}{42}{subsection.4.5.5}%
+\contentsline {subsubsection}{Findings from the Design and Development Process}{42}{subsection.4.5.5}%
+\contentsline {subsubsection}{Findings from User Feedback}{43}{subsection.4.5.5}%
+\contentsline {subsubsection}{Findings from Expert Consultations}{44}{subsection.4.5.5}%
+\contentsline {chapter}{\numberline {5}Conclusion and Future Work}{45}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Conclusion}{45}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Limitations}{46}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Future Work}{46}{section.5.3}%
+\contentsline {chapter}{References}{47}{Item.3}%
+\contentsline {chapter}{\numberline {A}API Endpoint Summary}{50}{appendix.A}%
+\contentsline {chapter}{\numberline {B}Deployment Configuration Notes}{51}{appendix.B}%
+\contentsline {chapter}{\numberline {C}Requirement Traceability}{52}{appendix.C}%
+\contentsline {chapter}{\numberline {D}Baseline Platform Evaluation}{54}{appendix.D}%
+\contentsline {section}{\numberline {D.1}Study Design}{54}{section.D.1}%
+\contentsline {section}{\numberline {D.2}Findings}{55}{section.D.2}%
+\contentsline {chapter}{\numberline {E}Technology Selection Rationale}{57}{appendix.E}%
+\contentsline {section}{\numberline {E.1}Language Model}{57}{section.E.1}%
+\contentsline {section}{\numberline {E.2}Client and Backend Platform}{58}{section.E.2}%
+\contentsline {chapter}{\numberline {F}Development Cycle and Trial Participants}{60}{appendix.F}%
+\contentsline {section}{\numberline {F.1}Weekly Review Cycle}{60}{section.F.1}%
+\contentsline {section}{\numberline {F.2}User-Story and Feedback Participants}{61}{section.F.2}%
+\contentsline {section}{\numberline {F.3}Closed-Testing Cohort}{62}{section.F.3}%

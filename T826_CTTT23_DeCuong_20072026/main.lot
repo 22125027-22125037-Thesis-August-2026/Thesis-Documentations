@@ -1,0 +1,22 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Feature comparison between uMatter and comparable platforms}}{15}{table.2.1}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Key functional requirements and the objectives they realize}}{17}{table.3.1}%
+\contentsline {table}{\numberline {3.2}{\ignorespaces Key non-functional requirements}}{18}{table.3.2}%
+\contentsline {table}{\numberline {3.3}{\ignorespaces uMatter backend services and their responsibilities}}{21}{table.3.3}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {A.1}{\ignorespaces Representative endpoints by service}}{50}{table.A.1}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {C.1}{\ignorespaces Implementation status of the requirements in Section~\ref {sec:requirements}}}{53}{table.C.1}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {D.1}{\ignorespaces Platforms evaluated, with each evaluator's overall usefulness rating}}{55}{table.D.1}%
+\contentsline {table}{\numberline {D.2}{\ignorespaces Baseline-study findings traced to the features and decisions they produced}}{56}{table.D.2}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {E.1}{\ignorespaces Language models compared, as assessed in January 2026}}{57}{table.E.1}%
+\contentsline {table}{\numberline {E.2}{\ignorespaces Platform choices, alternatives considered, and the deciding factor}}{59}{table.E.2}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {F.1}{\ignorespaces Trial users who took part in the user-story and feedback rounds}}{62}{table.F.1}%

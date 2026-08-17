@@ -6,7 +6,7 @@ This chapter describes the product that the design in Chapter~\ref{Chapter3} bec
 \section{The Product: End-to-End User Journeys}
 \label{sec:product}
 
-This section presents the delivered system as the five journeys trial users actually walk, in the order a teenager meets them: the ordinary day, the difficult moment, and professional care when the first two are not enough.
+This section presents the delivered system as the journeys trial users actually walk, in the order a teenager meets them: the ordinary day, the difficult moment, and professional care when the first two are not enough.
 
 The journeys share one record and one gate. Every entry a user makes in the first journey is what the AI companion, the therapist, and a trusted friend later read; and none of them read anything until the user grants access, which the last journey covers.
 
@@ -16,33 +16,55 @@ The journeys share one record and one gate. Every entry a user makes in the firs
 \setlength{\journeyfigheight}{0.32717\textwidth}
 
 
-\subsection{The daily loop: notice, record, understand}
+\subsection{The daily loop}
 \label{sec:journey-daily}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[height=\journeyfigheight]{Chapter4/images/j1-daily-loop.png}
-    \caption{The daily loop: a Focus Mode prompt, the mood check-in, the emotional journal, and the trends the entries accumulate into.}
+    \caption{The daily loop: the home screen of ``today'' cards, the mood check-in and journal entry, the week those entries accumulate into, and the trophy that closes the day.}
     \label{fig:j1-daily-loop}
 \end{figure}
 
-The habit at the centre of the product is a check-in that costs one tap, followed in Figure~\ref{fig:j1-daily-loop}. The application comes to the user rather than waiting to be opened: with Focus Mode enabled.
+The home screen is a column of ``today'' cards to be filled in. Figure~\ref{fig:j1-daily-loop} follows a day across the column, and Figure~\ref{fig:j1b-capture} shows the rest of it. No single card carries the habit: each costs a tap or two, and steps arrive on their own.
 
-The emotional journal extends the same act. The user picks the emotion that fits, names what the day was about, writes as much or as little as they want, and attaches photographs. The fourth screen is what those entries accumulate into: a mood calendar colouring each day, per-category streaks, and weekly trends across sleep, steps, nutrition, and breathing (FR1, FR2). This is the return on the habit, and it is what keeps the record a picture of the user's own month rather than data submitted somewhere.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=\journeyfigheight]{Chapter4/images/j1b-capture.png}
+    \caption{Inside the rest of the column: sleep, nutrition, steps counted in the background, and the library of guided relaxation sessions --- each card opening onto its own week.}
+    \label{fig:j1b-capture}
+\end{figure}
 
-\subsection{The low moment: first aid that is routed, not generic}
-\label{sec:journey-low}
+Three things keep the habit from depending on memory, and Figure~\ref{fig:j1d-habit} is all three: a streak per category, a trophy for closing the day's four, and Focus Mode --- a nudge every ninety minutes, silent from 22:00 to 07:00 (FR1--FR3).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Chapter4/images/j1d-habit.png}
+    \caption{What brings the user back: streaks, the daily trophy, and Focus Mode.}
+    \label{fig:j1d-habit}
+\end{figure}
+
+Breathing is the one card that gives something back the moment it is used, and Figure~\ref{fig:j1c-breathe} runs it end to end: four paced rounds of 4-7-8 with calming audio, then a prompt to picture a happy memory, and a closing line that the user has just spent two minutes on themselves.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=\journeyfigheight]{Chapter4/images/j1c-breathe.png}
+    \caption{The guided breathing exercise, end to end: 4-7-8 paced on screen, closing on recall of a good memory rather than a score.}
+    \label{fig:j1c-breathe}
+\end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[height=\journeyfigheight]{Chapter4/images/j2-low-moment.png}
-    \caption{Logging a negative emotion routes to a matched response: guided breathing for anger, the Treasure Box for sadness, and the emergency area always one tap away.}
+    \caption{Logging a negative emotion routes to a matched response}
     \label{fig:j2-low-moment}
 \end{figure}
 
-What happens immediately after a negative mood is logged is the design decision that most distinguishes the product. The application does not return the user to a dashboard; it routes by the emotion recorded, following the guidance of the professionals consulted in Section~\ref{sec:elicitation}: anger to a guided 4-7-8 breathing exercise, sadness to the user's own Treasure Box (FR5).
+The same cards behave differently when what they record is bad news, and this is the design decision that most distinguishes the product. A negative check-in does not return the user to the dashboard; it routes them, by the emotion recorded, to one of the cards above (FR5). Anger goes to the breathing card, sadness to the Treasure Box, and the SOS card is one tap from either. What appears first is not a form but a sentence acknowledging the day: \emph{Hôm nay có vẻ nặng nề\ldots} (``today feels heavy'').
 
-The Treasure Box, in the third panel of Figure~\ref{fig:j2-low-moment}, is the feature trial users valued most (Section~\ref{sec:most-valued}). Its premise is that a low mood makes good memories hard to reach, so the memories --- photographs, kind messages, small wins, reasons to keep going --- are saved in advance on a good day and reopened at the moment recall fails. Alongside both paths, the emergency area is one tap from anywhere in the application and renders entirely from client-side content, so it stays available even when the backend is not (FR5).
+The Treasure Box is where the sad path lands, and the feature trial users valued most (Section~\ref{sec:most-valued}). Its premise is clinical rather than decorative: a low mood makes good memories hard to reach, so they are saved \emph{in advance} on a good day and served back at the moment recall fails.
+
+Beneath all of it sits that SOS card: emergency numbers, the user's own nominated contacts, the free listening hotlines, and routes to a therapist or the companion (FR5).
 
 \subsection{Someone to talk to, at any hour}
 \label{sec:journey-companion}
